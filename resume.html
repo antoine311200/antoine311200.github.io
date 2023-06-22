@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Antoine Debouchage - NLP & Quantum-inspired Algorithms</title>
+
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,300' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/stars.css">
+</head>
+
+<body>
+    <header id="header" class="fixed-top">
+        <div class="container d-flex align-items-center justify-content-between">
+            <hi class="logo nav-link"><a href="index.html">Antoine Debouchage</a></hi>
+
+            <nav id="navbar" class="navbar">
+                <ul>
+                    <li><a class="nav-link scrollto" href="#home">Home</a></li>
+                    <li><a class="nav-link scrollto active" href="#resume">Resume</a></li>
+                    <li><a class="nav-link scrollto" href="#projects">Projects</a></li>
+                    <li><a class="nav-link scrollto " href="#blog">Blog</a></li>
+                    <li><a class="nav-link scrollto " href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="pb-4" id="resume" style="padding-top: 35px;">
+        <div class="">
+            <section class="w-100 p-5">
+                <style>
+                    .timeline-basic-example {
+                        border-left: 1px solid hsl(0, 0%, 90%);
+                        position: relative;
+                        list-style: none;
+                    }
+
+                    .timeline-basic-example .timeline-item {
+                        position: relative;
+                    }
+
+                    .timeline-basic-example .timeline-item:after {
+                        position: absolute;
+                        display: block;
+                        top: 0;
+                    }
+
+                    .timeline-basic-example .timeline-item:after {
+                        background-color: hsl(0, 0%, 90%);
+                        left: -38px;
+                        border-radius: 50%;
+                        height: 11px;
+                        width: 11px;
+                        content: "";
+                    }
+
+                    .resume-title {
+                        margin-top: 1.5em;
+                        margin-bottom: 1.5em;
+                    }
+                </style>
+
+                <h3 class="text-white resume-title">Professional Experiences</h3>
+
+                <ul class="timeline-basic-example">
+
+                    <li class="timeline-item mb-5">
+                        <h5 class="fw-bold text-white">Banque de France - Natural Language Processing Intern</h5>
+                        <p class="text-muted mb-2 fw-bold">03/2023 - 08-2023</p>
+                        <p class="text-muted">
+                            <ul class="text-white openss">
+                                <li>Improved a document analysis tool with topic modeling (BERTopic), question/answering (zero-shot, T0pp).</li>
+                                <li>Built the basis of an internal application for general NLP at the bank (topic analysis and LLMs).</li>
+                                <li>crapped billions of tokens to create financial datasets.</li>
+                                <li>Created a fine-tuning framework of transformers & LLM models with SOTA method (LoRA, quantization).</li>
+                            </ul>
+                        </p>
+                    </li>
+
+                    <li class="timeline-item mb-5">
+                        <h5 class="fw-bold text-white">Reverso - Natural Language Processing Intern</h5>
+                        <p class="text-muted mb-2 fw-bold">09/2022 - 02/2023</p>
+                        <p class="text-muted text-2xl">
+                            <ul class="text-white openss">
+                                <li>Investigated paraphrasing with fast inference using CTranslate2.</li>
+                                <li>Realized novel strategies for ensuring diversity and quality of rephrasing.</li>
+                                <li>Creation of a complete paraphrasing dataset.</li>
+                            </ul>
+                        </p>
+                    </li>
+
+                    <li class="timeline-item mb-5">
+                        <h5 class="fw-bold text-white">Multiverse Computing - Tensor Network Intern</h5>
+                        <p class="text-muted mb-2 fw-bold">04/2022 - 08/2022</p>
+                        <p class="text-muted text-xs">
+                            <ul class="text-white openss">
+                                <li>Tensor Network Intern. Developed a new optimization algorithm based on specific tensor networks with imaginary-time evolution tested on dozens of problems.</li>
+                                <li>Resulted in constraint-satisfied quasi-optimal solutions on Quadratic Portfolio Optimisation problems.</li>
+                        </p>
+                    </li>
+                </ul>
+            </section>
+        </div>
+    </section>
+
+
+    <div id="sky">
+        <div id="stars"></div>
+        <div id="stars2"></div>
+        <div id="stars3"></div>
+    </div>
+
+    <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
+</body>
+
+</html>

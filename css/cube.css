@@ -1,0 +1,17 @@
+div#cubes {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    /* animation: turn 5s linear infinite;
+    transform-style: preserve-3d; */
+    perspective: 1000px;
+}
+
+
+@keyframes turn {
+    from { transform: rotate3d(0, 0, 0, 0); }
+    to { transform: rotate3d(1, 1, 0, 360deg); }
+}

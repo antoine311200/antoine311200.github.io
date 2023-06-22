@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Antoine Debouchage - Portfolio</title>
+
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,300' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.0/css/all.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tw-elements/dist/css/tw-elements.min.css" />
+
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/stars.css">
+    <link rel="stylesheet" href="css/cube.css">
+</head>
+
+<body>
+    <header id="header" class="fixed-top">
+        <div class="container d-flex align-items-center justify-content-between">
+            <hi class="logo nav-link"><a href="#home">Antoine Debouchage</a></hi>
+
+            <nav id="navbar" class="navbar">
+                <ul>
+                    <li><a class="nav-link scrollto active" href="#home">Home</a></li>
+                    <li><a class="nav-link scrollto" href="#resume">Resume</a></li>
+                    <li><a class="nav-link scrollto" href="#projects">Projects</a></li>
+                    <li><a class="nav-link scrollto " href="#blog">Blog</a></li>
+                    <li><a class="nav-link scrollto " href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div id="home" class="home route bg-image">
+        <div class="overlay-itro"></div>
+        <div class="home-content display-table">
+            <div class="table-cell">
+                <div class="container">
+                    <h1 class="home-title mb-4"><span class="home-span">Antoine Debouchage</span></h1>
+                    <p class="home-subtitle"><span class="home-span">Natural Language Processing, Quantum Computing,
+                            Tensor Networks</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="pb-4" id="resume" style="padding-top: 35px;">
+        <!-- Right arrow -->
+        <div class="relative">
+            <section class="w-100 p-5">
+                <style>
+                    .timeline-basic {
+                        border-left: 1px solid hsl(0, 0%, 90%);
+                        position: relative;
+                        list-style: none;
+                    }
+
+                    .timeline-basic .timeline-item {
+                        position: relative;
+                    }
+
+                    .timeline-basic .timeline-item:after {
+                        position: absolute;
+                        display: block;
+                        top: 0;
+                    }
+
+                    .timeline-basic .timeline-item:after {
+                        background-color: hsl(0, 0%, 90%);
+                        left: -38px;
+                        border-radius: 50%;
+                        height: 11px;
+                        width: 11px;
+                        content: "";
+                    }
+
+                    .resume-title {
+                        margin-top: 1.5em;
+                        margin-bottom: 1.5em;
+                    }
+
+                    .arrow-right {
+                        position: absolute;
+                        top: 50%;
+                        width: 50px;
+                        height: 50px;
+                        right: 100px;
+                        border: solid rgb(255, 255, 255);
+                        border-width: 0 3px 3px 0;
+                        display: inline-block;
+                        padding: 3px;
+                        transform: rotate(-45deg);
+                        -webkit-transform: rotate(-45deg);
+                    }
+                </style>
+
+                <h3 class="text-white resume-title">Professional Experiences</h3>
+
+                <ul class="timeline-basic">
+
+                    <li class="timeline-item mb-4">
+                        <h5 class="fw-bold text-white">Banque de France - Natural Language Processing Intern</h5>
+                        <p class="text-muted mb-2 fw-bold">03/2023 - 08-2023</p>
+                        <p class="text-muted mb-1">
+                        <ul class="text-white">
+                            <li>Improved a document analysis tool with topic modeling (BERTopic), question/answering
+                                (zero-shot, T0pp).</li>
+                            <li>Built the basis of an internal application for general NLP at the bank (topic analysis
+                                and LLMs).</li>
+                            <li>Scrapped billions of tokens to create financial datasets.</li>
+                            <li>Created a fine-tuning framework of transformers & LLM models with SOTA method (LoRA,
+                                quantization).</li>
+                        </ul>
+                        </p>
+                    </li>
+
+                    <li class="timeline-item mb-4">
+                        <h5 class="fw-bold text-white">Reverso - Natural Language Processing Intern</h5>
+                        <p class="text-muted mb-2 fw-bold">09/2022 - 02/2023</p>
+                        <p class="text-muted mb-1">
+                        <ul class="text-white">
+                            <li>Investigated paraphrasing with fast inference using CTranslate2.</li>
+                            <li>Realized novel strategies for ensuring diversity and quality of rephrasing.</li>
+                            <li>Creation of a complete paraphrasing dataset.</li>
+                        </ul>
+                        </p>
+                    </li>
+
+
+                    <li class="timeline-item mb-4">
+                        <h5 class="fw-bold text-white">Multiverse Computing - Tensor Network Intern</h5>
+                        <p class="text-muted mb-2 fw-bold">04/2022 - 08/2022</p>
+                        <p class="text-muted mb-1">
+                        <ul class="text-white">
+                            <li>Developed a new optimization algorithm based on specific tensor
+                                networks with imaginary-time evolution.</li>
+                            <li>Resulted in constraint-satisfied quasi-optimal solutions on Quadratic Portfolio
+                                Optimisation problems.</li>
+                            </p>
+                    </li>
+                </ul>
+            </section>
+
+            <div class="absolute top-1/2 right-0 transform -translate-y-1/2">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+    </section>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+
+
+    <section class="pb-4 route" id="projects">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="title-box text-center">
+                    <h3 class="title text-white" style="margin-top: 85px">
+                        Projects
+                    </h3>
+                    <p class="subtitle-a text-white pt-2">
+                        Exhaustive list of my projects
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-left: 20%;">
+            <div class="col-md-3">
+                <div class="work-box">
+                    <a href="" data-gallery="portfolioGallery" class="portfolio-lightbox">
+                        <div class="work-img">
+                            <img src="asset\background.png" alt="" class="img-fluid">
+                        </div>
+                    </a>
+                    <div class="work-content">
+                        <div class="row">
+                            <div class="col-sm-10">
+                                <h2 class="w-title">Syngular</h2>
+                                <div class="w-more">
+                                    <span class="w-ctegory">A Tensor Network package for Machine Learning and Quantum
+                                        Computing in Python.</span> / <span class="w-date">18 Sep. 2018</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="w-like">
+                                    <a href=""> <span class="bi bi-plus-circle"></span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="work-box">
+                    <a href="asset\background.png" data-gallery="portfolioGallery" class="portfolio-lightbox">
+                        <div class="work-img">
+                            <img src="asset\background.png" alt="" class="img-fluid">
+                        </div>
+                    </a>
+                    <div class="work-content">
+                        <div class="row">
+                            <div class="col-sm-10">
+                                <h2 class="w-title">Syngular</h2>
+                                <div class="w-more">
+                                    <span class="w-ctegory">A Tensor Network package for Machine Learning and Quantum
+                                        Computing in Python.</span> / <span class="w-date">18 Sep. 2018</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="w-like">
+                                    <a href="portfolio-details.html"> <span class="bi bi-plus-circle"></span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="work-box">
+                    <a href="asset\background.png" data-gallery="portfolioGallery" class="portfolio-lightbox">
+                        <div class="work-img">
+                            <img src="asset\background.png" alt="" class="img-fluid">
+                        </div>
+                    </a>
+                    <div class="work-content">
+                        <div class="row">
+                            <div class="col-sm-10">
+                                <h2 class="w-title">Syngular</h2>
+                                <div class="w-more">
+                                    <i class="fab fa-instagram"></i>
+
+                                    <span class="w-ctegory">A Tensor Network package for Machine Learning and Quantum
+                                        Computing in Python.</span> / <span class="w-date">18 Sep. 2018</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="w-like">
+                                    <a href="portfolio-details.html"> <span class="bi bi-plus-circle"></span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+
+    <footer class="fixed-bottom w-full bg-transparent">
+        <div class="flex justify-center items-center h-2">
+            <a href="https://github.com/antoine311200" target="_blank" class="text-white hover:text-gray-400 mx-3"
+                style="text-decoration: none !important;">
+                <i class="fa-brands fa-github"></i>
+            </a>
+            <a href="https://twitter.com/antoine311200" target="_blank" class="text-white hover:text-gray-400 mx-3"
+                style="text-decoration: none !important;">
+                <i class="fab fa-twitter"></i>
+            </a>
+            <a href="https://www.kaggle.com/antoinedebouchage" target="_blank"
+                class="text-white hover:text-gray-400 mx-3" style="text-decoration: none !important;">
+                <i class="fa-brands fa-kaggle"></i>
+            </a>
+            <a href="https://www.linkedin.com/in/antoine-debouchage-24b23a161/" target="_blank"
+                class="text-white hover:text-gray-400 mx-3" style="text-decoration: none !important;">
+                <i class="fa-brands fa-linkedin"></i>
+            </a>
+        </div>
+    </footer>
+
+    <div id="sky">
+        <div id="stars"></div>
+        <div id="stars2"></div>
+        <div id="stars3"></div>
+    </div>
+
+    <script src="js/cube.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
