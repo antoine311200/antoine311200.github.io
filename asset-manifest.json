@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/antoine311200.github.io/static/css/main.5b7b1c40.css",
+    "main.js": "/antoine311200.github.io/static/js/main.57433fa9.js",
+    "static/js/787.1ed0c42c.chunk.js": "/antoine311200.github.io/static/js/787.1ed0c42c.chunk.js",
+    "index.html": "/antoine311200.github.io/index.html",
+    "main.5b7b1c40.css.map": "/antoine311200.github.io/static/css/main.5b7b1c40.css.map",
+    "main.57433fa9.js.map": "/antoine311200.github.io/static/js/main.57433fa9.js.map",
+    "787.1ed0c42c.chunk.js.map": "/antoine311200.github.io/static/js/787.1ed0c42c.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.5b7b1c40.css",
+    "static/js/main.57433fa9.js"
+  ]
+}
