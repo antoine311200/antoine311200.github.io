@@ -1,0 +1,43 @@
+/* Gradient Animation */
+@keyframes gradientAnimation {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 100% 50%;
+    }
+}
+
+.gradient-animation {
+    /* background: linear-gradient(90deg, #d6b3f9, #765ed8, #2effe3); */
+    background: linear-gradient(
+        to right,
+        #db8b1b 20%,
+        #00affa 30%,
+        #01cd45 70%,
+        #940f82 80%
+    );
+    background-size: 500% auto;
+    animation: gradientAnimation 1s ease-in-out infinite alternate;
+    transition: background-position 0.5s;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-fill-color: transparent;
+}
+
+  /* p {
+    background: linear-gradient(
+        to right,
+        #7953cd 20%,
+        #00affa 30%,
+        #0190cd 70%,
+        #764ada 80%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-fill-color: transparent;
+    background-size: 500% auto;
+    animation: textShine 5s ease-in-out infinite alternate;
+} */
