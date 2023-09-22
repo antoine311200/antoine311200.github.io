@@ -5,6 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
+import BlogPage from './pages/blog';
 import Article from './components/article';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -13,7 +14,7 @@ root.render(
     <Router>
       <Routes>
         <Route path="/" element={<App />} />
-        <Route path="/blog" element={<Article />} />
+        <Route path="/blog" element={<BlogPage />} />
       </Routes>
     </Router>
   </React.StrictMode>
