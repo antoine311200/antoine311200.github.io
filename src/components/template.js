@@ -4,7 +4,7 @@ import Header from './header';
 import Footer from './footer';
 import '../App.css';
 
-export default function Template({ children }) {
+export default function Template({ children, iconColor }) {
   return (
     <div className='min-h-screen h-screen'>
       <div
@@ -19,7 +19,7 @@ export default function Template({ children }) {
 
       {children}
 
-      <Footer />
+      <Footer iconColor={iconColor} />
     </div >
   );
 }

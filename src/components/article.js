@@ -65,7 +65,7 @@ export default function Article({ children }) {
   }, []);
 
   return (
-    <Template>
+    <Template iconColor="black">
       <main className="flex-grow container mx-auto p-4">
 
         <div className="bg-white rounded-lg shadow-lg p-6">
