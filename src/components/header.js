@@ -2,6 +2,8 @@ import React from 'react';
 
 import TextHover from './texthover';
 
+import { Link } from 'react-router-dom';
+
 export default function Header() {
     return (
         <div>
@@ -11,24 +13,24 @@ export default function Header() {
                         <h1 className="text-2xl">Antoine Debouchage</h1>
                         <ul className='flex justify-center gap-4'>
                             <li>
-                                <a href="#">
+                                <Link to="/">
                                     <TextHover text='Home' />
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a href="#">
+                                <Link to="/resume">
                                     <TextHover text='Resume' />
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a href="#">
+                                <Link to="/project">
                                     <TextHover text='Project' />
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a href="/blog">
+                                <Link to="/blog">
                                     <TextHover text='Blog' />
-                                </a>
+                                </Link>
                             </li>
                             <li>
                                 <a href="#">
