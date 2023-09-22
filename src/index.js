@@ -9,13 +9,12 @@ import Article from './components/article';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
-    {/* <BrowserRouter>
+    <Router>
       <Routes>
-        <Route exact path="/" element={<Platform />} />
-        <Route path="/app" element={<Dashboard />} />
+        <Route path="/" element={<App />} />
+        <Route path="/blog" element={<Article />} />
       </Routes>
-    </BrowserRouter> */}
+    </Router>
   </React.StrictMode>
 );
 

@@ -26,7 +26,7 @@ export default function Header() {
                                 </a>
                             </li>
                             <li>
-                                <a href="#">
+                                <a href="/blog">
                                     <TextHover text='Blog' />
                                 </a>
                             </li>
