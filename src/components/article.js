@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 
 import '../App.css';
 import Template from '../components/template';
-
-
+import Markdown from '../components/markdown';
+import 'katex/dist/katex.min.css';
+import { InlineMath, BlockMath } from 'react-katex';
 
 export default function Article({ children }) {
 
@@ -70,6 +71,7 @@ export default function Article({ children }) {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h1 className="text-3xl font-semibold">Blog Title</h1>
           <p className="text-gray-600">Posted on September 21, 2023</p>
+          <hr className="mb-4" />
 
           {/* Table of Contents */}
           <div className="lg:w-1/4 lg:ml-4 fixed right-0">
@@ -92,6 +94,10 @@ export default function Article({ children }) {
 
           {/* Article Content */}
           <div className="lg:w-3/4">
+
+          <BlockMath math={"a+b"} />
+          <Markdown />
+
             {articleContent.map((section) => (
               <section
                 key={section.id}

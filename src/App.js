@@ -1,7 +1,6 @@
 import React from 'react';
 
 import './App.css';
-import './animation.css'
 
 import Template from './components/template';
 
