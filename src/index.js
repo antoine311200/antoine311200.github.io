@@ -4,7 +4,7 @@ import reportWebVitals from './reportWebVitals';
 import { Routes, Route, HashRouter } from 'react-router-dom';
 
 import App from './App';
-import BlogPage from './pages/blog';
+import Blog from './pages/blog';
 import Paper from './pages/paper';
 import Resume from './pages/resume';
 
@@ -19,7 +19,7 @@ root.render(
           <Route path="/resume" element={<Resume />} />
           <Route path="/project" element={<App />} />
           <Route path="/papers" element={<Paper />} />
-          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog" element={<Blog />} />
           <Route path="/contact" element={<App />} />
         </Routes>
       </HashRouter>
