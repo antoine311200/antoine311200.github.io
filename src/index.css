@@ -25,6 +25,7 @@ code {
 /* Remove the default scrollbar styles */
 ::-webkit-scrollbar {
   width: 10px; /* Set the width of the scrollbar */
+  background: rgb(30 41 59); /* Set the background color of the scrollbar track */
 }
 
 /* Style the scrollbar track (background) */
