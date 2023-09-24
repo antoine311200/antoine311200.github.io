@@ -1,17 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import Template from '../components/template';
-import Markdown from '../components/markdown';
-import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
-import { useParams } from 'react-router-dom';
 
-import title2uri from '../utils';
-
-const DUMMY = {
-  title: 'Product 1',
+const article3 = {
+  title: 'Product 3',
   date: '2021-01-01',
   description: 'A great product for your needs.',
-  keywords: ['product', 'electronics', 'gadget'],
+  keywords: ['product', 'chemistry', 'gadget'],
   content: [
     {
       id: 'section1',
@@ -65,129 +57,5 @@ const DUMMY = {
     }]
 };
 
-const Article = ({ articleContent = DUMMY, data = undefined }) => {
-  // Sample content with sections, subsections, and subsubsections
 
-  const { title } = useParams();
-
-  console.log(title);
-
-  console.log(data);
-
-  articleContent = data.find(
-    (a) => encodeURIComponent(title2uri(a.title)) === title2uri(title)
-  );
-
-  console.log('okokok');
-  console.log(articleContent);
-
-  const [activeSection, setActiveSection] = useState(null);
-
-  const handleSectionClick = (sectionId) => {
-    setActiveSection(sectionId);
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  useEffect(() => {
-    document.title = `Blog - ${articleContent.title}`;
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const sectionIds = [];
-
-      const processSections = (sections) => {
-        for (const section of sections) {
-          sectionIds.push(section.id);
-          if (section.subsections) {
-            processSections(section.subsections);
-          }
-          if (section.subsubsections) {
-            sectionIds.push(...section.subsubsections.map((subsubsection) => subsubsection.id));
-          }
-        }
-      };
-
-      processSections(articleContent.content);
-
-      for (let i = sectionIds.length - 1; i >= 0; i--) {
-        const element = document.getElementById(sectionIds[i]);
-        if (element && scrollPosition >= element.offsetTop - 100) {
-          setActiveSection(sectionIds[i]);
-          break;
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-
-
-  const renderSections = (sections) => {
-    return sections.map((section) => (
-      <section key={section.id} id={section.id} className="mb-6">
-        <h2 className="text-2xl font-semibold">{section.title}</h2>
-        <p>{section.content}</p>
-        {section.subsections && renderSections(section.subsections)}
-      </section>
-    ));
-  };
-
-  const renderTableOfContents = (sections, depth) => {
-    return (
-      <ul className='ml-2'>
-        {sections.map((section) => (
-          <li key={section.id} style={
-            {
-              fontSize: `${16 - depth * 2}px`,
-            }
-          }>
-            <a
-              className={`cursor-pointer ${activeSection === section.id ? 'font-semibold' : ''
-                }`}
-              onClick={() => handleSectionClick(section.id)}
-            >
-              {section.title}
-            </a>
-            {section.subsections && renderTableOfContents(section.subsections, depth + 1)}
-          </li>
-        ))}
-      </ul>
-    );
-  };
-
-
-  return (
-
-    <Template iconColor="black">
-      <main className="flex-grow container mx-auto p-4">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-semibold">{articleContent.title}</h1>
-          <p className="text-gray-600">Posted on September 21, 2023</p>
-          <hr className="mb-4" />
-
-          <div className="lg:w-1/4 lg:ml-4 fixed right-0">
-            <div className="sticky top-16">
-              <h2 className="text-xl font-semibold mb-2">Table of Contents</h2>
-              {renderTableOfContents(articleContent.content, 0)}
-            </div>
-          </div>
-
-          <div className="lg:w-3/4 mx-10 mt-10">
-            {renderSections(articleContent.content)}
-          </div>
-        </div>
-      </main>
-    </Template >
-  );
-}
-
-export default Article;
+export default article3;

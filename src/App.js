@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import './App.css';
 
@@ -6,6 +6,11 @@ import Template from './components/template';
 
 
 export default function App() {
+
+  useEffect(() => {
+    document.title = `Antoine Debouchage - Machine Learning, Quantum Computing, Mathematics - Personal Website`;
+  }, []);
+
   return (
     <Template>
       <div className="text-center pt-20" style={{ zIndex: 10 }}>

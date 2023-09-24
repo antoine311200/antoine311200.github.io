@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import Template from '../components/template';
 
@@ -140,6 +140,11 @@ const Projects = () => {
 };
 
 const Resume = () => {
+
+    useEffect(() => {
+        document.title = `Resume | Antoine Debouchage`;
+    }, []);
+
     return (
         <Template>
             <div className="px-16 py-8 grid grid-cols-1 md:grid-cols-2 gap-12 text-white">
