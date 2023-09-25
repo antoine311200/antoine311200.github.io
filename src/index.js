@@ -16,16 +16,17 @@ import Template from './components/template';
 
 
 const articleModules = [];
-const requireArticle = require.context('./data/articles', false, /article\d+\.js$/);
+const requireArticle = require.context('./data/articles', false, /.js$/);
 
 requireArticle.keys().forEach((filename) => {
-  const articleNumber = filename.match(/article(\d+)\.js$/)[1];
   const article = requireArticle(filename).default; // Assuming you're exporting as default
 
-  articleModules[articleNumber - 1] = article;
+  articleModules.push(article);
 });
 
 const dataArticles = [...articleModules];
+
+console.log(dataArticles);
 
 // const MatchArticle = () => {
 //   const match = useMatch();

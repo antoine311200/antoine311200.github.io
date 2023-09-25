@@ -70,16 +70,9 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
 
   const { title } = useParams();
 
-  console.log(title);
-
-  console.log(data);
-
   articleContent = data.find(
     (a) => encodeURIComponent(title2uri(a.title)) === title2uri(title)
   );
-
-  console.log('okokok');
-  console.log(articleContent);
 
   const [activeSection, setActiveSection] = useState(null);
 
@@ -181,7 +174,7 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
             </div>
           </div>
 
-          <div className="lg:w-3/4 mx-10 mt-10">
+          <div className="lg:w-3/4 mx-10 sm:mx-2 md:mx-2 mt-10 text-justify">
             {renderSections(articleContent.content)}
           </div>
         </div>

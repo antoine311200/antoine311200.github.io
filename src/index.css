@@ -4,10 +4,10 @@
 
 @import '~font-awesome/css/font-awesome.css';
 
-html{
+html {
   overflow-y: scroll;
   overflow-y: overlay;
-  scrollbar-gutter: stable;
+  /* scrollbar-gutter: stable; */
 }
 
 
