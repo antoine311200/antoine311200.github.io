@@ -26,16 +26,6 @@ requireArticle.keys().forEach((filename) => {
 
 const dataArticles = [...articleModules];
 
-console.log(dataArticles);
-
-// const MatchArticle = () => {
-//   const match = useMatch();
-//   console.log(match);
-//   const article = dataArticles.find(
-//     (a) => encodeURIComponent(title2uri(a.title)) === title2uri(match.title)
-//   );
-//   return <div>Article not found</div>; // article ? <Article articleContent={article} /> : 
-// };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

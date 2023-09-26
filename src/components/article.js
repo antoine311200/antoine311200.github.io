@@ -134,7 +134,6 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
 
   const renderTableOfContents = (sections, depth) => {
     const maxLength = 30;
-    console.log(sections[0].title.length);
     return (
       <ul className={`${depth == 0 ? 'ml-2' : 'ml-4'}`}>
         {sections.map((section) => (

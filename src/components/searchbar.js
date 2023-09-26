@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
 
-const SearchBar = ({ onSearch, placeholder = "Search..." }) => {
-    const [searchTerm, setSearchTerm] = useState('');
-
+const SearchBar = ({ placeholder = "Search...", searchTerm, setSearchTerm }) => {
     const handleInputChange = (e) => {
         setSearchTerm(e.target.value);
-        onSearch(e.target.value); // Pass the search term to the parent component for filtering
     };
 
     return (
-        <div className="relative">
+        <div className="relative flex-grow">
             <input
                 type="text"
                 className="w-full px-4 py-2 pr-10 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"

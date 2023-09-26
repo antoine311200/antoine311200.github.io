@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Antoine Debouchage - Personal Website",
+  "name": "Antoine Debouchage - Machine Learning, Quantum Computing, Mathematics - Personal Website",
+  "description": "A personal website featuring articles, lessons, and my projects on mathematics, machine learning, and quantum computing.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -21,5 +22,11 @@
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "background_color": "#ffffff",
+  "lang": "en-US",
+  "scope": "/",
+  "orientation": "any",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "permissions": []
 }
