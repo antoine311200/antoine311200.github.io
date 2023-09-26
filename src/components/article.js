@@ -69,10 +69,10 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
   const { title } = useParams();
 
   articleContent = data.find(
-    (a) => encodeURIComponent(title2uri(a.title)) === title2uri(title)
+    (a) => encodeURIComponent(title2uri(a.title)) === encodeURIComponent(title2uri(title))
   );
 
-  const [activeSection, setActiveSection] = useState(null);
+  const [activeSection, setActiveSection] = useState(articleContent.content[0].id || '');
 
   const handleSectionClick = (sectionId) => {
     setActiveSection(sectionId);
