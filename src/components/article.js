@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Template from '../components/template';
-import Markdown from '../components/markdown';
 import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
 import { useParams } from 'react-router-dom';
 
 import title2uri from '../utils';
@@ -127,7 +125,7 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
   const renderSections = (sections) => {
     return sections.map((section) => (
       <section key={section.id} id={section.id} className="mb-6">
-        <h2 className="text-2xl font-semibold">{section.title}</h2>
+        <h2 className="text-2xl font-semibold mb-2">{section.title}</h2>
         <p>{section.content}</p>
         {section.subsections && renderSections(section.subsections)}
       </section>
@@ -135,20 +133,28 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
   };
 
   const renderTableOfContents = (sections, depth) => {
+    const maxLength = 30;
+    console.log(sections[0].title.length);
     return (
-      <ul className='ml-2'>
+      <ul className={`${depth == 0 ? 'ml-2' : 'ml-4'}`}>
         {sections.map((section) => (
           <li key={section.id} style={
             {
               fontSize: `${16 - depth * 2}px`,
+              marginTop: `5px`
             }
           }>
             <a
-              className={`cursor-pointer ${activeSection === section.id ? 'font-semibold' : ''
-                }`}
+              className={
+                `cursor-pointer relative group block transition-all duration-100 ease-in-out
+                ${activeSection === section.id ? 'font-semibold border-l-4 border-black px-2 py-1' : ''}}
+                `}
               onClick={() => handleSectionClick(section.id)}
             >
-              {section.title}
+              {section.title.length > maxLength ? section.title.slice(0, maxLength) + "..." : section.title}
+              {section.title.length > maxLength ? (<span className="absolute bg-gray-200 text-gray-800 p-2 text-sm rounded-md opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out group-hover:opacity-100 top-10 left-1/2 transform -translate-x-3/4 z-10">
+                {section.title}
+              </span>) : null}
             </a>
             {section.subsections && renderTableOfContents(section.subsections, depth + 1)}
           </li>
@@ -167,14 +173,16 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
           <p className="text-gray-600">Posted on September 21, 2023</p>
           <hr className="mb-4" />
 
-          <div className="lg:w-1/4 lg:ml-4 fixed right-0">
+          <div className="lg:w-1/4 lg:ml-4 lg:fixed lg:right-5 lg:block">
             <div className="sticky top-16">
               <h2 className="text-xl font-semibold mb-2">Table of Contents</h2>
               {renderTableOfContents(articleContent.content, 0)}
             </div>
           </div>
 
-          <div className="lg:w-3/4 mx-10 sm:mx-2 md:mx-2 mt-10 text-justify">
+          <hr className="mb-4 md:hidden" />
+
+          <div className="lg:w-3/4 mx-2 md:mx-2 mt-10 text-justify">
             {renderSections(articleContent.content)}
           </div>
         </div>
