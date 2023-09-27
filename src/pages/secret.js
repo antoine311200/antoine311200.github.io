@@ -70,12 +70,12 @@ function JapaneseApp() {
     return (
         <div className="bg-slate-800 h-screen w-screen">
             <div className="w-full z-10">
-                <h1 className="text-5xl p-8 mb-24 text-white text-center">Japanese App</h1>
+                <h1 className="text-3xl lg:text-5xl p-8 mb-24 text-white text-center">Japanese App</h1>
             </div>
             <div className="flex flex-col items-center gap-10">
-                <h1 className="fixed text-9xl text-white text-center">{word}</h1>
+                <h1 className="fixed text-6xl lg:text-9xl text-white text-center">{word}</h1>
                 {word != furigana && isToggled && <h1 className="fixed text-3xl text-white text-center top-40">{furigana}</h1>}
-                {isToggled && <h1 className="fixed text-3xl text-white text-center bottom-1/3">{meaning.replace(',', ', ')}</h1>}
+                {isToggled && <h1 className="fixed text-xl lg:text-3xl text-white text-center bottom-1/3 px-8">{meaning.replace(/,/g, ', ')}</h1>}
             </div>
             <div className="flex flex-col items-center">
                 <button className="absolute bottom-20 justify-center bg-slate-50 hover:bg-slate-200 focus:ring-2 focus:outline-none focus:ring-slate-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center" onClick={randomVocab}>
