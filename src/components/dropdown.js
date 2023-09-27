@@ -47,7 +47,7 @@ const SelectMenu = ({ name, selected, setSelected, options = dummyOptions }) => 
                     onClick={() => {
                         isDropdownOpen ? closeDropdown() : openDropdown();
                     }}
-                    className="bg-slate-50 hover:bg-slate-200 focus:ring-2 focus:outline-none focus:ring-slate-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                    className="bg-slate-50 hover:bg-slate-200 focus:ring-2 focus:outline-none focus:ring-slate-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center"
                     type="button">
                     {(options.find((option) => option.value === selected) || options[0]).label}
                     <svg className="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
