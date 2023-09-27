@@ -13,6 +13,7 @@ import title2uri from './utils';
 
 import './index.css';
 import Template from './components/template';
+import JapaneseApp from './pages/secret';
 
 
 const articleModules = [];
@@ -42,6 +43,7 @@ root.render(
           element={<Article data={dataArticles}/>}
         />
         <Route path="/contact" element={<App />} />
+        <Route path="/secret" element={<JapaneseApp />} />
       </Routes>
     </HashRouter>
   </React.StrictMode>
