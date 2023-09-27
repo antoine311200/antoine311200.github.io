@@ -62,7 +62,7 @@ function Image({ caption, src }) {
         <center>
             <br />
             <figure className="place-items-center">
-                <img className="h-auto w-2/3 rounded-lg" src={src} alt="caption" />
+                <img className="h-auto xl:w-2/3 rounded-lg" src={src} alt="caption" />
                 {caption && <figcaption className="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">{caption}</figcaption>}
             </figure>
         </center>

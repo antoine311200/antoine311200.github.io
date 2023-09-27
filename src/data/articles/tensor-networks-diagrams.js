@@ -13,11 +13,11 @@ const article1 = {
       content: (
         <span>
           <p className="my-4" />
-          <Paragraph>When dealing with complex tensors, things can get messy fast as to mathematical notations. Imagine you're somehow unfamiliar with covariants, contravariants tensor and tensor contractions: you are trying to learn new algorithms (especially in the field of quantum computing) and you stumble across a website or paper bombarding you with awful equations. I think that you would give up on the explanation quite fast.</Paragraph>
-          <Paragraph>In this notebook, I present a basic introduction to Einstein notation and tensor diagram that will help you grasp the concept of tensor contraction that you can see in your everyday life as a data scientist (think about a batch of images: that's a 3-order tensor).</Paragraph>
+          <Paragraph>When dealing with complex tensors, the use of mathematical notations can quickly become overwhelming. Consider a scenario where you're not well-acquainted with covariant and contravariant tensors, as well as tensor contractions. You're attempting to learn new algorithms, particularly in the realm of quantum computing, and you stumble upon a website or paper inundating you with daunting equations. Under such circumstances, it's likely that you would give up on understanding the explanation fairly swiftly.</Paragraph>
+          <Paragraph>In this article, I aim to provide a basic introduction to Einstein notation and tensor diagrams, which will aid you in understanding the concept of tensor contractions. You'll find that this knowledge is highly applicable in your daily life as a data scientist – just think about a batch of images, which can be represented as a 3rd-order tensor.</Paragraph>
 
-          <Remark>We won't focus too much on the covariant/contravariant aspect of tensors thus this won't be completely rigorous as I will sometimes adopt the up/down indices to symbolize input and output indices of operators.</Remark>
-          <Paragraph>At the end of this short course, you will be able to understand what is going on in a picture like the following. You will be able to understand Einstein notations that can come in handy when creating your custom layers in Tensorflow or Pytorch.</Paragraph>
+          <Remark>Please note that we won't delve too deeply into the covariant and contravariant aspects of tensors. Therefore, our approach may not be entirely rigorous, as I'll occasionally use up/down indices to represent input and output indices of operators.</Remark>
+          <Paragraph>By the end of this concise tutorial, you'll have the ability to comprehend most common diagrams like the one depicted below. You'll also gain a solid understanding of Einstein notation, which can prove invaluable when creating custom layers in TensorFlow or PyTorch.</Paragraph>
 
           <Image src="\images\tensor-networks-diagram\tensor_0.PNG" />
           <Image src="\images\tensor-networks-diagram\tensor_00.PNG" caption="Matrix Product State" />
