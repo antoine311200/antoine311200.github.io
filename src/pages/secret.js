@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import {isMobile} from 'react-device-detect';
 
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
@@ -81,7 +82,7 @@ function JapaneseApp() {
 
     const handleScreenClick = (e) => {
         // Not match button inout or element with class toggle-button nor contains toggle-button
-        if (!e.target.matches('button') && !e.target.matches('input') && !e.target.matches('.toggle-button') && !e.target.closest('.toggle-button')) {
+        if (!e.target.matches('button') && !e.target.matches('img') && !e.target.matches('input') && !e.target.matches('.toggle-button') && !e.target.closest('.toggle-button')) {
             setIsToggled((prevToggled) => !prevToggled);
         }
     };
@@ -90,11 +91,11 @@ function JapaneseApp() {
         // Add on start reload
         randomVocab();
         document.addEventListener('load', () => randomVocab());
-        document.addEventListener('click', handleScreenClick);
-        document.addEventListener('touchstart', handleScreenClick);
+        if (isMobile) document.addEventListener('click', handleScreenClick);
+        else document.addEventListener('touchstart', handleScreenClick);
         return () => {
-            document.removeEventListener('click', handleScreenClick);
-            document.removeEventListener('touchstart', handleScreenClick);
+            if (isMobile) document.removeEventListener('click', handleScreenClick);
+            else document.removeEventListener('touchstart', handleScreenClick);
         };
     }, []);
 
