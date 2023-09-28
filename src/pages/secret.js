@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-import { FaChevronRight } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 import "../style/secret.css";
 
@@ -12,6 +12,8 @@ import jlpt2 from "../data/jlpt2.json";
 
 // Concatenate all the json files into one array
 let jlpt = [];//.concat(jlpt5, jlpt4, jlpt3, jlpt2);
+let history = [];
+let index = 0;
 
 function JapaneseApp() {
     const [checkN5, setCheckN5] = useState(true);
@@ -35,12 +37,9 @@ function JapaneseApp() {
 
     onChangeLevel("N6");
 
-    const random = Math.floor(Math.random() * jlpt.length);
-    const vocab = jlpt[random];
-
-    const [word, setWord] = useState(vocab.kanji);
-    const [furigana, setFurigana] = useState(vocab.kana);
-    const [meaning, setMeaning] = useState(vocab.english);
+    const [word, setWord] = useState('');
+    const [furigana, setFurigana] = useState('');
+    const [meaning, setMeaning] = useState('');
     const [isToggled, setIsToggled] = useState(false);
 
     const [isJP2EN, setIsJP2EN] = useState(true);
@@ -49,15 +48,35 @@ function JapaneseApp() {
         setIsJP2EN(!isJP2EN);
     };
 
+    const setData = (index) => {
+        const vocab = history[index];
+        setWord(vocab.kanji);
+        setFurigana(vocab.kana);
+        setMeaning(vocab.english);
+    };
+
+    const previousVocab = () => {
+        if (index === 0) return;
+        setData(index - 1);
+        index--;
+    };
+
+    const nextVocab = () => {
+        if (index === history.length - 1) return;
+        setData(index + 1);
+        index++;
+    };
+
     const randomVocab = () => {
         setIsToggled(false);
 
         const random = Math.floor(Math.random() * jlpt.length);
         const vocab = jlpt[random];
 
-        setWord(vocab.kanji);
-        setFurigana(vocab.kana);
-        setMeaning(vocab.english);
+        history.push(vocab);
+        index = history.length - 1;
+
+        setData(index);
     };
 
     const handleScreenClick = (e) => {
@@ -68,10 +87,14 @@ function JapaneseApp() {
     };
 
     useEffect(() => {
+        // Add on start reload
+        randomVocab();
         document.addEventListener('load', () => randomVocab());
         document.addEventListener('click', handleScreenClick);
+        document.addEventListener('touchstart', handleScreenClick);
         return () => {
             document.removeEventListener('click', handleScreenClick);
+            document.removeEventListener('touchstart', handleScreenClick);
         };
     }, []);
 
@@ -99,22 +122,36 @@ function JapaneseApp() {
 
     return (
         <div className="bg-slate-800 h-screen w-screen">
+
+            {/* Pagination */}
+            <button onClick={previousVocab} className={`${history.length > 0 && index > 0 ? 'h-full' : 'hidden'} fixed top-1/3 left-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
+                <img src="light_chevron_left.svg" />
+            </button>
+            <button onClick={nextVocab} className={`${index < history.length - 1 ? 'h-full' : 'hidden'} fixed top-1/3 right-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
+                <img src="light_chevron_right.svg" />
+            </button>
+
+            {/* Title */}
             <div className="w-full z-10">
                 <h1 className="text-3xl lg:text-5xl p-8 mb-24 text-white text-center">Japanese App</h1>
             </div>
+
+            {/* Content */}
             {isJP2EN ? renderJapanese2English() : renderEnglish2Japanese()}
+
+            {/* Menu */}
             <div className="flex flex-col items-center">
                 <div className="absolute bottom-10 flex flex-col items-center gap-3">
                     <button className="justify-center bg-slate-50 hover:bg-slate-200 focus:ring-2 focus:outline-none focus:ring-slate-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center" onClick={randomVocab}>
                         Next <FaChevronRight className="ml-4 mt-1" />
                     </button>
 
-                    <div class="flex items-center justify-center w-full mb-12 toggle-button">
-                        <label for="toggle-jpen" class="flex items-center cursor-pointer">
-                            <div class="relative">
-                                <input type="checkbox" id="toggle-jpen" class="sr-only" onClick={toggleMode} />
-                                <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
-                                <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"><span className={!isJP2EN ? 'ml-1' : 'ml-1.5'}>{!isJP2EN ? 'あ' : 'A'}</span></div>
+                    <div className="flex items-center justify-center w-full mb-12 toggle-button">
+                        <label for="toggle-jpen" className="flex items-center cursor-pointer">
+                            <div className="relative">
+                                <input type="checkbox" id="toggle-jpen" className="sr-only" onClick={toggleMode} />
+                                <div className="block bg-gray-600 w-14 h-8 rounded-full"></div>
+                                <div className="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"><span className={!isJP2EN ? 'ml-1' : 'ml-1.5'}>{!isJP2EN ? 'あ' : 'A'}</span></div>
                             </div>
                         </label>
 
