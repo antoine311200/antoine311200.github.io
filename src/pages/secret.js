@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 
 import { FaChevronRight } from "react-icons/fa";
 
+import "../style/secret.css";
+
 // Import jlpt5.json from public/data
 import jlpt5 from "../data/jlpt5.json";
 import jlpt4 from "../data/jlpt4.json";
@@ -41,6 +43,11 @@ function JapaneseApp() {
     const [meaning, setMeaning] = useState(vocab.english);
     const [isToggled, setIsToggled] = useState(false);
 
+    const [isJP2EN, setIsJP2EN] = useState(true);
+
+    const toggleMode = () => {
+        setIsJP2EN(!isJP2EN);
+    };
 
     const randomVocab = () => {
         setIsToggled(false);
@@ -54,7 +61,8 @@ function JapaneseApp() {
     };
 
     const handleScreenClick = (e) => {
-        if (!e.target.matches('button') && !e.target.matches('input')) {
+        // Not match button inout or element with class toggle-button nor contains toggle-button
+        if (!e.target.matches('button') && !e.target.matches('input') && !e.target.matches('.toggle-button') && !e.target.closest('.toggle-button')) {
             setIsToggled((prevToggled) => !prevToggled);
         }
     };
@@ -67,20 +75,51 @@ function JapaneseApp() {
         };
     }, []);
 
+    const renderJapanese2English = () => {
+        return (
+            <div className="flex flex-col items-center gap-10">
+                <h1 className="fixed text-6xl lg:text-9xl text-white text-center">{word}</h1>
+                {word != furigana && isToggled && <h1 className="fixed text-3xl text-white text-center top-40">{furigana}</h1>}
+                {isToggled && <h1 className="fixed text-xl lg:text-3xl text-white text-center bottom-1/3 px-8">{meaning.replace(/,/g, ', ')}</h1>}
+            </div >
+        )
+    }
+
+    const renderEnglish2Japanese = () => {
+        return (
+            <div className="flex flex-col items-center gap-10">
+                <h1 className="fixed text-4xl lg:text-7xl text-white text-center">{meaning.replace(/,/g, ', ')}</h1>
+                <div className="fixed bottom-1/3">
+                    {word != furigana && isToggled && <h1 className=" text-xl lg:text-3xl text-white text-center px-8">{furigana}</h1>}
+                    {isToggled && <h1 className=" text-4xl lg:text-7xl text-white text-center">{word}</h1>}
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="bg-slate-800 h-screen w-screen">
             <div className="w-full z-10">
                 <h1 className="text-3xl lg:text-5xl p-8 mb-24 text-white text-center">Japanese App</h1>
             </div>
-            <div className="flex flex-col items-center gap-10">
-                <h1 className="fixed text-6xl lg:text-9xl text-white text-center">{word}</h1>
-                {word != furigana && isToggled && <h1 className="fixed text-3xl text-white text-center top-40">{furigana}</h1>}
-                {isToggled && <h1 className="fixed text-xl lg:text-3xl text-white text-center bottom-1/3 px-8">{meaning.replace(/,/g, ', ')}</h1>}
-            </div>
+            {isJP2EN ? renderJapanese2English() : renderEnglish2Japanese()}
             <div className="flex flex-col items-center">
-                <button className="absolute bottom-20 justify-center bg-slate-50 hover:bg-slate-200 focus:ring-2 focus:outline-none focus:ring-slate-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center" onClick={randomVocab}>
-                    Next <FaChevronRight className="ml-4 mt-1" />
-                </button>
+                <div className="absolute bottom-10 flex flex-col items-center gap-3">
+                    <button className="justify-center bg-slate-50 hover:bg-slate-200 focus:ring-2 focus:outline-none focus:ring-slate-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center" onClick={randomVocab}>
+                        Next <FaChevronRight className="ml-4 mt-1" />
+                    </button>
+
+                    <div class="flex items-center justify-center w-full mb-12 toggle-button">
+                        <label for="toggle-jpen" class="flex items-center cursor-pointer">
+                            <div class="relative">
+                                <input type="checkbox" id="toggle-jpen" class="sr-only" onClick={toggleMode} />
+                                <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
+                                <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"><span className={!isJP2EN ? 'ml-1' : 'ml-1.5'}>{!isJP2EN ? 'あ' : 'A'}</span></div>
+                            </div>
+                        </label>
+
+                    </div>
+                </div>
                 <div className="absolute bottom-5">
                     <ul className="flex flex-row items-center w-full text-sm font-medium text-white">
                         <li className="w-full">
