@@ -91,10 +91,10 @@ function JapaneseApp() {
         // Add on start reload
         randomVocab();
         document.addEventListener('load', () => randomVocab());
-        if (isMobile) document.addEventListener('click', handleScreenClick);
+        if (!isMobile) document.addEventListener('click', handleScreenClick);
         else document.addEventListener('touchstart', handleScreenClick);
         return () => {
-            if (isMobile) document.removeEventListener('click', handleScreenClick);
+            if (!isMobile) document.removeEventListener('click', handleScreenClick);
             else document.removeEventListener('touchstart', handleScreenClick);
         };
     }, []);
