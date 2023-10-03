@@ -8,6 +8,8 @@ import jlpt5 from "../../data/jlpt5.json";
 import jlpt4 from "../../data/jlpt4.json";
 import jlpt3 from "../../data/jlpt3.json";
 import jlpt2 from "../../data/jlpt2.json";
+import jlpt1 from "../../data/jlpt1.json";
+
 // Concatenate all the json files into one array
 let jlpt = [];//.concat(jlpt5, jlpt4, jlpt3, jlpt2);
 let history = [];
@@ -18,12 +20,14 @@ const WordTrainer = () => {
     const [checkN4, setCheckN4] = useState(true);
     const [checkN3, setCheckN3] = useState(true);
     const [checkN2, setCheckN2] = useState(true);
+    const [checkN1, setCheckN1] = useState(true);
 
     const onChangeLevelWord = (level) => {
-        if (level === "N5" && !(!checkN4 && !checkN3 && !checkN2)) setCheckN5(!checkN5);
-        else if (level === "N4" && !(!checkN5 && !checkN3 && !checkN2)) setCheckN4(!checkN4);
-        else if (level === "N3" && !(!checkN5 && !checkN4 && !checkN2)) setCheckN3(!checkN3);
-        else if (level === "N2" && !(!checkN5 && !checkN4 && !checkN3)) setCheckN2(!checkN2);
+        if (level === "N5" && !(!checkN4 && !checkN3 && !checkN2 && !checkN1)) setCheckN5(!checkN5);
+        else if (level === "N4" && !(!checkN5 && !checkN3 && !checkN2 && !checkN1)) setCheckN4(!checkN4);
+        else if (level === "N3" && !(!checkN5 && !checkN4 && !checkN2 && !checkN1)) setCheckN3(!checkN3);
+        else if (level === "N2" && !(!checkN5 && !checkN4 && !checkN3 && !checkN1)) setCheckN2(!checkN2);
+        else if (level === "N1" && !(!checkN5 && !checkN4 && !checkN3 && !checkN2)) setCheckN1(!checkN1);
     };
 
     useEffect(() => {
@@ -32,7 +36,8 @@ const WordTrainer = () => {
         if (checkN4) jlpt = jlpt.concat(jlpt4);
         if (checkN3) jlpt = jlpt.concat(jlpt3);
         if (checkN2) jlpt = jlpt.concat(jlpt2);
-    }, [checkN5, checkN4, checkN3, checkN2]);
+        if (checkN1) jlpt = jlpt.concat(jlpt1);
+    }, [checkN5, checkN4, checkN3, checkN2, checkN1]);
 
     onChangeLevelWord("N6");
 
@@ -40,6 +45,7 @@ const WordTrainer = () => {
     const [word, setWord] = useState('');
     const [furiganaWord, setFuriganaWord] = useState('');
     const [meaningWord, setMeaningWord] = useState('');
+    const [levelWord, setLevelWord] = useState('');
     const [isToggledWord, setIsToggledWord] = useState(false);
 
     const [isJP2ENWord, setIsJP2ENWord] = useState(true);
@@ -54,6 +60,7 @@ const WordTrainer = () => {
         setWord(vocab.kanji);
         setFuriganaWord(vocab.kana);
         setMeaningWord(vocab.english);
+        setLevelWord(vocab.jlpt);
     };
 
     const previousVocab = () => {
@@ -107,6 +114,9 @@ const WordTrainer = () => {
                 <h1 className="fixed text-6xl lg:text-9xl text-white text-center">{word}</h1>
                 {word != furiganaWord && isToggledWord && <h1 className="fixed text-3xl text-white text-center top-40">{furiganaWord}</h1>}
                 {isToggledWord && <h1 className="fixed text-xl lg:text-3xl text-white text-center bottom-1/3 px-8">{meaningWord.replace(/,/g, ', ')}</h1>}
+                <div className="absolute top-[18%]">
+                    <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">JLPT N{levelWord}</span>
+                </div>
             </div >
         )
     };
@@ -118,6 +128,9 @@ const WordTrainer = () => {
                 <div className="fixed bottom-1/3">
                     {word != furiganaWord && isToggledWord && <h1 className=" text-xl lg:text-3xl text-white text-center px-8">{furiganaWord}</h1>}
                     {isToggledWord && <h1 className=" text-4xl lg:text-7xl text-white text-center">{word}</h1>}
+                    <div className="absolute top-[18%]">
+                        <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">JLPT N{levelWord}</span>
+                    </div>
                 </div>
             </div>
         )
@@ -182,6 +195,12 @@ const WordTrainer = () => {
                             <div className="flex items-center pl-3">
                                 <input type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded cursor-pointer" checked={checkN2} onChange={() => onChangeLevelWord("N2")} />
                                 <label className="w-full py-3 ml-2 text-sm font-medium">N2</label>
+                            </div>
+                        </li>
+                        <li className="w-full ">
+                            <div className="flex items-center pl-3">
+                                <input type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded cursor-pointer" checked={checkN1} onChange={() => onChangeLevelWord("N1")} />
+                                <label className="w-full py-3 ml-2 text-sm font-medium">N1</label>
                             </div>
                         </li>
                     </ul>

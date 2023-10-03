@@ -2,3346 +2,4015 @@
     {
         "kanji": "\u4f1a\u3046",
         "kana": "\u3042\u3046",
-        "english": "to meet"
+        "english": "to meet",
+        "jlpt": 5
     },
     {
         "kanji": "\u9752",
         "kana": "\u3042\u304a",
-        "english": "blue"
+        "english": "blue",
+        "jlpt": 5
     },
     {
         "kanji": "\u9752\u3044",
         "kana": "\u3042\u304a\u3044",
-        "english": "blue"
+        "english": "blue",
+        "jlpt": 5
     },
     {
         "kanji": "\u8d64",
         "kana": "\u3042\u304b",
-        "english": "red"
+        "english": "red",
+        "jlpt": 5
     },
     {
         "kanji": "\u8d64\u3044",
         "kana": "\u3042\u304b\u3044",
-        "english": "red"
+        "english": "red",
+        "jlpt": 5
     },
     {
         "kanji": "\u660e\u308b\u3044",
         "kana": "\u3042\u304b\u308b\u3044",
-        "english": "bright"
+        "english": "bright",
+        "jlpt": 5
     },
     {
         "kanji": "\u79cb",
         "kana": "\u3042\u304d",
-        "english": "autumn"
+        "english": "autumn",
+        "jlpt": 5
     },
     {
         "kanji": "\u958b\u304f",
         "kana": "\u3042\u304f",
-        "english": "to open,to become open"
+        "english": "to open,to become open",
+        "jlpt": 5
     },
     {
         "kanji": "\u958b\u3051\u308b",
         "kana": "\u3042\u3051\u308b",
-        "english": "to open"
+        "english": "to open",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e0a\u3052\u308b",
         "kana": "\u3042\u3052\u308b",
-        "english": "to give"
+        "english": "to give",
+        "jlpt": 5
     },
     {
         "kanji": "\u671d",
         "kana": "\u3042\u3055",
-        "english": "morning"
+        "english": "morning",
+        "jlpt": 5
     },
     {
         "kanji": "\u671d\u5fa1\u98ef",
         "kana": "\u3042\u3055\u3054\u306f\u3093",
-        "english": "breakfast"
+        "english": "breakfast",
+        "jlpt": 5
     },
     {
         "kanji": "\u3042\u3055\u3063\u3066",
         "kana": "\u3042\u3055\u3063\u3066",
-        "english": "day after tomorrow"
+        "english": "day after tomorrow",
+        "jlpt": 5
     },
     {
         "kanji": "\u8db3",
         "kana": "\u3042\u3057",
-        "english": "foot,leg"
+        "english": "foot,leg",
+        "jlpt": 5
     },
     {
         "kanji": "\u660e\u65e5",
         "kana": "\u3042\u3057\u305f",
-        "english": "tomorrow"
+        "english": "tomorrow",
+        "jlpt": 5
     },
     {
         "kanji": "\u3042\u305d\u3053",
         "kana": "\u3042\u305d\u3053",
-        "english": "over there"
+        "english": "over there",
+        "jlpt": 5
     },
     {
         "kanji": "\u904a\u3076",
         "kana": "\u3042\u305d\u3076",
-        "english": "to play,to make a visit"
+        "english": "to play,to make a visit",
+        "jlpt": 5
     },
     {
         "kanji": "\u6696\u304b\u3044",
         "kana": "\u3042\u305f\u305f\u304b\u3044",
-        "english": "warm"
+        "english": "warm",
+        "jlpt": 5
     },
     {
         "kanji": "\u982d",
         "kana": "\u3042\u305f\u307e",
-        "english": "head"
+        "english": "head",
+        "jlpt": 5
     },
     {
         "kanji": "\u65b0\u3057\u3044",
         "kana": "\u3042\u305f\u3089\u3057\u3044",
-        "english": "new"
+        "english": "new",
+        "jlpt": 5
     },
     {
         "kanji": "\u3042\u3061\u3089",
         "kana": "\u3042\u3061\u3089",
-        "english": "there"
+        "english": "there",
+        "jlpt": 5
     },
     {
         "kanji": "\u6691\u3044",
         "kana": "\u3042\u3064\u3044",
-        "english": "hot"
+        "english": "hot",
+        "jlpt": 5
     },
     {
         "kanji": "\u71b1\u3044",
         "kana": "\u3042\u3064\u3044",
-        "english": "hot to the touch"
+        "english": "hot to the touch",
+        "jlpt": 5
     },
     {
         "kanji": "\u539a\u3044",
         "kana": "\u3042\u3064\u3044",
-        "english": "kind, deep, thick"
+        "english": "kind, deep, thick",
+        "jlpt": 5
     },
     {
         "kanji": "\u3042\u3063\u3061",
         "kana": "\u3042\u3063\u3061",
-        "english": "over there"
+        "english": "over there",
+        "jlpt": 5
     },
     {
         "kanji": "\u5f8c",
         "kana": "\u3042\u3068",
-        "english": "afterwards"
+        "english": "afterwards",
+        "jlpt": 5
     },
     {
         "kanji": "\u3042\u306a\u305f",
         "kana": "\u3042\u306a\u305f",
-        "english": "you"
+        "english": "you",
+        "jlpt": 5
     },
     {
         "kanji": "\u5144",
         "kana": "\u3042\u306b",
-        "english": "(humble) older brother"
+        "english": "(humble) older brother",
+        "jlpt": 5
     },
     {
         "kanji": "\u59c9",
         "kana": "\u3042\u306d",
-        "english": "(humble) older sister"
+        "english": "(humble) older sister",
+        "jlpt": 5
     },
     {
         "kanji": "\u3042\u306e",
         "kana": "\u3042\u306e",
-        "english": "that over there"
+        "english": "that over there",
+        "jlpt": 5
     },
     {
         "kanji": "\u3042\u306e",
         "kana": "\u3042\u306e",
-        "english": "um..."
+        "english": "um...",
+        "jlpt": 5
     },
     {
         "kanji": "\u30a2\u30d1\u30fc\u30c8",
         "kana": "\u30a2\u30d1\u30fc\u30c8",
-        "english": "apartment"
+        "english": "apartment",
+        "jlpt": 5
     },
     {
         "kanji": "\u3042\u3073\u308b",
         "kana": "\u3042\u3073\u308b",
-        "english": "to bathe,to shower"
+        "english": "to bathe,to shower",
+        "jlpt": 5
     },
     {
         "kanji": "\u5371\u306a\u3044",
         "kana": "\u3042\u3076\u306a\u3044",
-        "english": "dangerous"
+        "english": "dangerous",
+        "jlpt": 5
     },
     {
         "kanji": "\u7518\u3044",
         "kana": "\u3042\u307e\u3044",
-        "english": "sweet"
+        "english": "sweet",
+        "jlpt": 5
     },
     {
         "kanji": "\u3042\u307e\u308a",
         "kana": "\u3042\u307e\u308a",
-        "english": "not very"
+        "english": "not very",
+        "jlpt": 5
     },
     {
         "kanji": "\u96e8",
         "kana": "\u3042\u3081",
-        "english": "rain"
+        "english": "rain",
+        "jlpt": 5
     },
     {
         "kanji": "\u98f4",
         "kana": "\u3042\u3081",
-        "english": "candy"
+        "english": "candy",
+        "jlpt": 5
     },
     {
         "kanji": "\u6d17\u3046",
         "kana": "\u3042\u3089\u3046",
-        "english": "to wash"
+        "english": "to wash",
+        "jlpt": 5
     },
     {
         "kanji": "\u3042\u308b",
         "kana": "\u3042\u308b",
-        "english": "to be,to have (used for inanimate objects)"
+        "english": "to be,to have (used for inanimate objects)",
+        "jlpt": 5
     },
     {
         "kanji": "\u6b69\u304f",
         "kana": "\u3042\u308b\u304f",
-        "english": "to walk"
+        "english": "to walk",
+        "jlpt": 5
     },
     {
         "kanji": "\u3042\u308c",
         "kana": "\u3042\u308c",
-        "english": "that"
+        "english": "that",
+        "jlpt": 5
     },
     {
         "kanji": "\u3044\u3044 / \u3088\u3044",
         "kana": "\u3044\u3044 / \u3088\u3044",
-        "english": "good"
+        "english": "good",
+        "jlpt": 5
     },
     {
         "kanji": "\u3044\u3044\u3048",
         "kana": "\u3044\u3044\u3048",
-        "english": "no"
+        "english": "no",
+        "jlpt": 5
     },
     {
         "kanji": "\u8a00\u3046",
         "kana": "\u3044\u3046",
-        "english": "to say"
+        "english": "to say",
+        "jlpt": 5
     },
     {
         "kanji": "\u5bb6",
         "kana": "\u3044\u3048",
-        "english": "house"
+        "english": "house",
+        "jlpt": 5
     },
     {
         "kanji": "\u3044\u304b\u304c",
         "kana": "\u3044\u304b\u304c",
-        "english": "how"
+        "english": "how",
+        "jlpt": 5
     },
     {
         "kanji": "\u884c\u304f",
         "kana": "\u3044\u304f",
-        "english": "to go"
+        "english": "to go",
+        "jlpt": 5
     },
     {
         "kanji": "\u3044\u304f\u3064",
         "kana": "\u3044\u304f\u3064",
-        "english": "how many?,how old?"
+        "english": "how many?,how old?",
+        "jlpt": 5
     },
     {
         "kanji": "\u3044\u304f\u3089",
         "kana": "\u3044\u304f\u3089",
-        "english": "how much?"
+        "english": "how much?",
+        "jlpt": 5
     },
     {
         "kanji": "\u6c60",
         "kana": "\u3044\u3051",
-        "english": "pond"
+        "english": "pond",
+        "jlpt": 5
     },
     {
         "kanji": "\u533b\u8005",
         "kana": "\u3044\u3057\u3083",
-        "english": "medical doctor"
+        "english": "medical doctor",
+        "jlpt": 5
     },
     {
         "kanji": "\u3044\u3059",
         "kana": "\u3044\u3059",
-        "english": "chair"
+        "english": "chair",
+        "jlpt": 5
     },
     {
         "kanji": "\u5fd9\u3057\u3044",
         "kana": "\u3044\u305d\u304c\u3057\u3044",
-        "english": "busy,irritated"
+        "english": "busy,irritated",
+        "jlpt": 5
     },
     {
         "kanji": "\u75db\u3044",
         "kana": "\u3044\u305f\u3044",
-        "english": "painful"
+        "english": "painful",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e00",
         "kana": "\u3044\u3061",
-        "english": "one"
+        "english": "one",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e00\u65e5",
         "kana": "\u3044\u3061\u306b\u3061",
-        "english": "(1) one day, (2) first of month"
+        "english": "(1) one day, (2) first of month",
+        "jlpt": 5
     },
     {
         "kanji": "\u3044\u3061\u3070\u3093",
         "kana": "\u3044\u3061\u3070\u3093",
-        "english": "best,first"
+        "english": "best,first",
+        "jlpt": 5
     },
     {
         "kanji": "\u3044\u3064",
         "kana": "\u3044\u3064",
-        "english": "when"
+        "english": "when",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e94\u65e5",
         "kana": "\u3044\u3064\u304b",
-        "english": "five days, fifth day"
+        "english": "five days, fifth day",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e00\u7dd2",
         "kana": "\u3044\u3063\u3057\u3087",
-        "english": "together"
+        "english": "together",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e94\u3064",
         "kana": "\u3044\u3064\u3064",
-        "english": "five"
+        "english": "five",
+        "jlpt": 5
     },
     {
         "kanji": "\u3044\u3064\u3082",
         "kana": "\u3044\u3064\u3082",
-        "english": "always"
+        "english": "always",
+        "jlpt": 5
     },
     {
         "kanji": "\u72ac",
         "kana": "\u3044\u306c",
-        "english": "dog"
+        "english": "dog",
+        "jlpt": 5
     },
     {
         "kanji": "\u4eca",
         "kana": "\u3044\u307e",
-        "english": "now"
+        "english": "now",
+        "jlpt": 5
     },
     {
         "kanji": "\u610f\u5473",
         "kana": "\u3044\u307f",
-        "english": "meaning"
+        "english": "meaning",
+        "jlpt": 5
     },
     {
         "kanji": "\u59b9",
         "kana": "\u3044\u3082\u3046\u3068",
-        "english": "(humble) younger sister"
+        "english": "(humble) younger sister",
+        "jlpt": 5
     },
     {
         "kanji": "\u5acc",
         "kana": "\u3044\u3084",
-        "english": "unpleasant"
+        "english": "unpleasant",
+        "jlpt": 5
     },
     {
         "kanji": "\u5165\u53e3",
         "kana": "\u3044\u308a\u3050\u3061",
-        "english": "entrance"
+        "english": "entrance",
+        "jlpt": 5
     },
     {
         "kanji": "\u5c45\u308b",
         "kana": "\u3044\u308b",
-        "english": "to be, to have (used for people and animals)"
+        "english": "to be, to have (used for people and animals)",
+        "jlpt": 5
     },
     {
         "kanji": "\u8981\u308b",
         "kana": "\u3044\u308b",
-        "english": "to need"
+        "english": "to need",
+        "jlpt": 5
     },
     {
         "kanji": "\u5165\u308c\u308b",
         "kana": "\u3044\u308c\u308b",
-        "english": "to put in"
+        "english": "to put in",
+        "jlpt": 5
     },
     {
         "kanji": "\u8272",
         "kana": "\u3044\u308d",
-        "english": "colour"
+        "english": "colour",
+        "jlpt": 5
     },
     {
         "kanji": "\u3044\u308d\u3044\u308d",
         "kana": "\u3044\u308d\u3044\u308d",
-        "english": "various"
+        "english": "various",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e0a",
         "kana": "\u3046\u3048",
-        "english": "on top of"
+        "english": "on top of",
+        "jlpt": 5
     },
     {
         "kanji": "\u5f8c\u308d",
         "kana": "\u3046\u3057\u308d",
-        "english": "behind"
+        "english": "behind",
+        "jlpt": 5
     },
     {
         "kanji": "\u8584\u3044",
         "kana": "\u3046\u3059\u3044",
-        "english": "thin,weak"
+        "english": "thin,weak",
+        "jlpt": 5
     },
     {
         "kanji": "\u6b4c",
         "kana": "\u3046\u305f",
-        "english": "song"
+        "english": "song",
+        "jlpt": 5
     },
     {
         "kanji": "\u6b4c\u3046",
         "kana": "\u3046\u305f\u3046",
-        "english": "to sing"
+        "english": "to sing",
+        "jlpt": 5
     },
     {
         "kanji": "\u751f\u307e\u308c\u308b",
         "kana": "\u3046\u307e\u308c\u308b",
-        "english": "to be born"
+        "english": "to be born",
+        "jlpt": 5
     },
     {
         "kanji": "\u6d77",
         "kana": "\u3046\u307f",
-        "english": "sea"
+        "english": "sea",
+        "jlpt": 5
     },
     {
         "kanji": "\u58f2\u308b",
         "kana": "\u3046\u308b",
-        "english": "to sell"
+        "english": "to sell",
+        "jlpt": 5
     },
     {
         "kanji": "\u7169\u3044",
         "kana": "\u3046\u308b\u3055\u3044",
-        "english": "noisy,annoying"
+        "english": "noisy,annoying",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e0a\u7740",
         "kana": "\u3046\u308f\u304e",
-        "english": "jacket"
+        "english": "jacket",
+        "jlpt": 5
     },
     {
         "kanji": "\u7d75",
         "kana": "\u3048",
-        "english": "picture"
+        "english": "picture",
+        "jlpt": 5
     },
     {
         "kanji": "\u6620\u753b",
         "kana": "\u3048\u3044\u304c",
-        "english": "movie"
+        "english": "movie",
+        "jlpt": 5
     },
     {
         "kanji": "\u6620\u753b\u9928",
         "kana": "\u3048\u3044\u304c\u304b\u3093",
-        "english": "cinema"
+        "english": "cinema",
+        "jlpt": 5
     },
     {
         "kanji": "\u82f1\u8a9e",
         "kana": "\u3048\u3044\u3054",
-        "english": "English language"
+        "english": "English language",
+        "jlpt": 5
     },
     {
         "kanji": "\u3048\u3048",
         "kana": "\u3048\u3048",
-        "english": "yes"
+        "english": "yes",
+        "jlpt": 5
     },
     {
         "kanji": "\u99c5",
         "kana": "\u3048\u304d",
-        "english": "station"
+        "english": "station",
+        "jlpt": 5
     },
     {
         "kanji": "\u30a8\u30ec\u30d9\u30fc\u30bf\u30fc",
         "kana": "\u30a8\u30ec\u30d9\u30fc\u30bf\u30fc",
-        "english": "elevator"
+        "english": "elevator",
+        "jlpt": 5
     },
     {
         "kanji": "\u925b\u7b46",
         "kana": "\u3048\u3093\u3074\u3064",
-        "english": "pencil"
+        "english": "pencil",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u3044\u3057\u3044",
         "kana": "\u304a\u3044\u3057\u3044",
-        "english": "delicious"
+        "english": "delicious",
+        "jlpt": 5
     },
     {
         "kanji": "\u591a\u3044",
         "kana": "\u304a\u304a\u3044",
-        "english": "many"
+        "english": "many",
+        "jlpt": 5
     },
     {
         "kanji": "\u5927\u304d\u3044",
         "kana": "\u304a\u304a\u304d\u3044",
-        "english": "big"
+        "english": "big",
+        "jlpt": 5
     },
     {
         "kanji": "\u5927\u304d\u306a",
         "kana": "\u304a\u304a\u304d\u306a",
-        "english": "big"
+        "english": "big",
+        "jlpt": 5
     },
     {
         "kanji": "\u5927\u52e2",
         "kana": "\u304a\u304a\u305c\u3044",
-        "english": "great number of people"
+        "english": "great number of people",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u6bcd\u3055\u3093",
         "kana": "\u304a\u304b\u3042\u3055\u3093",
-        "english": "(honorable) mother"
+        "english": "(honorable) mother",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u83d3\u5b50",
         "kana": "\u304a\u304b\u3057",
-        "english": "sweets, candy"
+        "english": "sweets, candy",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u91d1",
         "kana": "\u304a\u304b\u306d",
-        "english": "money"
+        "english": "money",
+        "jlpt": 5
     },
     {
         "kanji": "\u8d77\u304d\u308b",
         "kana": "\u304a\u304d\u308b",
-        "english": "to get up"
+        "english": "to get up",
+        "jlpt": 5
     },
     {
         "kanji": "\u7f6e\u304f",
         "kana": "\u304a\u304f",
-        "english": "to put"
+        "english": "to put",
+        "jlpt": 5
     },
     {
         "kanji": "\u5965\u3055\u3093",
         "kana": "\u304a\u304f\u3055\u3093",
-        "english": "(honorable) wife"
+        "english": "(honorable) wife",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u9152",
         "kana": "\u304a\u3055\u3051",
-        "english": "alcohol, rice wine"
+        "english": "alcohol, rice wine",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u76bf",
         "kana": "\u304a\u3055\u3089",
-        "english": "plate, dish"
+        "english": "plate, dish",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f2f\u7236 / \u53d4\u7236",
         "kana": "\u304a\u3058\u3044\u3055\u3093",
-        "english": "grandfather,male senior citizen"
+        "english": "grandfather,male senior citizen",
+        "jlpt": 5
     },
     {
         "kanji": "\u6559\u3048\u308b",
         "kana": "\u304a\u3057\u3048\u308b",
-        "english": "to teach,to tell"
+        "english": "to teach,to tell",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f2f\u7236 / \u53d4\u7236",
         "kana": "\u304a\u3058\u3055\u3093",
-        "english": "uncle,middle aged gentleman"
+        "english": "uncle,middle aged gentleman",
+        "jlpt": 5
     },
     {
         "kanji": "\u62bc\u3059",
         "kana": "\u304a\u3059",
-        "english": "to push, to stamp something"
+        "english": "to push, to stamp something",
+        "jlpt": 5
     },
     {
         "kanji": "\u9045\u3044",
         "kana": "\u304a\u305d\u3044",
-        "english": "late,slow"
+        "english": "late,slow",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u8336",
         "kana": "\u304a\u3061\u3083",
-        "english": "green tea"
+        "english": "green tea",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u624b\u6d17\u3044",
         "kana": "\u304a\u3066\u3042\u3089\u3044",
-        "english": "bathroom"
+        "english": "bathroom",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u7236\u3055\u3093",
         "kana": "\u304a\u3068\u3046\u3055\u3093",
-        "english": "(honorable) father"
+        "english": "(honorable) father",
+        "jlpt": 5
     },
     {
         "kanji": "\u5f1f",
         "kana": "\u304a\u3068\u3046\u3068",
-        "english": "younger brother"
+        "english": "younger brother",
+        "jlpt": 5
     },
     {
         "kanji": "\u7537",
         "kana": "\u304a\u3068\u3053",
-        "english": "man"
+        "english": "man",
+        "jlpt": 5
     },
     {
         "kanji": "\u7537\u306e\u5b50",
         "kana": "\u304a\u3068\u3053\u306e\u3053",
-        "english": "boy"
+        "english": "boy",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e00\u6628\u65e5",
         "kana": "\u304a\u3068\u3068\u3044",
-        "english": "day before yesterday"
+        "english": "day before yesterday",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e00\u6628\u5e74",
         "kana": "\u304a\u3068\u3068\u3057",
-        "english": "year before last"
+        "english": "year before last",
+        "jlpt": 5
     },
     {
         "kanji": "\u5927\u4eba",
         "kana": "\u304a\u3068\u306a",
-        "english": "adult"
+        "english": "adult",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u306a\u304b",
         "kana": "\u304a\u306a\u304b",
-        "english": "stomach"
+        "english": "stomach",
+        "jlpt": 5
     },
     {
         "kanji": "\u540c\u3058",
         "kana": "\u304a\u306a\u3058",
-        "english": "same"
+        "english": "same",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u5144\u3055\u3093",
         "kana": "\u304a\u306b\u3044\u3055\u3093",
-        "english": "(honorable) older brother"
+        "english": "(honorable) older brother",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u59c9\u3055\u3093",
         "kana": "\u304a\u306d\u3048\u3055\u3093",
-        "english": "(honorable) older sister"
+        "english": "(honorable) older sister",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u3070\u3042\u3055\u3093",
         "kana": "\u304a\u3070\u3042\u3055\u3093",
-        "english": "grandmother,female senior-citizen"
+        "english": "grandmother,female senior-citizen",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f2f\u6bcd\u3055\u3093 / \u53d4\u6bcd\u3055\u3093",
         "kana": "\u304a\u3070\u3055\u3093",
-        "english": "aunt"
+        "english": "aunt",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u98a8\u5442",
         "kana": "\u304a\u3075\u308d",
-        "english": "bath"
+        "english": "bath",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u5f01\u5f53",
         "kana": "\u304a\u3079\u3093\u3068\u3046",
-        "english": "boxed lunch"
+        "english": "boxed lunch",
+        "jlpt": 5
     },
     {
         "kanji": "\u899a\u3048\u308b",
         "kana": "\u304a\u307c\u3048\u308b",
-        "english": "to remember"
+        "english": "to remember",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u307e\u308f\u308a\u3055\u3093",
         "kana": "\u304a\u307e\u308f\u308a\u3055\u3093",
-        "english": "friendly term for policeman"
+        "english": "friendly term for policeman",
+        "jlpt": 5
     },
     {
         "kanji": "\u91cd\u3044",
         "kana": "\u304a\u3082\u3044",
-        "english": "heavy"
+        "english": "heavy",
+        "jlpt": 5
     },
     {
         "kanji": "\u304a\u3082\u3057\u308d\u3044",
         "kana": "\u304a\u3082\u3057\u308d\u3044",
-        "english": "interesting"
+        "english": "interesting",
+        "jlpt": 5
     },
     {
         "kanji": "\u6cf3\u3050",
         "kana": "\u304a\u3088\u3050",
-        "english": "to swim"
+        "english": "to swim",
+        "jlpt": 5
     },
     {
         "kanji": "\u964d\u308a\u308b",
         "kana": "\u304a\u308a\u308b",
-        "english": "to get off, to descend"
+        "english": "to get off, to descend",
+        "jlpt": 5
     },
     {
         "kanji": "\u7d42\u308b",
         "kana": "\u304a\u308f\u308b",
-        "english": "to finish"
+        "english": "to finish",
+        "jlpt": 5
     },
     {
         "kanji": "\u97f3\u697d",
         "kana": "\u304a\u3093\u304c\u304f",
-        "english": "music"
+        "english": "music",
+        "jlpt": 5
     },
     {
         "kanji": "\u5973",
         "kana": "\u304a\u3093\u306a",
-        "english": "woman"
+        "english": "woman",
+        "jlpt": 5
     },
     {
         "kanji": "\u5973\u306e\u5b50",
         "kana": "\u304a\u3093\u306a\u306e\u3053",
-        "english": "girl"
+        "english": "girl",
+        "jlpt": 5
     },
     {
         "kanji": "\u5916\u56fd",
         "kana": "\u304c\u3044\u3053\u304f",
-        "english": "foreign country"
+        "english": "foreign country",
+        "jlpt": 5
     },
     {
         "kanji": "\u5916\u56fd\u4eba",
         "kana": "\u304c\u3044\u3053\u304f\u3058\u3093",
-        "english": "foreigner"
+        "english": "foreigner",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f1a\u793e",
         "kana": "\u304b\u3044\u3057\u3083",
-        "english": "company"
+        "english": "company",
+        "jlpt": 5
     },
     {
         "kanji": "\u968e\u6bb5",
         "kana": "\u304b\u3044\u3060\u3093",
-        "english": "stairs"
+        "english": "stairs",
+        "jlpt": 5
     },
     {
         "kanji": "\u8cb7\u3044\u7269",
         "kana": "\u304b\u3044\u3082\u306e",
-        "english": "shopping"
+        "english": "shopping",
+        "jlpt": 5
     },
     {
         "kanji": "\u8cb7\u3046",
         "kana": "\u304b\u3046",
-        "english": "to buy"
+        "english": "to buy",
+        "jlpt": 5
     },
     {
         "kanji": "\u8fd4\u3059",
         "kana": "\u304b\u3048\u3059",
-        "english": "to return something"
+        "english": "to return something",
+        "jlpt": 5
     },
     {
         "kanji": "\u5e30\u308b",
         "kana": "\u304b\u3048\u308b",
-        "english": "to go back"
+        "english": "to go back",
+        "jlpt": 5
     },
     {
         "kanji": "\u304b\u304b\u308b",
         "kana": "\u304b\u304b\u308b",
-        "english": "to take time or money"
+        "english": "to take time or money",
+        "jlpt": 5
     },
     {
         "kanji": "\u304b\u304e",
         "kana": "\u304b\u304e",
-        "english": "key"
+        "english": "key",
+        "jlpt": 5
     },
     {
         "kanji": "\u66f8\u304f",
         "kana": "\u304b\u304f",
-        "english": "to write"
+        "english": "to write",
+        "jlpt": 5
     },
     {
         "kanji": "\u5b66\u751f",
         "kana": "\u304c\u304f\u305b\u3044",
-        "english": "student"
+        "english": "student",
+        "jlpt": 5
     },
     {
         "kanji": "\u304b\u3051\u308b",
         "kana": "\u304b\u3051\u308b",
-        "english": "to call by phone"
+        "english": "to call by phone",
+        "jlpt": 5
     },
     {
         "kanji": "\u5098",
         "kana": "\u304b\u3055",
-        "english": "umbrella"
+        "english": "umbrella",
+        "jlpt": 5
     },
     {
         "kanji": "\u8cb8\u3059",
         "kana": "\u304b\u3059",
-        "english": "to lend"
+        "english": "to lend",
+        "jlpt": 5
     },
     {
         "kanji": "\u98a8",
         "kana": "\u304b\u305c",
-        "english": "wind"
+        "english": "wind",
+        "jlpt": 5
     },
     {
         "kanji": "\u98a8\u90aa",
         "kana": "\u304b\u305c",
-        "english": "a cold"
+        "english": "a cold",
+        "jlpt": 5
     },
     {
         "kanji": "\u5bb6\u65cf",
         "kana": "\u304b\u305e\u304f",
-        "english": "family"
+        "english": "family",
+        "jlpt": 5
     },
     {
         "kanji": "\u65b9",
         "kana": "\u304b\u305f",
-        "english": "person, way of doing"
+        "english": "person, way of doing",
+        "jlpt": 5
     },
     {
         "kanji": "\u5b66\u6821",
         "kana": "\u304c\u3063\u3053\u3046",
-        "english": "school"
+        "english": "school",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ab\u30c3\u30d7",
         "kana": "\u30ab\u30c3\u30d7",
-        "english": "cup"
+        "english": "cup",
+        "jlpt": 5
     },
     {
         "kanji": "\u5bb6\u5ead",
         "kana": "\u304b\u3066\u3044",
-        "english": "household"
+        "english": "household",
+        "jlpt": 5
     },
     {
         "kanji": "\u89d2",
         "kana": "\u304b\u3069",
-        "english": "a corner"
+        "english": "a corner",
+        "jlpt": 5
     },
     {
         "kanji": "\u304b\u3070\u3093",
         "kana": "\u304b\u3070\u3093",
-        "english": "bag,basket"
+        "english": "bag,basket",
+        "jlpt": 5
     },
     {
         "kanji": "\u82b1\u74f6",
         "kana": "\u304b\u3073\u3093",
-        "english": "a vase"
+        "english": "a vase",
+        "jlpt": 5
     },
     {
         "kanji": "\u7d19",
         "kana": "\u304b\u307f",
-        "english": "paper"
+        "english": "paper",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ab\u30e1\u30e9",
         "kana": "\u30ab\u30e1\u30e9",
-        "english": "camera"
+        "english": "camera",
+        "jlpt": 5
     },
     {
         "kanji": "\u706b\u66dc\u65e5",
         "kana": "\u304b\u3088\u3046\u3073",
-        "english": "Tuesday"
+        "english": "Tuesday",
+        "jlpt": 5
     },
     {
         "kanji": "\u8f9b\u3044",
         "kana": "\u304b\u3089\u3044",
-        "english": "spicy"
+        "english": "spicy",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f53",
         "kana": "\u304b\u3089\u3060",
-        "english": "body"
+        "english": "body",
+        "jlpt": 5
     },
     {
         "kanji": "\u501f\u308a\u308b",
         "kana": "\u304b\u308a\u308b",
-        "english": "to borrow"
+        "english": "to borrow",
+        "jlpt": 5
     },
     {
         "kanji": "\u8efd\u3044",
         "kana": "\u304b\u308b\u3044",
-        "english": "light"
+        "english": "light",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ab\u30ec\u30fc",
         "kana": "\u30ab\u30ec\u30fc",
-        "english": "curry"
+        "english": "curry",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ab\u30ec\u30f3\u30c0\u30fc",
         "kana": "\u30ab\u30ec\u30f3\u30c0\u30fc",
-        "english": "calendar"
+        "english": "calendar",
+        "jlpt": 5
     },
     {
         "kanji": "\u5ddd / \u6cb3",
         "kana": "\u304b\u308f",
-        "english": "river"
+        "english": "river",
+        "jlpt": 5
     },
     {
         "kanji": "\u304b\u308f\u3044\u3044",
         "kana": "\u304b\u308f\u3044\u3044",
-        "english": "cute"
+        "english": "cute",
+        "jlpt": 5
     },
     {
         "kanji": "\u6f22\u5b57",
         "kana": "\u304b\u3093\u3058",
-        "english": "Chinese character"
+        "english": "Chinese character",
+        "jlpt": 5
     },
     {
         "kanji": "\u6728",
         "kana": "\u304d",
-        "english": "tree,wood"
+        "english": "tree,wood",
+        "jlpt": 5
     },
     {
         "kanji": "\u9ec4\u8272",
         "kana": "\u304d\u3044\u308d",
-        "english": "yellow"
+        "english": "yellow",
+        "jlpt": 5
     },
     {
         "kanji": "\u9ec4\u8272\u3044",
         "kana": "\u304d\u3044\u308d\u3044",
-        "english": "yellow"
+        "english": "yellow",
+        "jlpt": 5
     },
     {
         "kanji": "\u6d88\u3048\u308b",
         "kana": "\u304d\u3048\u308b",
-        "english": "to disappear"
+        "english": "to disappear",
+        "jlpt": 5
     },
     {
         "kanji": "\u805e\u304f",
         "kana": "\u304d\u304f",
-        "english": "to hear,to listen to,to ask"
+        "english": "to hear,to listen to,to ask",
+        "jlpt": 5
     },
     {
         "kanji": "\u5317",
         "kana": "\u304d\u305f",
-        "english": "north"
+        "english": "north",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ae\u30bf\u30fc",
         "kana": "\u30ae\u30bf\u30fc",
-        "english": "guitar"
+        "english": "guitar",
+        "jlpt": 5
     },
     {
         "kanji": "\u6c5a\u3044",
         "kana": "\u304d\u305f\u306a\u3044",
-        "english": "dirty"
+        "english": "dirty",
+        "jlpt": 5
     },
     {
         "kanji": "\u55ab\u8336\u5e97",
         "kana": "\u304d\u3063\u3055\u3066\u3093",
-        "english": "coffee lounge"
+        "english": "coffee lounge",
+        "jlpt": 5
     },
     {
         "kanji": "\u5207\u624b",
         "kana": "\u304d\u3063\u3066",
-        "english": "postage stamp"
+        "english": "postage stamp",
+        "jlpt": 5
     },
     {
         "kanji": "\u5207\u7b26",
         "kana": "\u304d\u3063\u3077",
-        "english": "ticket"
+        "english": "ticket",
+        "jlpt": 5
     },
     {
         "kanji": "\u6628\u65e5",
         "kana": "\u304d\u306e\u3046",
-        "english": "yesterday"
+        "english": "yesterday",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e5d",
         "kana": "\u304d\u3085\u3046 / \u304f",
-        "english": "nine"
+        "english": "nine",
+        "jlpt": 5
     },
     {
         "kanji": "\u725b\u8089",
         "kana": "\u304e\u3085\u3046\u306b\u304f",
-        "english": "beef"
+        "english": "beef",
+        "jlpt": 5
     },
     {
         "kanji": "\u725b\u4e73",
         "kana": "\u304e\u3085\u3046\u306b\u3085\u3046",
-        "english": "milk"
+        "english": "milk",
+        "jlpt": 5
     },
     {
         "kanji": "\u4eca\u65e5",
         "kana": "\u304d\u3087\u3046",
-        "english": "today"
+        "english": "today",
+        "jlpt": 5
     },
     {
         "kanji": "\u6559\u5ba4",
         "kana": "\u304d\u3087\u3046\u3057\u3064",
-        "english": "classroom"
+        "english": "classroom",
+        "jlpt": 5
     },
     {
         "kanji": "\u5144\u5f1f",
         "kana": "\u304d\u3087\u3046\u3060\u3044",
-        "english": "(humble) siblings"
+        "english": "(humble) siblings",
+        "jlpt": 5
     },
     {
         "kanji": "\u53bb\u5e74",
         "kana": "\u304d\u3087\u306d\u3093",
-        "english": "last year"
+        "english": "last year",
+        "jlpt": 5
     },
     {
         "kanji": "\u5acc\u3044",
         "kana": "\u304d\u3089\u3044",
-        "english": "hate"
+        "english": "hate",
+        "jlpt": 5
     },
     {
         "kanji": "\u5207\u308b",
         "kana": "\u304d\u308b",
-        "english": "to cut"
+        "english": "to cut",
+        "jlpt": 5
     },
     {
         "kanji": "\u7740\u308b",
         "kana": "\u304d\u308b",
-        "english": "to put on from the shoulders down"
+        "english": "to put on from the shoulders down",
+        "jlpt": 5
     },
     {
         "kanji": "\u304d\u308c\u3044",
         "kana": "\u304d\u308c\u3044",
-        "english": "pretty,clean"
+        "english": "pretty,clean",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ad\u30ed / \u30ad\u30ed\u30b0\u30e9\u30e0",
         "kana": "\u30ad\u30ed / \u30ad\u30ed\u30b0\u30e9\u30e0",
-        "english": "kilogram"
+        "english": "kilogram",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ad\u30ed / \u30ad\u30ed\u30e1\u30fc\u30c8\u30eb",
         "kana": "\u30ad\u30ed / \u30ad\u30ed\u30e1\u30fc\u30c8\u30eb",
-        "english": "kilometre"
+        "english": "kilometre",
+        "jlpt": 5
     },
     {
         "kanji": "\u9280\u884c",
         "kana": "\u304e\u3093\u3053\u3046",
-        "english": "bank"
+        "english": "bank",
+        "jlpt": 5
     },
     {
         "kanji": "\u91d1\u66dc\u65e5",
         "kana": "\u304d\u3093\u3088\u3046\u3073",
-        "english": "Friday"
+        "english": "Friday",
+        "jlpt": 5
     },
     {
         "kanji": "\u85ac",
         "kana": "\u304f\u3059\u308a",
-        "english": "medicine"
+        "english": "medicine",
+        "jlpt": 5
     },
     {
         "kanji": "\u304f\u3060\u3055\u3044",
         "kana": "\u304f\u3060\u3055\u3044",
-        "english": "please"
+        "english": "please",
+        "jlpt": 5
     },
     {
         "kanji": "\u679c\u7269",
         "kana": "\u304f\u3060\u3082\u306e",
-        "english": "fruit"
+        "english": "fruit",
+        "jlpt": 5
     },
     {
         "kanji": "\u53e3",
         "kana": "\u304f\u3061",
-        "english": "mouth,opening"
+        "english": "mouth,opening",
+        "jlpt": 5
     },
     {
         "kanji": "\u9774",
         "kana": "\u304f\u3064",
-        "english": "shoes"
+        "english": "shoes",
+        "jlpt": 5
     },
     {
         "kanji": "\u9774\u4e0b",
         "kana": "\u304f\u3064\u3057\u305f",
-        "english": "socks"
+        "english": "socks",
+        "jlpt": 5
     },
     {
         "kanji": "\u56fd",
         "kana": "\u304f\u306b",
-        "english": "country"
+        "english": "country",
+        "jlpt": 5
     },
     {
         "kanji": "\u66c7\u308a",
         "kana": "\u304f\u3082\u308a",
-        "english": "cloudy weather"
+        "english": "cloudy weather",
+        "jlpt": 5
     },
     {
         "kanji": "\u66c7\u308b",
         "kana": "\u304f\u3082\u308b",
-        "english": "to become cloudy,to become dim"
+        "english": "to become cloudy,to become dim",
+        "jlpt": 5
     },
     {
         "kanji": "\u6697\u3044",
         "kana": "\u304f\u3089\u3044",
-        "english": "gloomy"
+        "english": "gloomy",
+        "jlpt": 5
     },
     {
         "kanji": "\u30af\u30e9\u30b9",
         "kana": "\u30af\u30e9\u30b9",
-        "english": "class"
+        "english": "class",
+        "jlpt": 5
     },
     {
         "kanji": "\u30b0\u30e9\u30e0",
         "kana": "\u30b0\u30e9\u30e0",
-        "english": "gram"
+        "english": "gram",
+        "jlpt": 5
     },
     {
         "kanji": "\u6765\u308b",
         "kana": "\u304f\u308b",
-        "english": "to come"
+        "english": "to come",
+        "jlpt": 5
     },
     {
         "kanji": "\u8eca",
         "kana": "\u304f\u308b\u307e",
-        "english": "car,vehicle"
+        "english": "car,vehicle",
+        "jlpt": 5
     },
     {
         "kanji": "\u9ed2",
         "kana": "\u304f\u308d",
-        "english": "black"
+        "english": "black",
+        "jlpt": 5
     },
     {
         "kanji": "\u9ed2\u3044",
         "kana": "\u304f\u308d\u3044",
-        "english": "black"
+        "english": "black",
+        "jlpt": 5
     },
     {
         "kanji": "\u8b66\u5b98",
         "kana": "\u3051\u3044\u304b\u3093",
-        "english": "policeman"
+        "english": "policeman",
+        "jlpt": 5
     },
     {
         "kanji": "\u4eca\u671d",
         "kana": "\u3051\u3055",
-        "english": "this morning"
+        "english": "this morning",
+        "jlpt": 5
     },
     {
         "kanji": "\u6d88\u3059",
         "kana": "\u3051\u3059",
-        "english": "to erase,to turn off power"
+        "english": "to erase,to turn off power",
+        "jlpt": 5
     },
     {
         "kanji": "\u7d50\u69cb",
         "kana": "\u3051\u3063\u3053\u3046",
-        "english": "splendid,enough"
+        "english": "splendid,enough",
+        "jlpt": 5
     },
     {
         "kanji": "\u7d50\u5a5a",
         "kana": "\u3051\u3063\u3053\u3093",
-        "english": "marriage"
+        "english": "marriage",
+        "jlpt": 5
     },
     {
         "kanji": "\u6708\u66dc\u65e5",
         "kana": "\u3052\u3064\u3088\u3046\u3073",
-        "english": "Monday"
+        "english": "Monday",
+        "jlpt": 5
     },
     {
         "kanji": "\u7384\u95a2",
         "kana": "\u3052\u3093\u304b\u3093",
-        "english": "entry hall"
+        "english": "entry hall",
+        "jlpt": 5
     },
     {
         "kanji": "\u5143\u6c17",
         "kana": "\u3052\u3093\u304d",
-        "english": "health, vitality"
+        "english": "health, vitality",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e94",
         "kana": "\u3054",
-        "english": "five"
+        "english": "five",
+        "jlpt": 5
     },
     {
         "kanji": "\u516c\u5712",
         "kana": "\u3053\u3046\u3048\u3093",
-        "english": "park"
+        "english": "park",
+        "jlpt": 5
     },
     {
         "kanji": "\u4ea4\u5dee\u70b9",
         "kana": "\u3053\u3046\u3055\u3066\u3093",
-        "english": "intersection"
+        "english": "intersection",
+        "jlpt": 5
     },
     {
         "kanji": "\u7d05\u8336",
         "kana": "\u3053\u3046\u3061\u3083",
-        "english": "black tea"
+        "english": "black tea",
+        "jlpt": 5
     },
     {
         "kanji": "\u4ea4\u756a",
         "kana": "\u3053\u3046\u3070\u3093",
-        "english": "police box"
+        "english": "police box",
+        "jlpt": 5
     },
     {
         "kanji": "\u58f0",
         "kana": "\u3053\u3048",
-        "english": "voice"
+        "english": "voice",
+        "jlpt": 5
     },
     {
         "kanji": "\u30b3\u30fc\u30c8",
         "kana": "\u30b3\u30fc\u30c8",
-        "english": "coat,tennis court"
+        "english": "coat,tennis court",
+        "jlpt": 5
     },
     {
         "kanji": "\u30b3\u30fc\u30d2\u30fc",
         "kana": "\u30b3\u30fc\u30d2\u30fc",
-        "english": "coffee"
+        "english": "coffee",
+        "jlpt": 5
     },
     {
         "kanji": "\u3053\u3053",
         "kana": "\u3053\u3053",
-        "english": "here"
+        "english": "here",
+        "jlpt": 5
     },
     {
         "kanji": "\u5348\u5f8c",
         "kana": "\u3054\u3054",
-        "english": "afternoon"
+        "english": "afternoon",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e5d\u65e5",
         "kana": "\u3053\u3053\u306e\u304b",
-        "english": "nine days, ninth day"
+        "english": "nine days, ninth day",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e5d\u3064",
         "kana": "\u3053\u3053\u306e\u3064",
-        "english": "nine"
+        "english": "nine",
+        "jlpt": 5
     },
     {
         "kanji": "\u5348\u524d",
         "kana": "\u3054\u305c\u3093",
-        "english": "morning"
+        "english": "morning",
+        "jlpt": 5
     },
     {
         "kanji": "\u7b54\u3048\u308b",
         "kana": "\u3053\u305f\u3048\u308b",
-        "english": "to answer"
+        "english": "to answer",
+        "jlpt": 5
     },
     {
         "kanji": "\u3053\u3061\u3089",
         "kana": "\u3053\u3061\u3089",
-        "english": "this person or way"
+        "english": "this person or way",
+        "jlpt": 5
     },
     {
         "kanji": "\u3053\u3063\u3061",
         "kana": "\u3053\u3063\u3061",
-        "english": "this person or way"
+        "english": "this person or way",
+        "jlpt": 5
     },
     {
         "kanji": "\u30b3\u30c3\u30d7",
         "kana": "\u30b3\u30c3\u30d7",
-        "english": "a glass"
+        "english": "a glass",
+        "jlpt": 5
     },
     {
         "kanji": "\u4eca\u5e74",
         "kana": "\u3053\u3068\u3057",
-        "english": "this year"
+        "english": "this year",
+        "jlpt": 5
     },
     {
         "kanji": "\u8a00\u8449",
         "kana": "\u3053\u3068\u3070",
-        "english": "word,language"
+        "english": "word,language",
+        "jlpt": 5
     },
     {
         "kanji": "\u5b50\u4f9b",
         "kana": "\u3053\u3069\u3082",
-        "english": "child"
+        "english": "child",
+        "jlpt": 5
     },
     {
         "kanji": "\u3053\u306e",
         "kana": "\u3053\u306e",
-        "english": "this"
+        "english": "this",
+        "jlpt": 5
     },
     {
         "kanji": "\u5fa1\u98ef",
         "kana": "\u3054\u306f\u3093",
-        "english": "cooked rice,meal"
+        "english": "cooked rice,meal",
+        "jlpt": 5
     },
     {
         "kanji": "\u30b3\u30d4\u30fc\u3059\u308b",
         "kana": "\u30b3\u30d4\u30fc\u3059\u308b",
-        "english": "to copy"
+        "english": "to copy",
+        "jlpt": 5
     },
     {
         "kanji": "\u56f0\u308b",
         "kana": "\u3053\u307e\u308b",
-        "english": "to be worried"
+        "english": "to be worried",
+        "jlpt": 5
     },
     {
         "kanji": "\u3053\u308c",
         "kana": "\u3053\u308c",
-        "english": "this"
+        "english": "this",
+        "jlpt": 5
     },
     {
         "kanji": "\u4eca\u6708",
         "kana": "\u3053\u3093\u3052\u3064",
-        "english": "this month"
+        "english": "this month",
+        "jlpt": 5
     },
     {
         "kanji": "\u4eca\u9031",
         "kana": "\u3053\u3093\u3057\u3085\u3046",
-        "english": "this week"
+        "english": "this week",
+        "jlpt": 5
     },
     {
         "kanji": "\u3053\u3093\u306a",
         "kana": "\u3053\u3093\u306a",
-        "english": "such"
+        "english": "such",
+        "jlpt": 5
     },
     {
         "kanji": "\u4eca\u6669",
         "kana": "\u3053\u3093\u3070\u3093",
-        "english": "this evening"
+        "english": "this evening",
+        "jlpt": 5
     },
     {
         "kanji": "\u3055\u3042",
         "kana": "\u3055\u3042",
-        "english": "well\u2026"
+        "english": "well\u2026",
+        "jlpt": 5
     },
     {
         "kanji": "\u8ca1\u5e03",
         "kana": "\u3055\u3044\u3075",
-        "english": "wallet"
+        "english": "wallet",
+        "jlpt": 5
     },
     {
         "kanji": "\u9b5a",
         "kana": "\u3055\u304b\u306a",
-        "english": "fish"
+        "english": "fish",
+        "jlpt": 5
     },
     {
         "kanji": "\u5148",
         "kana": "\u3055\u304d",
-        "english": "the future,previous"
+        "english": "the future,previous",
+        "jlpt": 5
     },
     {
         "kanji": "\u54b2\u304f",
         "kana": "\u3055\u304f",
-        "english": "to bloom"
+        "english": "to bloom",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f5c\u6587",
         "kana": "\u3055\u304f\u3076\u3093",
-        "english": "composition,writing"
+        "english": "composition,writing",
+        "jlpt": 5
     },
     {
         "kanji": "\u5dee\u3059",
         "kana": "\u3055\u3059",
-        "english": "to stretch out hands,to raise an umbrella"
+        "english": "to stretch out hands,to raise an umbrella",
+        "jlpt": 5
     },
     {
         "kanji": "\u96d1\u8a8c",
         "kana": "\u3056\u3063\u3057",
-        "english": "magazine"
+        "english": "magazine",
+        "jlpt": 5
     },
     {
         "kanji": "\u7802\u7cd6",
         "kana": "\u3055\u3068\u3046",
-        "english": "sugar"
+        "english": "sugar",
+        "jlpt": 5
     },
     {
         "kanji": "\u5bd2\u3044",
         "kana": "\u3055\u3080\u3044",
-        "english": "cold"
+        "english": "cold",
+        "jlpt": 5
     },
     {
         "kanji": "\u518d\u6765\u5e74",
         "kana": "\u3055\u3089\u3044\u306d\u3093",
-        "english": "year after next"
+        "english": "year after next",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e09",
         "kana": "\u3055\u3093",
-        "english": "three"
+        "english": "three",
+        "jlpt": 5
     },
     {
         "kanji": "\u6563\u6b69",
         "kana": "\u3055\u3093\u307d\u3059\u308b",
-        "english": "to stroll"
+        "english": "to stroll",
+        "jlpt": 5
     },
     {
         "kanji": "\u56db",
         "kana": "\u3057 / \u3088\u3093",
-        "english": "four"
+        "english": "four",
+        "jlpt": 5
     },
     {
         "kanji": "\u5869",
         "kana": "\u3057\u304a",
-        "english": "salt"
+        "english": "salt",
+        "jlpt": 5
     },
     {
         "kanji": "\u3057\u304b\u3057",
         "kana": "\u3057\u304b\u3057",
-        "english": "however"
+        "english": "however",
+        "jlpt": 5
     },
     {
         "kanji": "\u6642\u9593",
         "kana": "\u3058\u304b\u3093",
-        "english": "time"
+        "english": "time",
+        "jlpt": 5
     },
     {
         "kanji": "\u4ed5\u4e8b",
         "kana": "\u3057\u3054\u3068",
-        "english": "job"
+        "english": "job",
+        "jlpt": 5
     },
     {
         "kanji": "\u8f9e\u66f8",
         "kana": "\u3058\u3057\u3087",
-        "english": "dictionary"
+        "english": "dictionary",
+        "jlpt": 5
     },
     {
         "kanji": "\u9759\u304b",
         "kana": "\u3057\u305a\u304b",
-        "english": "quiet"
+        "english": "quiet",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e0b",
         "kana": "\u3057\u305f",
-        "english": "below"
+        "english": "below",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e03",
         "kana": "\u3057\u3061 / \u306a\u306a",
-        "english": "seven"
+        "english": "seven",
+        "jlpt": 5
     },
     {
         "kanji": "\u8cea\u554f",
         "kana": "\u3057\u3064\u3082\u3093",
-        "english": "question"
+        "english": "question",
+        "jlpt": 5
     },
     {
         "kanji": "\u81ea\u8ee2\u8eca",
         "kana": "\u3058\u3066\u3093\u3057\u3083",
-        "english": "bicycle"
+        "english": "bicycle",
+        "jlpt": 5
     },
     {
         "kanji": "\u81ea\u52d5\u8eca",
         "kana": "\u3058\u3069\u3046\u3057\u3083",
-        "english": "automobile"
+        "english": "automobile",
+        "jlpt": 5
     },
     {
         "kanji": "\u6b7b\u306c",
         "kana": "\u3057\u306c",
-        "english": "to die"
+        "english": "to die",
+        "jlpt": 5
     },
     {
         "kanji": "\u5b57\u5f15",
         "kana": "\u3058\u3073\u304d",
-        "english": "dictionary"
+        "english": "dictionary",
+        "jlpt": 5
     },
     {
         "kanji": "\u81ea\u5206",
         "kana": "\u3058\u3076\u3093",
-        "english": "oneself"
+        "english": "oneself",
+        "jlpt": 5
     },
     {
         "kanji": "\u9589\u307e\u308b",
         "kana": "\u3057\u307e\u308b",
-        "english": "to close,to be closed"
+        "english": "to close,to be closed",
+        "jlpt": 5
     },
     {
         "kanji": "\u9589\u3081\u308b",
         "kana": "\u3057\u3081\u308b",
-        "english": "to close something"
+        "english": "to close something",
+        "jlpt": 5
     },
     {
         "kanji": "\u7de0\u3081\u308b",
         "kana": "\u3057\u3081\u308b",
-        "english": "to tie"
+        "english": "to tie",
+        "jlpt": 5
     },
     {
         "kanji": "\u3058\u3083 / \u3058\u3083\u3042",
         "kana": "\u3058\u3083 / \u3058\u3083\u3042",
-        "english": "well then\u2026"
+        "english": "well then\u2026",
+        "jlpt": 5
     },
     {
         "kanji": "\u5199\u771f",
         "kana": "\u3057\u3083\u3057\u3093",
-        "english": "photograph"
+        "english": "photograph",
+        "jlpt": 5
     },
     {
         "kanji": "\u30b7\u30e3\u30c4",
         "kana": "\u30b7\u30e3\u30c4",
-        "english": "shirt"
+        "english": "shirt",
+        "jlpt": 5
     },
     {
         "kanji": "\u30b7\u30e3\u30ef\u30fc",
         "kana": "\u30b7\u30e3\u30ef\u30fc",
-        "english": "shower"
+        "english": "shower",
+        "jlpt": 5
     },
     {
         "kanji": "\u5341",
         "kana": "\u3058\u3085\u3046 / \u3068\u304a",
-        "english": "ten"
+        "english": "ten",
+        "jlpt": 5
     },
     {
         "kanji": "\u6388\u696d",
         "kana": "\u3058\u3085\u304e\u3087\u3046",
-        "english": "lesson,class work"
+        "english": "lesson,class work",
+        "jlpt": 5
     },
     {
         "kanji": "\u5bbf\u984c",
         "kana": "\u3057\u3085\u304f\u3060\u3044",
-        "english": "homework"
+        "english": "homework",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e0a\u624b",
         "kana": "\u3058\u3087\u3046\u305a",
-        "english": "skillful"
+        "english": "skillful",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e08\u592b",
         "kana": "\u3058\u3087\u3046\u3076",
-        "english": "strong,durable"
+        "english": "strong,durable",
+        "jlpt": 5
     },
     {
         "kanji": "\u3057\u3087\u3046\u3086",
         "kana": "\u3057\u3087\u3046\u3086",
-        "english": "soy sauce"
+        "english": "soy sauce",
+        "jlpt": 5
     },
     {
         "kanji": "\u98df\u5802",
         "kana": "\u3057\u3087\u304f\u3069\u3046",
-        "english": "dining hall"
+        "english": "dining hall",
+        "jlpt": 5
     },
     {
         "kanji": "\u77e5\u308b",
         "kana": "\u3057\u308b",
-        "english": "to know"
+        "english": "to know",
+        "jlpt": 5
     },
     {
         "kanji": "\u767d",
         "kana": "\u3057\u308d",
-        "english": "white"
+        "english": "white",
+        "jlpt": 5
     },
     {
         "kanji": "\u767d\u3044",
         "kana": "\u3057\u308d\u3044",
-        "english": "white"
+        "english": "white",
+        "jlpt": 5
     },
     {
         "kanji": "\u65b0\u805e",
         "kana": "\u3057\u3093\u3076\u3093",
-        "english": "newspaper"
+        "english": "newspaper",
+        "jlpt": 5
     },
     {
         "kanji": "\u6c34\u66dc\u65e5",
         "kana": "\u3059\u3044\u3088\u3046\u3073",
-        "english": "Wednesday"
+        "english": "Wednesday",
+        "jlpt": 5
     },
     {
         "kanji": "\u5438\u3046",
         "kana": "\u3059\u3046",
-        "english": "to smoke,to suck"
+        "english": "to smoke,to suck",
+        "jlpt": 5
     },
     {
         "kanji": "\u30b9\u30ab\u30fc\u30c8",
         "kana": "\u30b9\u30ab\u30fc\u30c8",
-        "english": "skirt"
+        "english": "skirt",
+        "jlpt": 5
     },
     {
         "kanji": "\u597d\u304d",
         "kana": "\u3059\u304d",
-        "english": "likeable"
+        "english": "likeable",
+        "jlpt": 5
     },
     {
         "kanji": "\u5c11\u306a\u3044",
         "kana": "\u3059\u304f\u306a\u3044",
-        "english": "a few"
+        "english": "a few",
+        "jlpt": 5
     },
     {
         "kanji": "\u3059\u3050\u306b",
         "kana": "\u3059\u3050\u306b",
-        "english": "instantly"
+        "english": "instantly",
+        "jlpt": 5
     },
     {
         "kanji": "\u5c11\u3057",
         "kana": "\u3059\u3053\u3057",
-        "english": "few"
+        "english": "few",
+        "jlpt": 5
     },
     {
         "kanji": "\u6dbc\u3057\u3044",
         "kana": "\u3059\u305a\u3057\u3044",
-        "english": "refreshing"
+        "english": "refreshing",
+        "jlpt": 5
     },
     {
         "kanji": "\u30b9\u30c8\u30fc\u30d6",
         "kana": "\u30b9\u30c8\u30fc\u30d6",
-        "english": "heater"
+        "english": "heater",
+        "jlpt": 5
     },
     {
         "kanji": "\u30b9\u30d7\u30fc\u30f3",
         "kana": "\u30b9\u30d7\u30fc\u30f3",
-        "english": "spoon"
+        "english": "spoon",
+        "jlpt": 5
     },
     {
         "kanji": "\u30b9\u30dd\u30fc\u30c4",
         "kana": "\u30b9\u30dd\u30fc\u30c4",
-        "english": "sport"
+        "english": "sport",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ba\u30dc\u30f3",
         "kana": "\u30ba\u30dc\u30f3",
-        "english": "trousers"
+        "english": "trousers",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f4f\u3080",
         "kana": "\u3059\u3080",
-        "english": "to live in"
+        "english": "to live in",
+        "jlpt": 5
     },
     {
         "kanji": "\u30b9\u30ea\u30c3\u30d1",
         "kana": "\u30b9\u30ea\u30c3\u30d1",
-        "english": "slippers"
+        "english": "slippers",
+        "jlpt": 5
     },
     {
         "kanji": "\u3059\u308b",
         "kana": "\u3059\u308b",
-        "english": "to do"
+        "english": "to do",
+        "jlpt": 5
     },
     {
         "kanji": "\u5ea7\u308b",
         "kana": "\u3059\u308f\u308b",
-        "english": "to sit"
+        "english": "to sit",
+        "jlpt": 5
     },
     {
         "kanji": "\u80cc",
         "kana": "\u305b",
-        "english": "height,stature"
+        "english": "height,stature",
+        "jlpt": 5
     },
     {
         "kanji": "\u751f\u5f92",
         "kana": "\u305b\u3044\u3068",
-        "english": "pupil"
+        "english": "pupil",
+        "jlpt": 5
     },
     {
         "kanji": "\u30bb\u30fc\u30bf\u30fc",
         "kana": "\u30bb\u30fc\u30bf\u30fc",
-        "english": "sweater,jumper"
+        "english": "sweater,jumper",
+        "jlpt": 5
     },
     {
         "kanji": "\u305b\u3063\u3051\u3093",
         "kana": "\u305b\u3063\u3051\u3093",
-        "english": "soap"
+        "english": "soap",
+        "jlpt": 5
     },
     {
         "kanji": "\u80cc\u5e83",
         "kana": "\u305b\u3073\u308d",
-        "english": "business suit"
+        "english": "business suit",
+        "jlpt": 5
     },
     {
         "kanji": "\u72ed\u3044",
         "kana": "\u305b\u307e\u3044",
-        "english": "narrow"
+        "english": "narrow",
+        "jlpt": 5
     },
     {
         "kanji": "\u30bc\u30ed",
         "kana": "\u30bc\u30ed",
-        "english": "zero"
+        "english": "zero",
+        "jlpt": 5
     },
     {
         "kanji": "\u5343",
         "kana": "\u305b\u3093",
-        "english": "thousand"
+        "english": "thousand",
+        "jlpt": 5
     },
     {
         "kanji": "\u5148\u6708",
         "kana": "\u305b\u3093\u3052\u3064",
-        "english": "last month"
+        "english": "last month",
+        "jlpt": 5
     },
     {
         "kanji": "\u5148\u9031",
         "kana": "\u305b\u3093\u3057\u3085\u3046",
-        "english": "last week"
+        "english": "last week",
+        "jlpt": 5
     },
     {
         "kanji": "\u5148\u751f",
         "kana": "\u305b\u3093\u305b\u3044",
-        "english": "teacher,doctor"
+        "english": "teacher,doctor",
+        "jlpt": 5
     },
     {
         "kanji": "\u6d17\u6fef",
         "kana": "\u305b\u3093\u305f\u304f",
-        "english": "washing"
+        "english": "washing",
+        "jlpt": 5
     },
     {
         "kanji": "\u5168\u90e8",
         "kana": "\u305c\u3093\u3076",
-        "english": "all"
+        "english": "all",
+        "jlpt": 5
     },
     {
         "kanji": "\u6383\u9664",
         "kana": "\u305d\u3046\u3058",
-        "english": "cleaning, sweeping"
+        "english": "cleaning, sweeping",
+        "jlpt": 5
     },
     {
         "kanji": "\u305d\u3046\u3057\u3066 / \u305d\u3057\u3066",
         "kana": "\u305d\u3046\u3057\u3066 / \u305d\u3057\u3066",
-        "english": "and"
+        "english": "and",
+        "jlpt": 5
     },
     {
         "kanji": "\u305d\u3053",
         "kana": "\u305d\u3053",
-        "english": "that place"
+        "english": "that place",
+        "jlpt": 5
     },
     {
         "kanji": "\u305d\u3061\u3089",
         "kana": "\u305d\u3061\u3089",
-        "english": "over there"
+        "english": "over there",
+        "jlpt": 5
     },
     {
         "kanji": "\u305d\u3063\u3061",
         "kana": "\u305d\u3063\u3061",
-        "english": "over there"
+        "english": "over there",
+        "jlpt": 5
     },
     {
         "kanji": "\u5916",
         "kana": "\u305d\u3068",
-        "english": "outside"
+        "english": "outside",
+        "jlpt": 5
     },
     {
         "kanji": "\u305d\u306e",
         "kana": "\u305d\u306e",
-        "english": "that"
+        "english": "that",
+        "jlpt": 5
     },
     {
         "kanji": "\u305d\u3070",
         "kana": "\u305d\u3070",
-        "english": "near,beside"
+        "english": "near,beside",
+        "jlpt": 5
     },
     {
         "kanji": "\u7a7a",
         "kana": "\u305d\u3089",
-        "english": "sky"
+        "english": "sky",
+        "jlpt": 5
     },
     {
         "kanji": "\u305d\u308c",
         "kana": "\u305d\u308c",
-        "english": "that"
+        "english": "that",
+        "jlpt": 5
     },
     {
         "kanji": "\u305d\u308c\u304b\u3089",
         "kana": "\u305d\u308c\u304b\u3089",
-        "english": "after that"
+        "english": "after that",
+        "jlpt": 5
     },
     {
         "kanji": "\u305d\u308c\u3067\u306f",
         "kana": "\u305d\u308c\u3067\u306f",
-        "english": "in that situation"
+        "english": "in that situation",
+        "jlpt": 5
     },
     {
         "kanji": "\u5927\u5b66",
         "kana": "\u3060\u3044\u304c\u304f",
-        "english": "university"
+        "english": "university",
+        "jlpt": 5
     },
     {
         "kanji": "\u5927\u4f7f\u9928",
         "kana": "\u305f\u3044\u3057\u304b\u3093",
-        "english": "embassy"
+        "english": "embassy",
+        "jlpt": 5
     },
     {
         "kanji": "\u5927\u4e08\u592b",
         "kana": "\u3060\u3044\u3058\u3087\u3046\u3076",
-        "english": "all right"
+        "english": "all right",
+        "jlpt": 5
     },
     {
         "kanji": "\u5927\u597d\u304d",
         "kana": "\u3060\u3044\u3059\u304d",
-        "english": "to be very likeable"
+        "english": "to be very likeable",
+        "jlpt": 5
     },
     {
         "kanji": "\u5927\u5207",
         "kana": "\u305f\u3044\u305b\u3064",
-        "english": "important"
+        "english": "important",
+        "jlpt": 5
     },
     {
         "kanji": "\u53f0\u6240",
         "kana": "\u3060\u3044\u3069\u3053\u308d",
-        "english": "kitchen"
+        "english": "kitchen",
+        "jlpt": 5
     },
     {
         "kanji": "\u305f\u3044\u3078\u3093",
         "kana": "\u305f\u3044\u3078\u3093",
-        "english": "very"
+        "english": "very",
+        "jlpt": 5
     },
     {
         "kanji": "\u305f\u3044\u3078\u3093",
         "kana": "\u305f\u3044\u3078\u3093",
-        "english": "difficult situation"
+        "english": "difficult situation",
+        "jlpt": 5
     },
     {
         "kanji": "\u9ad8\u3044",
         "kana": "\u305f\u304b\u3044",
-        "english": "tall, expensive"
+        "english": "tall, expensive",
+        "jlpt": 5
     },
     {
         "kanji": "\u305f\u304f\u3055\u3093",
         "kana": "\u305f\u304f\u3055\u3093",
-        "english": "many"
+        "english": "many",
+        "jlpt": 5
     },
     {
         "kanji": "\u30bf\u30af\u30b7\u30fc",
         "kana": "\u30bf\u30af\u30b7\u30fc",
-        "english": "taxi"
+        "english": "taxi",
+        "jlpt": 5
     },
     {
         "kanji": "\u51fa\u3059",
         "kana": "\u3060\u3059",
-        "english": "to put out"
+        "english": "to put out",
+        "jlpt": 5
     },
     {
         "kanji": "\u7acb\u3064",
         "kana": "\u305f\u3064",
-        "english": "to stand"
+        "english": "to stand",
+        "jlpt": 5
     },
     {
         "kanji": "\u305f\u3066",
         "kana": "\u305f\u3066",
-        "english": "length,height"
+        "english": "length,height",
+        "jlpt": 5
     },
     {
         "kanji": "\u5efa\u7269",
         "kana": "\u305f\u3066\u3082\u306e",
-        "english": "building"
+        "english": "building",
+        "jlpt": 5
     },
     {
         "kanji": "\u697d\u3057\u3044",
         "kana": "\u305f\u306e\u3057\u3044",
-        "english": "enjoyable"
+        "english": "enjoyable",
+        "jlpt": 5
     },
     {
         "kanji": "\u983c\u3080",
         "kana": "\u305f\u306e\u3080",
-        "english": "to ask"
+        "english": "to ask",
+        "jlpt": 5
     },
     {
         "kanji": "\u305f\u3070\u3053",
         "kana": "\u305f\u3070\u3053",
-        "english": "tobacco,cigarettes"
+        "english": "tobacco,cigarettes",
+        "jlpt": 5
     },
     {
         "kanji": "\u305f\u3076\u3093",
         "kana": "\u305f\u3076\u3093",
-        "english": "probably"
+        "english": "probably",
+        "jlpt": 5
     },
     {
         "kanji": "\u98df\u3079\u7269",
         "kana": "\u305f\u3079\u3082\u306e",
-        "english": "food"
+        "english": "food",
+        "jlpt": 5
     },
     {
         "kanji": "\u98df\u3079\u308b",
         "kana": "\u305f\u3079\u308b",
-        "english": "to eat"
+        "english": "to eat",
+        "jlpt": 5
     },
     {
         "kanji": "\u5375",
         "kana": "\u305f\u307e\u3054",
-        "english": "egg"
+        "english": "egg",
+        "jlpt": 5
     },
     {
         "kanji": "\u8ab0",
         "kana": "\u3060\u308c",
-        "english": "who"
+        "english": "who",
+        "jlpt": 5
     },
     {
         "kanji": "\u8ab0",
         "kana": "\u3060\u308c\u304b",
-        "english": "somebody"
+        "english": "somebody",
+        "jlpt": 5
     },
     {
         "kanji": "\u8a95\u751f\u65e5",
         "kana": "\u305f\u3093\u3058\u3087\u3046\u3073",
-        "english": "birthday"
+        "english": "birthday",
+        "jlpt": 5
     },
     {
         "kanji": "\u3060\u3093\u3060\u3093",
         "kana": "\u3060\u3093\u3060\u3093",
-        "english": "gradually"
+        "english": "gradually",
+        "jlpt": 5
     },
     {
         "kanji": "\u5c0f\u3055\u3044",
         "kana": "\u3061\u3044\u3055\u3044",
-        "english": "little"
+        "english": "little",
+        "jlpt": 5
     },
     {
         "kanji": "\u5c0f\u3055\u306a",
         "kana": "\u3061\u3044\u3055\u306a",
-        "english": "little"
+        "english": "little",
+        "jlpt": 5
     },
     {
         "kanji": "\u8fd1\u3044",
         "kana": "\u3061\u304b\u3044",
-        "english": "near"
+        "english": "near",
+        "jlpt": 5
     },
     {
         "kanji": "\u9055\u3046",
         "kana": "\u3061\u304c\u3046",
-        "english": "to differ"
+        "english": "to differ",
+        "jlpt": 5
     },
     {
         "kanji": "\u8fd1\u304f",
         "kana": "\u3061\u304b\u304f",
-        "english": "near"
+        "english": "near",
+        "jlpt": 5
     },
     {
         "kanji": "\u5730\u4e0b\u9244",
         "kana": "\u3061\u304b\u3066\u3064",
-        "english": "underground train"
+        "english": "underground train",
+        "jlpt": 5
     },
     {
         "kanji": "\u5730\u56f3",
         "kana": "\u3061\u305a",
-        "english": "map"
+        "english": "map",
+        "jlpt": 5
     },
     {
         "kanji": "\u8336\u8272",
         "kana": "\u3061\u3083\u3044\u308d",
-        "english": "brown"
+        "english": "brown",
+        "jlpt": 5
     },
     {
         "kanji": "\u3061\u3083\u308f\u3093",
         "kana": "\u3061\u3083\u308f\u3093",
-        "english": "rice bowl"
+        "english": "rice bowl",
+        "jlpt": 5
     },
     {
         "kanji": "\u3061\u3087\u3046\u3069",
         "kana": "\u3061\u3087\u3046\u3069",
-        "english": "exactly"
+        "english": "exactly",
+        "jlpt": 5
     },
     {
         "kanji": "\u3061\u3087\u3063\u3068",
         "kana": "\u3061\u3087\u3063\u3068",
-        "english": "somewhat"
+        "english": "somewhat",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e00\u65e5",
         "kana": "\u3064\u3044\u305f\u3061",
-        "english": "first of month"
+        "english": "first of month",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f7f\u3046",
         "kana": "\u3064\u304b\u3046",
-        "english": "to use"
+        "english": "to use",
+        "jlpt": 5
     },
     {
         "kanji": "\u75b2\u308c\u308b",
         "kana": "\u3064\u304b\u308c\u308b",
-        "english": "to get tired"
+        "english": "to get tired",
+        "jlpt": 5
     },
     {
         "kanji": "\u6b21",
         "kana": "\u3064\u304e",
-        "english": "next"
+        "english": "next",
+        "jlpt": 5
     },
     {
         "kanji": "\u7740\u304f",
         "kana": "\u3064\u304f",
-        "english": "to arrive at"
+        "english": "to arrive at",
+        "jlpt": 5
     },
     {
         "kanji": "\u673a",
         "kana": "\u3064\u304f\u3048",
-        "english": "desk"
+        "english": "desk",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f5c\u308b",
         "kana": "\u3064\u304f\u308b",
-        "english": "to make"
+        "english": "to make",
+        "jlpt": 5
     },
     {
         "kanji": "\u3064\u3051\u308b",
         "kana": "\u3064\u3051\u308b",
-        "english": "to turn on"
+        "english": "to turn on",
+        "jlpt": 5
     },
     {
         "kanji": "\u52e4\u3081\u308b",
         "kana": "\u3064\u3068\u3081\u308b",
-        "english": "to work for someone"
+        "english": "to work for someone",
+        "jlpt": 5
     },
     {
         "kanji": "\u3064\u307e\u3089\u306a\u3044",
         "kana": "\u3064\u307e\u3089\u306a\u3044",
-        "english": "boring"
+        "english": "boring",
+        "jlpt": 5
     },
     {
         "kanji": "\u51b7\u305f\u3044",
         "kana": "\u3064\u3081\u305f\u3044",
-        "english": "cold to the touch"
+        "english": "cold to the touch",
+        "jlpt": 5
     },
     {
         "kanji": "\u5f37\u3044",
         "kana": "\u3064\u3088\u3044",
-        "english": "powerful"
+        "english": "powerful",
+        "jlpt": 5
     },
     {
         "kanji": "\u624b",
         "kana": "\u3066",
-        "english": "hand"
+        "english": "hand",
+        "jlpt": 5
     },
     {
         "kanji": "\u30c6\u30fc\u30d7",
         "kana": "\u30c6\u30fc\u30d7",
-        "english": "tape"
+        "english": "tape",
+        "jlpt": 5
     },
     {
         "kanji": "\u30c6\u30fc\u30d6\u30eb",
         "kana": "\u30c6\u30fc\u30d6\u30eb",
-        "english": "table"
+        "english": "table",
+        "jlpt": 5
     },
     {
         "kanji": "\u30c6\u30fc\u30d7\u30ec\u30b3\u30fc\u30c0\u30fc",
         "kana": "\u30c6\u30fc\u30d7\u30ec\u30b3\u30fc\u30c0\u30fc",
-        "english": "tape recorder"
+        "english": "tape recorder",
+        "jlpt": 5
     },
     {
         "kanji": "\u51fa\u304b\u3051\u308b",
         "kana": "\u3067\u304b\u3051\u308b",
-        "english": "to go out"
+        "english": "to go out",
+        "jlpt": 5
     },
     {
         "kanji": "\u624b\u7d19",
         "kana": "\u3066\u304c\u307f",
-        "english": "letter"
+        "english": "letter",
+        "jlpt": 5
     },
     {
         "kanji": "\u3067\u304d\u308b",
         "kana": "\u3067\u304d\u308b",
-        "english": "to be able to"
+        "english": "to be able to",
+        "jlpt": 5
     },
     {
         "kanji": "\u51fa\u53e3",
         "kana": "\u3067\u3050\u3061",
-        "english": "exit"
+        "english": "exit",
+        "jlpt": 5
     },
     {
         "kanji": "\u30c6\u30b9\u30c8",
         "kana": "\u30c6\u30b9\u30c8",
-        "english": "test"
+        "english": "test",
+        "jlpt": 5
     },
     {
         "kanji": "\u3067\u306f",
         "kana": "\u3067\u306f",
-        "english": "with that..."
+        "english": "with that...",
+        "jlpt": 5
     },
     {
         "kanji": "\u30c7\u30d1\u30fc\u30c8",
         "kana": "\u30c7\u30d1\u30fc\u30c8",
-        "english": "department store"
+        "english": "department store",
+        "jlpt": 5
     },
     {
         "kanji": "\u3067\u3082",
         "kana": "\u3067\u3082",
-        "english": "but"
+        "english": "but",
+        "jlpt": 5
     },
     {
         "kanji": "\u51fa\u308b",
         "kana": "\u3067\u308b",
-        "english": "to appear,to leave"
+        "english": "to appear,to leave",
+        "jlpt": 5
     },
     {
         "kanji": "\u30c6\u30ec\u30d3",
         "kana": "\u30c6\u30ec\u30d3",
-        "english": "television"
+        "english": "television",
+        "jlpt": 5
     },
     {
         "kanji": "\u5929\u6c17",
         "kana": "\u3066\u3093\u304d",
-        "english": "weather"
+        "english": "weather",
+        "jlpt": 5
     },
     {
         "kanji": "\u96fb\u6c17",
         "kana": "\u3067\u3093\u304d",
-        "english": "electricity,electric light"
+        "english": "electricity,electric light",
+        "jlpt": 5
     },
     {
         "kanji": "\u96fb\u8eca",
         "kana": "\u3067\u3093\u3057\u3083",
-        "english": "electric train"
+        "english": "electric train",
+        "jlpt": 5
     },
     {
         "kanji": "\u96fb\u8a71",
         "kana": "\u3067\u3093\u308f",
-        "english": "telephone"
+        "english": "telephone",
+        "jlpt": 5
     },
     {
         "kanji": "\u6238",
         "kana": "\u3068",
-        "english": "Japanese style door"
+        "english": "Japanese style door",
+        "jlpt": 5
     },
     {
         "kanji": "\u30c9\u30a2",
         "kana": "\u30c9\u30a2",
-        "english": "Western style door"
+        "english": "Western style door",
+        "jlpt": 5
     },
     {
         "kanji": "\u30c8\u30a4\u30ec",
         "kana": "\u30c8\u30a4\u30ec",
-        "english": "toilet"
+        "english": "toilet",
+        "jlpt": 5
     },
     {
         "kanji": "\u3069\u3046",
         "kana": "\u3069\u3046",
-        "english": "how,in what way"
+        "english": "how,in what way",
+        "jlpt": 5
     },
     {
         "kanji": "\u3069\u3046\u3057\u3066",
         "kana": "\u3069\u3046\u3057\u3066",
-        "english": "for what reason"
+        "english": "for what reason",
+        "jlpt": 5
     },
     {
         "kanji": "\u3069\u3046\u305e",
         "kana": "\u3069\u3046\u305e",
-        "english": "please"
+        "english": "please",
+        "jlpt": 5
     },
     {
         "kanji": "\u52d5\u7269",
         "kana": "\u3069\u3046\u3076\u3064",
-        "english": "animal"
+        "english": "animal",
+        "jlpt": 5
     },
     {
         "kanji": "\u3069\u3046\u3082",
         "kana": "\u3069\u3046\u3082",
-        "english": "thanks"
+        "english": "thanks",
+        "jlpt": 5
     },
     {
         "kanji": "\u9060\u3044",
         "kana": "\u3068\u304a\u3044",
-        "english": "far"
+        "english": "far",
+        "jlpt": 5
     },
     {
         "kanji": "\u5341\u65e5",
         "kana": "\u3068\u304a\u304b",
-        "english": "ten days,the tenth day"
+        "english": "ten days,the tenth day",
+        "jlpt": 5
     },
     {
         "kanji": "\u6642\u3005",
         "kana": "\u3068\u304d\u3069\u304d",
-        "english": "sometimes"
+        "english": "sometimes",
+        "jlpt": 5
     },
     {
         "kanji": "\u6642\u8a08",
         "kana": "\u3068\u3051\u3044",
-        "english": "watch,clock"
+        "english": "watch,clock",
+        "jlpt": 5
     },
     {
         "kanji": "\u3069\u3053",
         "kana": "\u3069\u3053",
-        "english": "where"
+        "english": "where",
+        "jlpt": 5
     },
     {
         "kanji": "\u6240",
         "kana": "\u3068\u3053\u308d",
-        "english": "place"
+        "english": "place",
+        "jlpt": 5
     },
     {
         "kanji": "\u5e74",
         "kana": "\u3068\u3057",
-        "english": "year"
+        "english": "year",
+        "jlpt": 5
     },
     {
         "kanji": "\u56f3\u66f8\u9928",
         "kana": "\u3068\u3057\u3087\u304b\u3093",
-        "english": "library"
+        "english": "library",
+        "jlpt": 5
     },
     {
         "kanji": "\u3069\u3061\u3089",
         "kana": "\u3069\u3061\u3089",
-        "english": "which of two"
+        "english": "which of two",
+        "jlpt": 5
     },
     {
         "kanji": "\u3069\u3063\u3061",
         "kana": "\u3069\u3063\u3061",
-        "english": "which"
+        "english": "which",
+        "jlpt": 5
     },
     {
         "kanji": "\u3068\u3066\u3082",
         "kana": "\u3068\u3066\u3082",
-        "english": "very"
+        "english": "very",
+        "jlpt": 5
     },
     {
         "kanji": "\u3069\u306a\u305f",
         "kana": "\u3069\u306a\u305f",
-        "english": "who"
+        "english": "who",
+        "jlpt": 5
     },
     {
         "kanji": "\u96a3",
         "kana": "\u3068\u306a\u308a",
-        "english": "next door to"
+        "english": "next door to",
+        "jlpt": 5
     },
     {
         "kanji": "\u3069\u306e",
         "kana": "\u3069\u306e",
-        "english": "which"
+        "english": "which",
+        "jlpt": 5
     },
     {
         "kanji": "\u98db\u3076",
         "kana": "\u3068\u3076",
-        "english": "to fly,to hop"
+        "english": "to fly,to hop",
+        "jlpt": 5
     },
     {
         "kanji": "\u6b62\u307e\u308b",
         "kana": "\u3068\u307e\u308b",
-        "english": "to come to a halt"
+        "english": "to come to a halt",
+        "jlpt": 5
     },
     {
         "kanji": "\u53cb\u9054",
         "kana": "\u3068\u3082\u3060\u3061",
-        "english": "friend"
+        "english": "friend",
+        "jlpt": 5
     },
     {
         "kanji": "\u571f\u66dc\u65e5",
         "kana": "\u3069\u3088\u3046\u3073",
-        "english": "Saturday"
+        "english": "Saturday",
+        "jlpt": 5
     },
     {
         "kanji": "\u9ce5",
         "kana": "\u3068\u308a",
-        "english": "bird"
+        "english": "bird",
+        "jlpt": 5
     },
     {
         "kanji": "\u3068\u308a\u8089",
         "kana": "\u3068\u308a\u306b\u304f",
-        "english": "chicken meat"
+        "english": "chicken meat",
+        "jlpt": 5
     },
     {
         "kanji": "\u53d6\u308b",
         "kana": "\u3068\u308b",
-        "english": "to take something"
+        "english": "to take something",
+        "jlpt": 5
     },
     {
         "kanji": "\u64ae\u308b",
         "kana": "\u3068\u308b",
-        "english": "to take a photo or record a film"
+        "english": "to take a photo or record a film",
+        "jlpt": 5
     },
     {
         "kanji": "\u3069\u308c",
         "kana": "\u3069\u308c",
-        "english": "which (of three or more)"
+        "english": "which (of three or more)",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ca\u30a4\u30d5",
         "kana": "\u30ca\u30a4\u30d5",
-        "english": "knife"
+        "english": "knife",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e2d",
         "kana": "\u306a\u304b",
-        "english": "middle"
+        "english": "middle",
+        "jlpt": 5
     },
     {
         "kanji": "\u9577\u3044",
         "kana": "\u306a\u304c\u3044",
-        "english": "long"
+        "english": "long",
+        "jlpt": 5
     },
     {
         "kanji": "\u9cf4\u304f",
         "kana": "\u306a\u304f",
-        "english": "animal noise. to chirp, roar or croak etc."
+        "english": "animal noise. to chirp, roar or croak etc.",
+        "jlpt": 5
     },
     {
         "kanji": "\u7121\u304f\u3059",
         "kana": "\u306a\u304f\u3059",
-        "english": "to lose something"
+        "english": "to lose something",
+        "jlpt": 5
     },
     {
         "kanji": "\u306a\u305c",
         "kana": "\u306a\u305c",
-        "english": "why"
+        "english": "why",
+        "jlpt": 5
     },
     {
         "kanji": "\u590f",
         "kana": "\u306a\u3064",
-        "english": "summer"
+        "english": "summer",
+        "jlpt": 5
     },
     {
         "kanji": "\u590f\u4f11\u307f",
         "kana": "\u306a\u3064\u3084\u3059\u307f",
-        "english": "summer holiday"
+        "english": "summer holiday",
+        "jlpt": 5
     },
     {
         "kanji": "\u306a\u3069",
         "kana": "\u306a\u3069",
-        "english": "et cetera"
+        "english": "et cetera",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e03\u3064",
         "kana": "\u306a\u306a\u3064",
-        "english": "seven"
+        "english": "seven",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e03\u65e5",
         "kana": "\u306a\u306e\u304b",
-        "english": "seven days,the seventh day"
+        "english": "seven days,the seventh day",
+        "jlpt": 5
     },
     {
         "kanji": "\u540d\u524d",
         "kana": "\u306a\u307e\u3048",
-        "english": "name"
+        "english": "name",
+        "jlpt": 5
     },
     {
         "kanji": "\u7fd2\u3046",
         "kana": "\u306a\u3089\u3046",
-        "english": "to learn"
+        "english": "to learn",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e26\u3076",
         "kana": "\u306a\u3089\u3076",
-        "english": "to line up,to stand in a line"
+        "english": "to line up,to stand in a line",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e26\u3079\u308b",
         "kana": "\u306a\u3089\u3079\u308b",
-        "english": "to line up,to set up"
+        "english": "to line up,to set up",
+        "jlpt": 5
     },
     {
         "kanji": "\u306a\u308b",
         "kana": "\u306a\u308b",
-        "english": "to become"
+        "english": "to become",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f55",
         "kana": "\u306a\u3093 / \u306a\u306b",
-        "english": "what"
+        "english": "what",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e8c",
         "kana": "\u306b",
-        "english": "two"
+        "english": "two",
+        "jlpt": 5
     },
     {
         "kanji": "\u8cd1\u3084\u304b",
         "kana": "\u306b\u304e\u3084\u304b",
-        "english": "bustling,busy"
+        "english": "bustling,busy",
+        "jlpt": 5
     },
     {
         "kanji": "\u8089",
         "kana": "\u306b\u304f",
-        "english": "meat"
+        "english": "meat",
+        "jlpt": 5
     },
     {
         "kanji": "\u897f",
         "kana": "\u306b\u3057",
-        "english": "west"
+        "english": "west",
+        "jlpt": 5
     },
     {
         "kanji": "\u65e5\u66dc\u65e5",
         "kana": "\u306b\u3061\u3088\u3046\u3073",
-        "english": "Sunday"
+        "english": "Sunday",
+        "jlpt": 5
     },
     {
         "kanji": "\u8377\u7269",
         "kana": "\u306b\u3082\u3064",
-        "english": "luggage"
+        "english": "luggage",
+        "jlpt": 5
     },
     {
         "kanji": "\u30cb\u30e5\u30fc\u30b9",
         "kana": "\u30cb\u30e5\u30fc\u30b9",
-        "english": "news"
+        "english": "news",
+        "jlpt": 5
     },
     {
         "kanji": "\u5ead",
         "kana": "\u306b\u308f",
-        "english": "garden"
+        "english": "garden",
+        "jlpt": 5
     },
     {
         "kanji": "\u8131\u3050",
         "kana": "\u306c\u3050",
-        "english": "to take off clothes"
+        "english": "to take off clothes",
+        "jlpt": 5
     },
     {
         "kanji": "\u6e29\u3044",
         "kana": "\u306c\u308b\u3044",
-        "english": "luke warm"
+        "english": "luke warm",
+        "jlpt": 5
     },
     {
         "kanji": "\u30cd\u30af\u30bf\u30a4",
         "kana": "\u30cd\u30af\u30bf\u30a4",
-        "english": "tie,necktie"
+        "english": "tie,necktie",
+        "jlpt": 5
     },
     {
         "kanji": "\u732b",
         "kana": "\u306d\u3053",
-        "english": "cat"
+        "english": "cat",
+        "jlpt": 5
     },
     {
         "kanji": "\u5bdd\u308b",
         "kana": "\u306d\u308b",
-        "english": "to go to bed,to sleep"
+        "english": "to go to bed,to sleep",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ce\u30fc\u30c8",
         "kana": "\u30ce\u30fc\u30c8",
-        "english": "notebook,exercise book"
+        "english": "notebook,exercise book",
+        "jlpt": 5
     },
     {
         "kanji": "\u767b\u308b",
         "kana": "\u306e\u307c\u308b",
-        "english": "to climb"
+        "english": "to climb",
+        "jlpt": 5
     },
     {
         "kanji": "\u98f2\u307f\u7269",
         "kana": "\u306e\u307f\u3082\u306e",
-        "english": "a drink"
+        "english": "a drink",
+        "jlpt": 5
     },
     {
         "kanji": "\u98f2\u3080",
         "kana": "\u306e\u3080",
-        "english": "to drink"
+        "english": "to drink",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e57\u308b",
         "kana": "\u306e\u308b",
-        "english": "to get on,to ride"
+        "english": "to get on,to ride",
+        "jlpt": 5
     },
     {
         "kanji": "\u6b6f",
         "kana": "\u306f",
-        "english": "tooth"
+        "english": "tooth",
+        "jlpt": 5
     },
     {
         "kanji": "\u30d1\u30fc\u30c6\u30a3\u30fc",
         "kana": "\u30d1\u30fc\u30c6\u30a3\u30fc",
-        "english": "party"
+        "english": "party",
+        "jlpt": 5
     },
     {
         "kanji": "\u306f\u3044",
         "kana": "\u306f\u3044",
-        "english": "yes"
+        "english": "yes",
+        "jlpt": 5
     },
     {
         "kanji": "\u7070\u76bf",
         "kana": "\u306f\u3044\u3056\u3089",
-        "english": "ashtray"
+        "english": "ashtray",
+        "jlpt": 5
     },
     {
         "kanji": "\u5165\u308b",
         "kana": "\u306f\u3044\u308b",
-        "english": "to enter,to contain"
+        "english": "to enter,to contain",
+        "jlpt": 5
     },
     {
         "kanji": "\u8449\u66f8",
         "kana": "\u306f\u304c\u304d",
-        "english": "postcard"
+        "english": "postcard",
+        "jlpt": 5
     },
     {
         "kanji": "\u306f\u304f",
         "kana": "\u306f\u304f",
-        "english": "to wear,to put on trousers"
+        "english": "to wear,to put on trousers",
+        "jlpt": 5
     },
     {
         "kanji": "\u7bb1",
         "kana": "\u306f\u3053",
-        "english": "box"
+        "english": "box",
+        "jlpt": 5
     },
     {
         "kanji": "\u6a4b",
         "kana": "\u306f\u3057",
-        "english": "bridge"
+        "english": "bridge",
+        "jlpt": 5
     },
     {
         "kanji": "\u306f\u3057",
         "kana": "\u306f\u3057",
-        "english": "chopsticks"
+        "english": "chopsticks",
+        "jlpt": 5
     },
     {
         "kanji": "\u59cb\u307e\u308b",
         "kana": "\u306f\u3058\u307e\u308b",
-        "english": "to begin"
+        "english": "to begin",
+        "jlpt": 5
     },
     {
         "kanji": "\u521d\u3081 / \u59cb\u3081",
         "kana": "\u306f\u3058\u3081",
-        "english": "beginning"
+        "english": "beginning",
+        "jlpt": 5
     },
     {
         "kanji": "\u521d\u3081\u3066",
         "kana": "\u306f\u3058\u3081\u3066",
-        "english": "for the first time"
+        "english": "for the first time",
+        "jlpt": 5
     },
     {
         "kanji": "\u8d70\u308b",
         "kana": "\u306f\u3057\u308b",
-        "english": "to run"
+        "english": "to run",
+        "jlpt": 5
     },
     {
         "kanji": "\u30d0\u30b9",
         "kana": "\u30d0\u30b9",
-        "english": "bus"
+        "english": "bus",
+        "jlpt": 5
     },
     {
         "kanji": "\u30d0\u30bf\u30fc",
         "kana": "\u30d0\u30bf\u30fc",
-        "english": "butter"
+        "english": "butter",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e8c\u5341\u6b73",
         "kana": "\u306f\u305f\u3061",
-        "english": "20 years old,20th year"
+        "english": "20 years old,20th year",
+        "jlpt": 5
     },
     {
         "kanji": "\u50cd\u304f",
         "kana": "\u306f\u305f\u3089\u304f",
-        "english": "to work"
+        "english": "to work",
+        "jlpt": 5
     },
     {
         "kanji": "\u516b",
         "kana": "\u306f\u3061",
-        "english": "eight"
+        "english": "eight",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e8c\u5341\u65e5",
         "kana": "\u306f\u3064\u304b",
-        "english": "twenty days,twentieth"
+        "english": "twenty days,twentieth",
+        "jlpt": 5
     },
     {
         "kanji": "\u82b1",
         "kana": "\u306f\u306a",
-        "english": "flower"
+        "english": "flower",
+        "jlpt": 5
     },
     {
         "kanji": "\u9f3b",
         "kana": "\u306f\u306a",
-        "english": "nose"
+        "english": "nose",
+        "jlpt": 5
     },
     {
         "kanji": "\u8a71",
         "kana": "\u306f\u306a\u3057",
-        "english": "talk,story"
+        "english": "talk,story",
+        "jlpt": 5
     },
     {
         "kanji": "\u8a71\u3059",
         "kana": "\u306f\u306a\u3059",
-        "english": "to speak"
+        "english": "to speak",
+        "jlpt": 5
     },
     {
         "kanji": "\u65e9\u3044",
         "kana": "\u306f\u3084\u3044",
-        "english": "early"
+        "english": "early",
+        "jlpt": 5
     },
     {
         "kanji": "\u901f\u3044",
         "kana": "\u306f\u3084\u3044",
-        "english": "quick"
+        "english": "quick",
+        "jlpt": 5
     },
     {
         "kanji": "\u6625",
         "kana": "\u306f\u308b",
-        "english": "spring"
+        "english": "spring",
+        "jlpt": 5
     },
     {
         "kanji": "\u8cbc\u308b",
         "kana": "\u306f\u308b",
-        "english": "to stick"
+        "english": "to stick",
+        "jlpt": 5
     },
     {
         "kanji": "\u6674\u308c",
         "kana": "\u306f\u308c",
-        "english": "clear weather"
+        "english": "clear weather",
+        "jlpt": 5
     },
     {
         "kanji": "\u6674\u308c\u308b",
         "kana": "\u306f\u308c\u308b",
-        "english": "to be sunny"
+        "english": "to be sunny",
+        "jlpt": 5
     },
     {
         "kanji": "\u534a",
         "kana": "\u306f\u3093",
-        "english": "half"
+        "english": "half",
+        "jlpt": 5
     },
     {
         "kanji": "\u6669",
         "kana": "\u3070\u3093",
-        "english": "evening"
+        "english": "evening",
+        "jlpt": 5
     },
     {
         "kanji": "\u30d1\u30f3",
         "kana": "\u30d1\u30f3",
-        "english": "bread"
+        "english": "bread",
+        "jlpt": 5
     },
     {
         "kanji": "\u30cf\u30f3\u30ab\u30c1",
         "kana": "\u30cf\u30f3\u30ab\u30c1",
-        "english": "handkerchief"
+        "english": "handkerchief",
+        "jlpt": 5
     },
     {
         "kanji": "\u756a\u53f7",
         "kana": "\u3070\u3093\u3054\u3046",
-        "english": "number"
+        "english": "number",
+        "jlpt": 5
     },
     {
         "kanji": "\u6669\u5fa1\u98ef",
         "kana": "\u3070\u3093\u3054\u306f\u3093",
-        "english": "evening meal"
+        "english": "evening meal",
+        "jlpt": 5
     },
     {
         "kanji": "\u534a\u5206",
         "kana": "\u306f\u3093\u3076\u3093",
-        "english": "half minute"
+        "english": "half minute",
+        "jlpt": 5
     },
     {
         "kanji": "\u6771",
         "kana": "\u3072\u304c\u3057",
-        "english": "east"
+        "english": "east",
+        "jlpt": 5
     },
     {
         "kanji": "\u5f15\u304f",
         "kana": "\u3072\u304f",
-        "english": "to pull"
+        "english": "to pull",
+        "jlpt": 5
     },
     {
         "kanji": "\u5f3e\u304f",
         "kana": "\u3072\u304f",
-        "english": "to play an instrument with strings, including piano"
+        "english": "to play an instrument with strings, including piano",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f4e\u3044",
         "kana": "\u3072\u304f\u3044",
-        "english": "short,low"
+        "english": "short,low",
+        "jlpt": 5
     },
     {
         "kanji": "\u98db\u884c\u6a5f",
         "kana": "\u3072\u3053\u3046\u304d",
-        "english": "aeroplane"
+        "english": "aeroplane",
+        "jlpt": 5
     },
     {
         "kanji": "\u5de6",
         "kana": "\u3072\u3060\u308a",
-        "english": "left hand side"
+        "english": "left hand side",
+        "jlpt": 5
     },
     {
         "kanji": "\u4eba",
         "kana": "\u3072\u3068",
-        "english": "person"
+        "english": "person",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e00\u3064",
         "kana": "\u3072\u3068\u3064",
-        "english": "one"
+        "english": "one",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e00\u6708",
         "kana": "\u3072\u3068\u3064\u304d",
-        "english": "one month"
+        "english": "one month",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e00\u4eba",
         "kana": "\u3072\u3068\u308a",
-        "english": "one person"
+        "english": "one person",
+        "jlpt": 5
     },
     {
         "kanji": "\u6687",
         "kana": "\u3072\u307e",
-        "english": "free time"
+        "english": "free time",
+        "jlpt": 5
     },
     {
         "kanji": "\u767e",
         "kana": "\u3072\u3083\u304f",
-        "english": "hundred"
+        "english": "hundred",
+        "jlpt": 5
     },
     {
         "kanji": "\u75c5\u9662",
         "kana": "\u3073\u3087\u3046\u3044\u3093",
-        "english": "hospital"
+        "english": "hospital",
+        "jlpt": 5
     },
     {
         "kanji": "\u75c5\u6c17",
         "kana": "\u3073\u3087\u3046\u304d",
-        "english": "illness"
+        "english": "illness",
+        "jlpt": 5
     },
     {
         "kanji": "\u663c",
         "kana": "\u3072\u308b",
-        "english": "noon, daytime"
+        "english": "noon, daytime",
+        "jlpt": 5
     },
     {
         "kanji": "\u663c\u5fa1\u98ef",
         "kana": "\u3072\u308b\u3054\u306f\u3093",
-        "english": "midday meal"
+        "english": "midday meal",
+        "jlpt": 5
     },
     {
         "kanji": "\u5e83\u3044",
         "kana": "\u3072\u308d\u3044",
-        "english": "spacious,wide"
+        "english": "spacious,wide",
+        "jlpt": 5
     },
     {
         "kanji": "\u30d5\u30a3\u30eb\u30e0",
         "kana": "\u30d5\u30a3\u30eb\u30e0",
-        "english": "roll of film"
+        "english": "roll of film",
+        "jlpt": 5
     },
     {
         "kanji": "\u5c01\u7b52",
         "kana": "\u3075\u3046\u3068\u3046",
-        "english": "envelope"
+        "english": "envelope",
+        "jlpt": 5
     },
     {
         "kanji": "\u30d7\u30fc\u30eb",
         "kana": "\u30d7\u30fc\u30eb",
-        "english": "swimming pool"
+        "english": "swimming pool",
+        "jlpt": 5
     },
     {
         "kanji": "\u30d5\u30a9\u30fc\u30af",
         "kana": "\u30d5\u30a9\u30fc\u30af",
-        "english": "fork"
+        "english": "fork",
+        "jlpt": 5
     },
     {
         "kanji": "\u5439\u304f",
         "kana": "\u3075\u304f",
-        "english": "to blow"
+        "english": "to blow",
+        "jlpt": 5
     },
     {
         "kanji": "\u670d",
         "kana": "\u3075\u304f",
-        "english": "clothes"
+        "english": "clothes",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e8c\u3064",
         "kana": "\u3075\u305f\u3064",
-        "english": "two"
+        "english": "two",
+        "jlpt": 5
     },
     {
         "kanji": "\u8c5a\u8089",
         "kana": "\u3076\u305f\u306b\u304f",
-        "english": "pork"
+        "english": "pork",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e8c\u4eba",
         "kana": "\u3075\u305f\u308a",
-        "english": "two people"
+        "english": "two people",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e8c\u65e5",
         "kana": "\u3075\u3064\u304b",
-        "english": "two days, second day of the month"
+        "english": "two days, second day of the month",
+        "jlpt": 5
     },
     {
         "kanji": "\u592a\u3044",
         "kana": "\u3075\u3068\u3044",
-        "english": "fat"
+        "english": "fat",
+        "jlpt": 5
     },
     {
         "kanji": "\u51ac",
         "kana": "\u3075\u3086",
-        "english": "winter"
+        "english": "winter",
+        "jlpt": 5
     },
     {
         "kanji": "\u964d\u308b",
         "kana": "\u3075\u308b",
-        "english": "to fall, e.g. rain or snow"
+        "english": "to fall, e.g. rain or snow",
+        "jlpt": 5
     },
     {
         "kanji": "\u53e4\u3044",
         "kana": "\u3075\u308b\u3044",
-        "english": "old (not used for people)"
+        "english": "old (not used for people)",
+        "jlpt": 5
     },
     {
         "kanji": "\u3075\u308d",
         "kana": "\u3075\u308d",
-        "english": "bath"
+        "english": "bath",
+        "jlpt": 5
     },
     {
         "kanji": "\u6587\u7ae0",
         "kana": "\u3076\u3093\u3057\u3087\u3046",
-        "english": "sentence,text"
+        "english": "sentence,text",
+        "jlpt": 5
     },
     {
         "kanji": "\u30da\u30fc\u30b8",
         "kana": "\u30da\u30fc\u30b8",
-        "english": "page"
+        "english": "page",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e0b\u624b",
         "kana": "\u3078\u305f",
-        "english": "unskillful"
+        "english": "unskillful",
+        "jlpt": 5
     },
     {
         "kanji": "\u30d9\u30c3\u30c9",
         "kana": "\u30d9\u30c3\u30c9",
-        "english": "bed"
+        "english": "bed",
+        "jlpt": 5
     },
     {
         "kanji": "\u30da\u30c3\u30c8",
         "kana": "\u30da\u30c3\u30c8",
-        "english": "pet"
+        "english": "pet",
+        "jlpt": 5
     },
     {
         "kanji": "\u90e8\u5c4b",
         "kana": "\u3078\u3084",
-        "english": "room"
+        "english": "room",
+        "jlpt": 5
     },
     {
         "kanji": "\u8fba",
         "kana": "\u3078\u3093",
-        "english": "area"
+        "english": "area",
+        "jlpt": 5
     },
     {
         "kanji": "\u30da\u30f3",
         "kana": "\u30da\u30f3",
-        "english": "pen"
+        "english": "pen",
+        "jlpt": 5
     },
     {
         "kanji": "\u52c9\u5f37",
         "kana": "\u3079\u3093\u304d\u3087\u3046\u3059\u308b",
-        "english": "to study"
+        "english": "to study",
+        "jlpt": 5
     },
     {
         "kanji": "\u4fbf\u5229",
         "kana": "\u3079\u3093\u308a",
-        "english": "useful, convenient"
+        "english": "useful, convenient",
+        "jlpt": 5
     },
     {
         "kanji": "\u5e3d\u5b50",
         "kana": "\u307c\u3046\u3057",
-        "english": "hat"
+        "english": "hat",
+        "jlpt": 5
     },
     {
         "kanji": "\u30dc\u30fc\u30eb\u30da\u30f3",
         "kana": "\u30dc\u30fc\u30eb\u30da\u30f3",
-        "english": "ball-point pen"
+        "english": "ball-point pen",
+        "jlpt": 5
     },
     {
         "kanji": "\u307b\u304b",
         "kana": "\u307b\u304b",
-        "english": "other, the rest"
+        "english": "other, the rest",
+        "jlpt": 5
     },
     {
         "kanji": "\u30dd\u30b1\u30c3\u30c8",
         "kana": "\u30dd\u30b1\u30c3\u30c8",
-        "english": "pocket"
+        "english": "pocket",
+        "jlpt": 5
     },
     {
         "kanji": "\u6b32\u3057\u3044",
         "kana": "\u307b\u3057\u3044",
-        "english": "want"
+        "english": "want",
+        "jlpt": 5
     },
     {
         "kanji": "\u30dd\u30b9\u30c8",
         "kana": "\u30dd\u30b9\u30c8",
-        "english": "post"
+        "english": "post",
+        "jlpt": 5
     },
     {
         "kanji": "\u7d30\u3044",
         "kana": "\u307b\u305d\u3044",
-        "english": "thin"
+        "english": "thin",
+        "jlpt": 5
     },
     {
         "kanji": "\u30dc\u30bf\u30f3",
         "kana": "\u30dc\u30bf\u30f3",
-        "english": "button"
+        "english": "button",
+        "jlpt": 5
     },
     {
         "kanji": "\u30db\u30c6\u30eb",
         "kana": "\u30db\u30c6\u30eb",
-        "english": "hotel"
+        "english": "hotel",
+        "jlpt": 5
     },
     {
         "kanji": "\u672c",
         "kana": "\u307b\u3093",
-        "english": "book"
+        "english": "book",
+        "jlpt": 5
     },
     {
         "kanji": "\u672c\u68da",
         "kana": "\u307b\u3093\u3060\u306a",
-        "english": "bookshelves"
+        "english": "bookshelves",
+        "jlpt": 5
     },
     {
         "kanji": "\u307b\u3093\u3068\u3046",
         "kana": "\u307b\u3093\u3068\u3046",
-        "english": "truth"
+        "english": "truth",
+        "jlpt": 5
     },
     {
         "kanji": "\u6bce\u671d",
         "kana": "\u307e\u3044\u3042\u3055",
-        "english": "every morning"
+        "english": "every morning",
+        "jlpt": 5
     },
     {
         "kanji": "\u6bce\u6708",
         "kana": "\u307e\u3044\u3052\u3064 / \u307e\u3044\u3064\u304d",
-        "english": "every month"
+        "english": "every month",
+        "jlpt": 5
     },
     {
         "kanji": "\u6bce\u9031",
         "kana": "\u307e\u3044\u3057\u3085\u3046",
-        "english": "every week"
+        "english": "every week",
+        "jlpt": 5
     },
     {
         "kanji": "\u6bce\u65e5",
         "kana": "\u307e\u3044\u306b\u3061",
-        "english": "every day"
+        "english": "every day",
+        "jlpt": 5
     },
     {
         "kanji": "\u6bce\u5e74",
         "kana": "\u307e\u3044\u306d\u3093 / \u307e\u3044\u3068\u3057",
-        "english": "every year"
+        "english": "every year",
+        "jlpt": 5
     },
     {
         "kanji": "\u6bce\u6669",
         "kana": "\u307e\u3044\u3070\u3093",
-        "english": "every night"
+        "english": "every night",
+        "jlpt": 5
     },
     {
         "kanji": "\u524d",
         "kana": "\u307e\u3048",
-        "english": "before"
+        "english": "before",
+        "jlpt": 5
     },
     {
         "kanji": "\u66f2\u308b",
         "kana": "\u307e\u304c\u308b",
-        "english": "to turn,to bend"
+        "english": "to turn,to bend",
+        "jlpt": 5
     },
     {
         "kanji": "\u307e\u305a\u3044",
         "kana": "\u307e\u305a\u3044",
-        "english": "unpleasant"
+        "english": "unpleasant",
+        "jlpt": 5
     },
     {
         "kanji": "\u307e\u305f",
         "kana": "\u307e\u305f",
-        "english": "again,and"
+        "english": "again,and",
+        "jlpt": 5
     },
     {
         "kanji": "\u307e\u3060",
         "kana": "\u307e\u3060",
-        "english": "yet,still"
+        "english": "yet,still",
+        "jlpt": 5
     },
     {
         "kanji": "\u753a",
         "kana": "\u307e\u3061",
-        "english": "town,city"
+        "english": "town,city",
+        "jlpt": 5
     },
     {
         "kanji": "\u5f85\u3064",
         "kana": "\u307e\u3064",
-        "english": "to wait"
+        "english": "to wait",
+        "jlpt": 5
     },
     {
         "kanji": "\u307e\u3063\u3059\u3050",
         "kana": "\u307e\u3063\u3059\u3050",
-        "english": "straight ahead,direct"
+        "english": "straight ahead,direct",
+        "jlpt": 5
     },
     {
         "kanji": "\u30de\u30c3\u30c1",
         "kana": "\u30de\u30c3\u30c1",
-        "english": "match"
+        "english": "match",
+        "jlpt": 5
     },
     {
         "kanji": "\u7a93",
         "kana": "\u307e\u3069",
-        "english": "window"
+        "english": "window",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e38\u3044 / \u5186\u3044",
         "kana": "\u307e\u308b\u3044",
-        "english": "round,circular"
+        "english": "round,circular",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e07",
         "kana": "\u307e\u3093",
-        "english": "ten thousand"
+        "english": "ten thousand",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e07\u5e74\u7b46",
         "kana": "\u307e\u3093\u306d\u3093\u3072\u3064",
-        "english": "fountain pen"
+        "english": "fountain pen",
+        "jlpt": 5
     },
     {
         "kanji": "\u78e8\u304f",
         "kana": "\u307f\u304c\u304f",
-        "english": "to brush teeth, to polish"
+        "english": "to brush teeth, to polish",
+        "jlpt": 5
     },
     {
         "kanji": "\u53f3",
         "kana": "\u307f\u304e",
-        "english": "right side"
+        "english": "right side",
+        "jlpt": 5
     },
     {
         "kanji": "\u77ed\u3044",
         "kana": "\u307f\u3058\u304b\u3044",
-        "english": "short"
+        "english": "short",
+        "jlpt": 5
     },
     {
         "kanji": "\u6c34",
         "kana": "\u307f\u305a",
-        "english": "water"
+        "english": "water",
+        "jlpt": 5
     },
     {
         "kanji": "\u5e97",
         "kana": "\u307f\u305b",
-        "english": "shop"
+        "english": "shop",
+        "jlpt": 5
     },
     {
         "kanji": "\u898b\u305b\u308b",
         "kana": "\u307f\u305b\u308b",
-        "english": "to show"
+        "english": "to show",
+        "jlpt": 5
     },
     {
         "kanji": "\u9053",
         "kana": "\u307f\u3061",
-        "english": "street"
+        "english": "street",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e09\u65e5",
         "kana": "\u307f\u3063\u304b",
-        "english": "three days, third day of the month"
+        "english": "three days, third day of the month",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e09\u3064",
         "kana": "\u307f\u3063\u3064",
-        "english": "three"
+        "english": "three",
+        "jlpt": 5
     },
     {
         "kanji": "\u7dd1",
         "kana": "\u307f\u3069\u308a",
-        "english": "green"
+        "english": "green",
+        "jlpt": 5
     },
     {
         "kanji": "\u7686\u3055\u3093",
         "kana": "\u307f\u306a\u3055\u3093",
-        "english": "everyone"
+        "english": "everyone",
+        "jlpt": 5
     },
     {
         "kanji": "\u5357",
         "kana": "\u307f\u306a\u307f",
-        "english": "south"
+        "english": "south",
+        "jlpt": 5
     },
     {
         "kanji": "\u8033",
         "kana": "\u307f\u307f",
-        "english": "ear"
+        "english": "ear",
+        "jlpt": 5
     },
     {
         "kanji": "\u898b\u308b / \u89b3\u308b",
         "kana": "\u307f\u308b",
-        "english": "to see, to watch"
+        "english": "to see, to watch",
+        "jlpt": 5
     },
     {
         "kanji": "\u307f\u3093\u306a",
         "kana": "\u307f\u3093\u306a",
-        "english": "everyone"
+        "english": "everyone",
+        "jlpt": 5
     },
     {
         "kanji": "\u516d\u65e5",
         "kana": "\u3080\u3044\u304b",
-        "english": "six days, sixth day of the month"
+        "english": "six days, sixth day of the month",
+        "jlpt": 5
     },
     {
         "kanji": "\u5411\u3053\u3046",
         "kana": "\u3080\u3053\u3046",
-        "english": "over there"
+        "english": "over there",
+        "jlpt": 5
     },
     {
         "kanji": "\u96e3\u3057\u3044",
         "kana": "\u3080\u305a\u304b\u3057\u3044",
-        "english": "difficult"
+        "english": "difficult",
+        "jlpt": 5
     },
     {
         "kanji": "\u516d\u3064",
         "kana": "\u3080\u3063\u3064",
-        "english": "six"
+        "english": "six",
+        "jlpt": 5
     },
     {
         "kanji": "\u6751",
         "kana": "\u3080\u3089",
-        "english": "village"
+        "english": "village",
+        "jlpt": 5
     },
     {
         "kanji": "\u76ee",
         "kana": "\u3081",
-        "english": "eye"
+        "english": "eye",
+        "jlpt": 5
     },
     {
         "kanji": "\u30e1\u30fc\u30c8\u30eb",
         "kana": "\u30e1\u30fc\u30c8\u30eb",
-        "english": "metre"
+        "english": "metre",
+        "jlpt": 5
     },
     {
         "kanji": "\u773c\u93e1",
         "kana": "\u3081\u304c\u306d",
-        "english": "glasses"
+        "english": "glasses",
+        "jlpt": 5
     },
     {
         "kanji": "\u3082\u3046",
         "kana": "\u3082\u3046",
-        "english": "already"
+        "english": "already",
+        "jlpt": 5
     },
     {
         "kanji": "\u3082\u3046\u4e00\u5ea6",
         "kana": "\u3082\u3046\u3044\u3061\u3069",
-        "english": "again"
+        "english": "again",
+        "jlpt": 5
     },
     {
         "kanji": "\u6728\u66dc\u65e5",
         "kana": "\u3082\u304f\u3088\u3046\u3073",
-        "english": "Thursday"
+        "english": "Thursday",
+        "jlpt": 5
     },
     {
         "kanji": "\u6301\u3064",
         "kana": "\u3082\u3064",
-        "english": "to hold"
+        "english": "to hold",
+        "jlpt": 5
     },
     {
         "kanji": "\u3082\u3063\u3068",
         "kana": "\u3082\u3063\u3068",
-        "english": "more"
+        "english": "more",
+        "jlpt": 5
     },
     {
         "kanji": "\u7269",
         "kana": "\u3082\u306e",
-        "english": "thing"
+        "english": "thing",
+        "jlpt": 5
     },
     {
         "kanji": "\u9580",
         "kana": "\u3082\u3093",
-        "english": "gate"
+        "english": "gate",
+        "jlpt": 5
     },
     {
         "kanji": "\u554f\u984c",
         "kana": "\u3082\u3093\u3060\u3044",
-        "english": "problem"
+        "english": "problem",
+        "jlpt": 5
     },
     {
         "kanji": "\u516b\u767e\u5c4b",
         "kana": "\u3084\u304a\u3084",
-        "english": "greengrocer"
+        "english": "greengrocer",
+        "jlpt": 5
     },
     {
         "kanji": "\u91ce\u83dc",
         "kana": "\u3084\u3055\u3044",
-        "english": "vegetable"
+        "english": "vegetable",
+        "jlpt": 5
     },
     {
         "kanji": "\u6613\u3057\u3044",
         "kana": "\u3084\u3055\u3057\u3044",
-        "english": "easy, simple"
+        "english": "easy, simple",
+        "jlpt": 5
     },
     {
         "kanji": "\u5b89\u3044",
         "kana": "\u3084\u3059\u3044",
-        "english": "cheap"
+        "english": "cheap",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f11\u307f",
         "kana": "\u3084\u3059\u307f",
-        "english": "rest,holiday"
+        "english": "rest,holiday",
+        "jlpt": 5
     },
     {
         "kanji": "\u4f11\u3080",
         "kana": "\u3084\u3059\u3080",
-        "english": "to rest"
+        "english": "to rest",
+        "jlpt": 5
     },
     {
         "kanji": "\u516b\u3064",
         "kana": "\u3084\u3063\u3064",
-        "english": "eight"
+        "english": "eight",
+        "jlpt": 5
     },
     {
         "kanji": "\u5c71",
         "kana": "\u3084\u307e",
-        "english": "mountain"
+        "english": "mountain",
+        "jlpt": 5
     },
     {
         "kanji": "\u3084\u308b",
         "kana": "\u3084\u308b",
-        "english": "to do"
+        "english": "to do",
+        "jlpt": 5
     },
     {
         "kanji": "\u5915\u65b9",
         "kana": "\u3086\u3046\u304c\u305f",
-        "english": "evening"
+        "english": "evening",
+        "jlpt": 5
     },
     {
         "kanji": "\u5915\u98ef",
         "kana": "\u3086\u3046\u306f\u3093",
-        "english": "dinner"
+        "english": "dinner",
+        "jlpt": 5
     },
     {
         "kanji": "\u90f5\u4fbf\u5c40",
         "kana": "\u3086\u3046\u3073\u3093\u304d\u3087\u304f",
-        "english": "post office"
+        "english": "post office",
+        "jlpt": 5
     },
     {
         "kanji": "\u6628\u591c",
         "kana": "\u3086\u3046\u3079",
-        "english": "last night"
+        "english": "last night",
+        "jlpt": 5
     },
     {
         "kanji": "\u6709\u540d",
         "kana": "\u3086\u3046\u3081\u3044",
-        "english": "famous"
+        "english": "famous",
+        "jlpt": 5
     },
     {
         "kanji": "\u96ea",
         "kana": "\u3086\u304d",
-        "english": "snow"
+        "english": "snow",
+        "jlpt": 5
     },
     {
         "kanji": "\u884c\u304f",
         "kana": "\u3086\u304f",
-        "english": "to go"
+        "english": "to go",
+        "jlpt": 5
     },
     {
         "kanji": "\u3086\u3063\u304f\u308a\u3068",
         "kana": "\u3086\u3063\u304f\u308a\u3068",
-        "english": "slowly"
+        "english": "slowly",
+        "jlpt": 5
     },
     {
         "kanji": "\u516b\u65e5",
         "kana": "\u3088\u3046\u304b",
-        "english": "eight days, eighth day of the month"
+        "english": "eight days, eighth day of the month",
+        "jlpt": 5
     },
     {
         "kanji": "\u6d0b\u670d",
         "kana": "\u3088\u3046\u3075\u304f",
-        "english": "western-style clothes"
+        "english": "western-style clothes",
+        "jlpt": 5
     },
     {
         "kanji": "\u3088\u304f",
         "kana": "\u3088\u304f",
-        "english": "often, well"
+        "english": "often, well",
+        "jlpt": 5
     },
     {
         "kanji": "\u6a2a",
         "kana": "\u3088\u3053",
-        "english": "beside,side,width"
+        "english": "beside,side,width",
+        "jlpt": 5
     },
     {
         "kanji": "\u56db\u65e5",
         "kana": "\u3088\u3063\u304b",
-        "english": "four days, fouth day of the month"
+        "english": "four days, fouth day of the month",
+        "jlpt": 5
     },
     {
         "kanji": "\u56db\u3064",
         "kana": "\u3088\u3063\u3064",
-        "english": "four"
+        "english": "four",
+        "jlpt": 5
     },
     {
         "kanji": "\u547c\u3076",
         "kana": "\u3088\u3076",
-        "english": "to call out,to invite"
+        "english": "to call out,to invite",
+        "jlpt": 5
     },
     {
         "kanji": "\u8aad\u3080",
         "kana": "\u3088\u3080",
-        "english": "to read"
+        "english": "to read",
+        "jlpt": 5
     },
     {
         "kanji": "\u591c",
         "kana": "\u3088\u308b",
-        "english": "evening,night"
+        "english": "evening,night",
+        "jlpt": 5
     },
     {
         "kanji": "\u5f31\u3044",
         "kana": "\u3088\u308f\u3044",
-        "english": "weak"
+        "english": "weak",
+        "jlpt": 5
     },
     {
         "kanji": "\u6765\u6708",
         "kana": "\u3089\u3044\u3052\u3064",
-        "english": "next month"
+        "english": "next month",
+        "jlpt": 5
     },
     {
         "kanji": "\u6765\u9031",
         "kana": "\u3089\u3044\u3057\u3085\u3046",
-        "english": "next week"
+        "english": "next week",
+        "jlpt": 5
     },
     {
         "kanji": "\u6765\u5e74",
         "kana": "\u3089\u3044\u306d\u3093",
-        "english": "next year"
+        "english": "next year",
+        "jlpt": 5
     },
     {
         "kanji": "\u30e9\u30b8\u30aa",
         "kana": "\u30e9\u30b8\u30aa",
-        "english": "radio"
+        "english": "radio",
+        "jlpt": 5
     },
     {
         "kanji": "\u30e9\u30b8\u30ab\u30bb / \u30e9\u30b8\u30aa\u30ab\u30bb\u30c3\u30c8",
         "kana": "\u30e9\u30b8\u30ab\u30bb / \u30e9\u30b8\u30aa\u30ab\u30bb\u30c3\u30c8",
-        "english": "radio cassette player"
+        "english": "radio cassette player",
+        "jlpt": 5
     },
     {
         "kanji": "\u308a\u3063\u3071",
         "kana": "\u308a\u3063\u3071",
-        "english": "splendid"
+        "english": "splendid",
+        "jlpt": 5
     },
     {
         "kanji": "\u7559\u5b66\u751f",
         "kana": "\u308a\u3085\u3046\u304c\u304f\u305b\u3044",
-        "english": "overseas student"
+        "english": "overseas student",
+        "jlpt": 5
     },
     {
         "kanji": "\u4e21\u89aa",
         "kana": "\u308a\u3087\u3046\u3057\u3093",
-        "english": "both parents"
+        "english": "both parents",
+        "jlpt": 5
     },
     {
         "kanji": "\u6599\u7406",
         "kana": "\u308a\u3087\u3046\u308a",
-        "english": "cuisine"
+        "english": "cuisine",
+        "jlpt": 5
     },
     {
         "kanji": "\u65c5\u884c",
         "kana": "\u308a\u3087\u3053\u3046",
-        "english": "travel"
+        "english": "travel",
+        "jlpt": 5
     },
     {
         "kanji": "\u96f6",
         "kana": "\u308c\u3044",
-        "english": "zero"
+        "english": "zero",
+        "jlpt": 5
     },
     {
         "kanji": "\u51b7\u8535\u5eab",
         "kana": "\u308c\u3044\u305e\u3046\u3053",
-        "english": "refrigerator"
+        "english": "refrigerator",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ec\u30b3\u30fc\u30c9",
         "kana": "\u30ec\u30b3\u30fc\u30c9",
-        "english": "record"
+        "english": "record",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ec\u30b9\u30c8\u30e9\u30f3",
         "kana": "\u30ec\u30b9\u30c8\u30e9\u30f3",
-        "english": "restaurant"
+        "english": "restaurant",
+        "jlpt": 5
     },
     {
         "kanji": "\u7df4\u7fd2",
         "kana": "\u308c\u3093\u3057\u3085\u3046\u3059\u308b",
-        "english": "to practice"
+        "english": "to practice",
+        "jlpt": 5
     },
     {
         "kanji": "\u5eca\u4e0b",
         "kana": "\u308d\u3046\u304b",
-        "english": "corridor"
+        "english": "corridor",
+        "jlpt": 5
     },
     {
         "kanji": "\u516d",
         "kana": "\u308d\u304f",
-        "english": "six"
+        "english": "six",
+        "jlpt": 5
     },
     {
         "kanji": "\u30ef\u30a4\u30b7\u30e3\u30c4",
         "kana": "\u30ef\u30a4\u30b7\u30e3\u30c4",
-        "english": "business shirt"
+        "english": "business shirt",
+        "jlpt": 5
     },
     {
         "kanji": "\u82e5\u3044",
         "kana": "\u308f\u304b\u3044",
-        "english": "young"
+        "english": "young",
+        "jlpt": 5
     },
     {
         "kanji": "\u5206\u304b\u308b",
         "kana": "\u308f\u304b\u308b",
-        "english": "to be understood"
+        "english": "to be understood",
+        "jlpt": 5
     },
     {
         "kanji": "\u5fd8\u308c\u308b",
         "kana": "\u308f\u3059\u308c\u308b",
-        "english": "to forget"
+        "english": "to forget",
+        "jlpt": 5
     },
     {
         "kanji": "\u79c1",
         "kana": "\u308f\u305f\u304f\u3057",
-        "english": "(humble) I,myself"
+        "english": "(humble) I,myself",
+        "jlpt": 5
     },
     {
         "kanji": "\u79c1",
         "kana": "\u308f\u305f\u3057",
-        "english": "I,myself"
+        "english": "I,myself",
+        "jlpt": 5
     },
     {
         "kanji": "\u6e21\u3059",
         "kana": "\u308f\u305f\u3059",
-        "english": "to hand over"
+        "english": "to hand over",
+        "jlpt": 5
     },
     {
         "kanji": "\u6e21\u308b",
         "kana": "\u308f\u305f\u308b",
-        "english": "to go across"
+        "english": "to go across",
+        "jlpt": 5
     },
     {
         "kanji": "\u60aa\u3044",
         "kana": "\u308f\u308b\u3044",
-        "english": "bad"
+        "english": "bad",
+        "jlpt": 5
     },
     {
         "kanji": "\u3088\u308a",
         "kana": "\u307b\u3046",
-        "english": "Used for comparison."
+        "english": "Used for comparison.",
+        "jlpt": 5
     }
 ]
