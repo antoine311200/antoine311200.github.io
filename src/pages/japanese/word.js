@@ -94,18 +94,57 @@ const WordTrainer = () => {
         }
     };
 
+    const handleKeyPress = (event) => {
+        if (event.key === ' ' && event.target.type !== 'checkbox') {
+            event.preventDefault();
+            setIsToggledWord((prevToggled) => !prevToggled);
+        }
+        else if (event.key === 'ArrowLeft') {
+            previousVocab();
+        }
+        else if (event.key === 'ArrowRight') {
+            nextVocab();
+        }
+        else if (event.key === 'Enter') {
+            randomVocab();
+        }
+        else if (event.key === "1") {
+            onChangeLevelWord("N1");
+        }
+        else if (event.key === "2") {
+            onChangeLevelWord("N2");
+        }
+        else if (event.key === "3") {
+            onChangeLevelWord("N3");
+        }
+        else if (event.key === "4") {
+            onChangeLevelWord("N4");
+        }
+        else if (event.key === "5") {
+            onChangeLevelWord("N5");
+        }
+    };
+
     useEffect(() => {
         // Add on start reload
-        randomVocab();
         document.title = `Japanese App | Antoine Debouchage`;
+
+        randomVocab();
         // document.addEventListener('load', () => randomVocab());
+
+        document.addEventListener('keydown', handleKeyPress);
+        // Select the #checkbox
+        // document.getElementById("check-switch").addEventListener
+
         if (!isMobile) document.addEventListener('click', handleScreenClick);
         else document.addEventListener('touchstart', handleScreenClick);
         return () => {
             if (!isMobile) document.removeEventListener('click', handleScreenClick);
             else document.removeEventListener('touchstart', handleScreenClick);
+
+            document.removeEventListener('keydown', handleKeyPress);
         };
-    }, []);
+    }, [isJP2ENWord, checkN5, checkN4, checkN3, checkN2, checkN1]);
 
 
     const renderJapanese2EnglishWord = () => {
