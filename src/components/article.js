@@ -122,12 +122,15 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
 
 
 
-  const renderSections = (sections) => {
+  const renderSections = (sections, depth) => {
+    const size = 24 - depth * 4;
+    const style = { fontSize: `${size}px` };
+
     return sections.map((section) => (
       <section key={section.id} id={section.id} className="mb-6">
-        <h2 className="text-2xl font-semibold mb-2">{section.title}</h2>
+        <h2 style={style} className="font-semibold mb-2">{section.title}</h2>
         <p>{section.content}</p>
-        {section.subsections && renderSections(section.subsections)}
+        {section.subsections && renderSections(section.subsections, depth+1)}
       </section>
     ));
   };
@@ -166,13 +169,13 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
   return (
 
     <Template iconColor="black">
-      <main className="flex-grow container mx-auto p-4">
+      <main className="flex-grow w-11/12 mx-auto p-4">
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h1 className="text-3xl font-semibold">{articleContent.title}</h1>
           <p className="text-gray-600">Posted on September 21, 2023</p>
           <hr className="mb-4" />
 
-          <div className="lg:w-1/4 lg:ml-4 lg:fixed lg:right-5 lg:block">
+          <div className="lg:w-1/4 lg:ml-4 lg:fixed lg:right-1 lg:block">
             <div className="sticky top-16">
               <h2 className="text-xl font-semibold mb-2">Table of Contents</h2>
               {renderTableOfContents(articleContent.content, 0)}
@@ -182,7 +185,7 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
           <hr className="mb-4 md:hidden" />
 
           <div className="lg:w-3/4 mx-2 md:mx-2 mt-10 text-justify">
-            {renderSections(articleContent.content)}
+            {renderSections(articleContent.content, 0)}
           </div>
         </div>
       </main>
