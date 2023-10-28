@@ -8,6 +8,7 @@ import Blog from './pages/blog';
 import Paper from './pages/paper';
 import Resume from './pages/resume';
 import Article from './components/article';
+import Contact from './pages/contact';
 
 import title2uri from './utils';
 
@@ -43,7 +44,7 @@ root.render(
           path="/blog/:title"
           element={<Article data={dataArticles}/>}
         />
-        <Route path="/contact" element={<App />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/secret" element={<JapaneseApp />} />
         <Route path="/test" element={<Test />} />
       </Routes>
