@@ -3,7 +3,6 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { Link } from 'react-router-dom';
 
 import Template from '../components/template';
-import Article from '../components/article';
 import SearchBar from '../components/searchbar';
 import SelectMenu from '../components/dropdown';
 
@@ -36,20 +35,20 @@ const Snippet = ({ title = "Title", date, description, keywords, imagePath = "ba
     );
 }
 
-const Grid = ({ items }) => {
-    return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {items.map((item) => (
-                <Snippet
-                    key={item.id}
-                    title={item.title}
-                    date={item.date}
-                    description={item.description}
-                />
-            ))}
-        </div>
-    );
-}
+// const Grid = ({ items }) => {
+//     return (
+//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+//             {items.map((item) => (
+//                 <Snippet
+//                     key={item.id}
+//                     title={item.title}
+//                     date={item.date}
+//                     description={item.description}
+//                 />
+//             ))}
+//         </div>
+//     );
+// }
 
 const Blog = ({ dataArticles }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -100,7 +99,7 @@ const Blog = ({ dataArticles }) => {
 
     return (
         <Template iconColor="black">
-            <div className="container mx-auto p-4">
+            <div className="container mx-auto px-4">
                 <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:space-x-4 gap-y-3">
                     <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} placeholder="Search articles..." />
                     <div className="flex space-x-4">

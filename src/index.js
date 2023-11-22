@@ -1,19 +1,19 @@
-import React, { useRouteMatch } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import reportWebVitals from './reportWebVitals';
-import { Routes, Route, HashRouter, useMatch } from 'react-router-dom';
+import { Routes, Route, HashRouter } from 'react-router-dom';
 
 import App from './App';
 import Blog from './pages/blog';
 import Paper from './pages/paper';
+import Project from './pages/project';
+import Publication from './pages/publication';
 import Resume from './pages/resume';
 import Article from './components/article';
 import Contact from './pages/contact';
 
-import title2uri from './utils';
 
 import './index.css';
-import Template from './components/template';
 import JapaneseApp from './pages/japanese/secret';
 import Test from './pages/test';
 
@@ -22,7 +22,7 @@ const articleModules = [];
 const requireArticle = require.context('./data/articles', false, /.js$/);
 
 requireArticle.keys().forEach((filename) => {
-  const article = requireArticle(filename).default; // Assuming you're exporting as default
+  const article = requireArticle(filename).default;
 
   articleModules.push(article);
 });
@@ -37,7 +37,8 @@ root.render(
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/resume" element={<Resume />} />
-        <Route path="/project" element={<App />} />
+        <Route path="/projects" element={<Project />} />
+        <Route path="/publications" element={<Publication />} />
         <Route path="/papers" element={<Paper />} />
         <Route path="/blog" element={<Blog dataArticles={dataArticles} />} />
         <Route

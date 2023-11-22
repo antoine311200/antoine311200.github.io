@@ -71,8 +71,13 @@ export default function Header() {
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/project" onClick={toggleMenu}>
+                                <Link to="/projects" onClick={toggleMenu}>
                                     <TextHover text='Project' />
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/publications" onClick={toggleMenu}>
+                                    <TextHover text='Publications' />
                                 </Link>
                             </li>
                             <li>

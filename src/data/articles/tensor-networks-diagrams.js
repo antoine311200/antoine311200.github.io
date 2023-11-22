@@ -1,11 +1,12 @@
 import { Paragraph, Remark, Image } from '../../components/helper';
-import ReactMarkdown from 'react-markdown';
+// import ReactMarkdown from 'react-markdown';
 
 const article1 = {
   title: 'Introduction to Tensor Networks Diagrams & Einstein Notation',
   date: '25 September 2023',
   description: 'A short introduction to tensor networks and diagrams. This article introduces Einstein notation and tensor diagrams laying the foundation for tensor-inspired quantum algorithms and many-body physics.',
   keywords: ['Mathematics', 'Tensor networks', 'Quantum computing'],
+  imagePath: '/images/tensor-networks-diagram/banner.PNG',
   content: [
     {
       id: 'introduction',
