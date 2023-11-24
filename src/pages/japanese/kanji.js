@@ -3,8 +3,17 @@ import { isMobile } from 'react-device-detect';
 
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-import all_kanjis from "../../data/kanji_updated_2.json";
+// import all_kanjis from "../../data/kanji_updated_2.json";
 
+// Import kanji for each level
+import kanji_n5 from "../../data/kanji_5.json";
+import kanji_n4 from "../../data/kanji_4.json";
+import kanji_n3 from "../../data/kanji_3.json";
+import kanji_n2 from "../../data/kanji_2.json";
+import kanji_n1 from "../../data/kanji_1.json";
+import kanji_n0 from "../../data/kanji_0.json";
+
+let all_kanji = [];
 let history = [];
 let index = 0;
 
@@ -156,9 +165,38 @@ const test_kanji = {
 history.push(test_kanji);
 
 const KanjiTrainer = () => {
-    const [kanjis, setKanjis] = useState(all_kanjis);
+
+    const [checkLevel, setCheckLevel] = useState(new Set([5]));
+
+    const [kanjis, setKanjis] = useState(all_kanji);
     const [kanji, setKanji] = useState(test_kanji);
     const [isToggle, setIsToggle] = useState(false);
+
+    const onChangeLevel = (level) => {
+        // Check if the level is in checkLevel
+
+        let newLevel = new Set(checkLevel);
+
+        if (newLevel.has(level) && newLevel.size > 1) {
+            newLevel.delete(level);
+        }
+        else newLevel.add(level);
+
+        setCheckLevel(newLevel);
+    };
+
+    useEffect(() => {
+        let newKanji = [];
+
+        if (checkLevel.has(5)) newKanji = newKanji.concat(kanji_n5);
+        if (checkLevel.has(4)) newKanji = newKanji.concat(kanji_n4);
+        if (checkLevel.has(3)) newKanji = newKanji.concat(kanji_n3);
+        if (checkLevel.has(2)) newKanji = newKanji.concat(kanji_n2);
+        if (checkLevel.has(1)) newKanji = newKanji.concat(kanji_n1);
+        if (checkLevel.has(0)) newKanji = newKanji.concat(kanji_n0);
+
+        setKanjis(newKanji);
+    }, [checkLevel]);
 
     const previousKanji = () => {
         if (index === 0) return;
@@ -176,6 +214,8 @@ const KanjiTrainer = () => {
         const random = Math.floor(Math.random() * kanjis.length);
         const kanji = kanjis[random];
 
+        console.log(checkLevel);
+
         history.push(kanji);
         index = history.length - 1;
 
@@ -188,17 +228,36 @@ const KanjiTrainer = () => {
         }
     };
 
+    const handleKeyPress = (event) => {
+        if (event.key === ' ' && event.target.type !== 'checkbox') {
+            event.preventDefault();
+            setIsToggle((prevToggled) => !prevToggled);
+        }
+        else if (event.key === 'ArrowLeft') previousKanji();
+        else if (event.key === 'ArrowRight') nextKanji();
+        else if (event.key === 'Enter') randomKanji();
+        else if (event.key === "1") onChangeLevel(1);
+        else if (event.key === "2") onChangeLevel(2);
+        else if (event.key === "3") onChangeLevel(3);
+        else if (event.key === "4") onChangeLevel(4);
+        else if (event.key === "5") onChangeLevel(5);
+        else if (event.key === "0") onChangeLevel(0);
+    };
 
     useEffect(() => {
         document.title = `Japanese App | Antoine Debouchage`;
+
+        document.addEventListener('keydown', handleKeyPress);
 
         if (!isMobile) document.addEventListener('click', handleScreenClick);
         else document.addEventListener('touchstart', handleScreenClick);
         return () => {
             if (!isMobile) document.removeEventListener('click', handleScreenClick);
             else document.removeEventListener('touchstart', handleScreenClick);
+
+            document.removeEventListener('keydown', handleKeyPress);
         };
-    }, []);
+    }, [checkLevel, kanji, kanjis]);
 
     const renderFront = () => {
         return (
@@ -268,12 +327,56 @@ const KanjiTrainer = () => {
 
             {/* Menu */}
             <div className="flex flex-col items-center">
-                <div className="absolute bottom-10 flex flex-col items-center gap-3">
+                <div className="absolute bottom-14 flex flex-col items-center gap-3">
                     <button className="justify-center bg-slate-50 hover:bg-slate-200 focus:ring-2 focus:outline-none focus:ring-slate-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center" onClick={randomKanji}>
                         Next <FaChevronRight className="ml-4 mt-1" />
                     </button>
                 </div>
+                <div className="absolute bottom-2">
+                    <ul className="flex flex-row items-center w-full text-sm font-medium text-white">
+                        <li className="w-full">
+                            <h1 className="text-center">JLPT</h1>
+                        </li>
+                        <li className="w-full ">
+                            <div className="flex items-center pl-3">
+                                <input type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded cursor-pointer" checked={checkLevel.has(5)} onChange={() => onChangeLevel(5)} />
+                                <label className="w-full py-3 ml-2 text-sm font-medium">N5</label>
+                            </div>
+                        </li>
+                        <li className="w-full ">
+                            <div className="flex items-center pl-3">
+                                <input type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded cursor-pointer" checked={checkLevel.has(4)} onChange={() => onChangeLevel(4)} />
+                                <label className="w-full py-3 ml-2 text-sm font-medium">N4</label>
+                            </div>
+                        </li>
+                        <li className="w-full ">
+                            <div className="flex items-center pl-3">
+                                <input type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded cursor-pointer" checked={checkLevel.has(3)} onChange={() => onChangeLevel(3)} />
+                                <label className="w-full py-3 ml-2 text-sm font-medium">N3</label>
+                            </div>
+                        </li>
+                        <li className="w-full ">
+                            <div className="flex items-center pl-3">
+                                <input type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded cursor-pointer" checked={checkLevel.has(2)} onChange={() => onChangeLevel(2)} />
+                                <label className="w-full py-3 ml-2 text-sm font-medium">N2</label>
+                            </div>
+                        </li>
+                        <li className="w-full ">
+                            <div className="flex items-center pl-3">
+                                <input type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded cursor-pointer" checked={checkLevel.has(1)} onChange={() => onChangeLevel(1)} />
+                                <label className="w-full py-3 ml-2 text-sm font-medium">N1</label>
+                            </div>
+                        </li>
+                        <li className="w-full ">
+                            <div className="flex items-center pl-3">
+                                <input type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded cursor-pointer" checked={checkLevel.has(0)} onChange={() => onChangeLevel(0)} />
+                                <label className="w-full py-3 ml-2 text-sm font-medium">Others</label>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
+
             {/* <div className="flex flex-col items-center">
                 <div className="absolute bottom-10 flex flex-col items-center gap-3">
                     <button className="justify-center bg-slate-50 hover:bg-slate-200 focus:ring-2 focus:outline-none focus:ring-slate-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center" onClick={randomSentence}>
