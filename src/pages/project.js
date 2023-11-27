@@ -36,6 +36,12 @@ const school_projects = [
     link: '',
     image: '/images/misc/low_rank.png'
   },
+  {
+    title: 'FuseCensor - Obscene Content Detection & Censorship',
+    description: 'Fuse Censor emerged in the context of the Coding Weeks as as project using machine learning and more explicitly Natural Language Processing with Sentiment Analysis. After being through some brainstorming we have come up with the basic idea of a multi-browser extension analysing the body of a page replacing or censoring all explicitly negative contents.',
+    link: '',
+    image: '/images/misc/fuse_censor.png'
+  },
 ]
 
 const research_projects = [
@@ -44,6 +50,12 @@ const research_projects = [
     description: 'Final year research project at CentraleSupélec. Project supervised by Crédit Agricole CIB."',
     link: '',
     image: '/images/misc/bsde.png'
+  },
+  {
+    title: 'Simulation of Quantum Circuits with Tensor Networks',
+    description: 'First year research project at CentraleSupélec. The goal of this project is to simulate low-entangled quantum circuits with Matrix Product States and Matrix Product Operators qnd to conduct a study on the fidelity of the simulations with respect to the depth of the circuits and the Matrix Product ranks.',
+    link: '',
+    image: '/images/misc/qcircuit.PNG'
   }
 ]
 

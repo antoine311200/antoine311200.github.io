@@ -72,7 +72,7 @@ export default function Header() {
                             </li>
                             <li>
                                 <Link to="/projects" onClick={toggleMenu}>
-                                    <TextHover text='Project' />
+                                    <TextHover text='Projects' />
                                 </Link>
                             </li>
                             <li>
