@@ -23,7 +23,7 @@ import { ReaderContext } from "./readercontext";
 //     },
 
 
-const WordItem = ({ word, key, isMenuOpen }) => {
+const WordItem = ({ word, pkey, isMenuOpen }) => {
     const { savedWords, setSavedWords } = useContext(ReaderContext);
     let words = savedWords;
 
@@ -42,7 +42,7 @@ const WordItem = ({ word, key, isMenuOpen }) => {
     }
 
     return (
-        <><li index={key} className={`flex ${!isMenuOpen && "hidden"} ${!isUnrolled ? "flex-row items-center gap-x-4" : "flex-col w-full"} cursor-pointer hover:bg-slate-800 duration-200 rounded-sm ${isMenuOpen ? "px-4" : "px-2.5"} py-2`} onClick={toggleUnrolled}>
+        <><li index={pkey} className={`flex ${!isMenuOpen && "hidden"} ${!isUnrolled ? "flex-row items-center gap-x-4" : "flex-col w-full"} cursor-pointer hover:bg-slate-800 duration-200 rounded-sm ${isMenuOpen ? "px-4" : "px-2.5"} py-2`} onClick={toggleUnrolled}>
             <div className="flex items-center flex-row justify-between">
                 <div className={`text-white font-thin duration-100 text-lg`}>
                     <ruby>
@@ -118,7 +118,7 @@ const ReaderSidebar = ({ isMenuOpen }) => {
 
                     <ul className="overflow-y-auto h-[calc(100vh-12rem)]">
                         {filteredWords.map((word, index) => (
-                            <WordItem word={word} key={index} isMenuOpen={isMenuOpen} />
+                            <WordItem word={word} pkey={index} isMenuOpen={isMenuOpen} />
                         ))}
                     </ul>
                 </div>

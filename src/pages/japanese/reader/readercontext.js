@@ -6,6 +6,9 @@ const initialState = {
 
     savedWords: [],
     setSavedWords: () => { },
+
+    scrollPosition: 0,
+    setScrollPosition: () => { },
 };
 
 export const ReaderContext = createContext(initialState);

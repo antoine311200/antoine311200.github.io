@@ -104,9 +104,8 @@ function deepEqual(x, y) {
 }
 
 const FileUpload = () => {
-    const { fileContent, setFileContent, savedWords, setSavedWords } = useContext(ReaderContext);
+    const { fileContent, setFileContent, savedWords, setSavedWords, scrollPosition, setScrollPosition } = useContext(ReaderContext);
 
-    const [scrollPosition, setScrollPosition] = useState(0);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
     const [popoverVisible, setPopoverVisible] = useState(false);
@@ -134,12 +133,6 @@ const FileUpload = () => {
                 return null;
             }
 
-            console.log(data[0]);
-            console.log(savedWords)
-
-            // Use deepEqual to check if the word is already in the list
-            console.log(savedWords.some((savedWord) => deepEqual(savedWord, data[0])));
-
             if (Array.isArray(data)) setPopoverContent(data[0]);
             else setPopoverContent(data);
 
@@ -162,66 +155,6 @@ const FileUpload = () => {
             document.removeEventListener('mousemove', handleMouseMove);
         };
     }, []);
-
-    // useEffect(() => {
-    //     const handleCtrlKey = (event) => {
-    //         // const mouseDownEvent = new MouseEvent('mousedown', {
-    //         //     clientX: mousePosition.x,
-    //         //     clientY: mousePosition.y,
-    //         //     button: 0,
-    //         // });
-    //         // const mouseDragEvent = new MouseEvent('drag', {
-    //         //     clientX: mousePosition.x,
-    //         //     clientY: mousePosition.y,
-    //         //     button: 0,
-    //         // });
-    //         // const mouseDragOverEvent = new MouseEvent('dragover', {
-    //         //     clientX: mousePosition.x,
-    //         //     clientY: mousePosition.y,
-    //         //     button: 0,
-    //         // });
-    //         // const dropEvent = new MouseEvent('drop', {
-    //         //     clientX: mousePosition.x,
-    //         //     clientY: mousePosition.y,
-    //         //     button: 0,
-    //         // });
-    //         // const mouseUpEvent = new MouseEvent('mouseup', {
-    //         //     clientX: mousePosition.x,
-    //         //     clientY: mousePosition.y,
-    //         //     button: 0,
-    //         // });
-    //         // const clickEvent = new MouseEvent('click', {
-    //         //     clientX: mousePosition.x,
-    //         //     clientY: mousePosition.y,
-    //         //     button: 0,
-    //         // });
-
-    //         // Get the element at the mouse position
-    //         // const element = document.elementFromPoint(
-    //         //     mousePosition.x,
-    //         //     mousePosition.y
-    //         // );
-    //         // console.log(element);
-
-
-    //         // console.log('Control');
-    //         // const selection = window.getSelection();
-    //         // const range = selection.getRangeAt(0);
-    //         // console.log(range.startOffset, range.endOffset);
-    //         // const selectedText = range.toString().trim();
-
-
-    //         // if (selectedText && selectedText.length > 0) {
-    //         //     console.log('Selected Word:', selectedText);
-    //         //     // Do something with the selected word
-    //         // }
-    //     };
-
-    //     document.addEventListener('keydown', handleCtrlKey);
-    //     return () => {
-    //         document.removeEventListener('keydown', handleCtrlKey);
-    //     };
-    // }, [mousePosition]);
 
     const addFavorite = (event) => {
         event.preventDefault();
@@ -290,6 +223,20 @@ const FileUpload = () => {
         if (storedContent) {
             setFileContent(storedContent);
         }
+        else {
+            // Set file content to the default html file in public/files/恐怖 谷崎潤一郎
+            // const file = '/files/恐怖 谷崎潤一郎.html';
+            const file = '/files/人間失格 太宰治.html';
+
+            fetch(file)
+            .then((response) => response.text())
+            .then((htmlContent) => {
+              // Set the file content and save to localStorage
+              setFileContent(htmlContent);
+              localStorage.setItem('fileContent', htmlContent);
+            })
+            .catch((error) => console.error('Error fetching file content:', error));
+        }
 
         if (storedWords) {
             setSavedWords(JSON.parse(storedWords));
@@ -312,49 +259,9 @@ const FileUpload = () => {
         };
     }, []);
 
-    const handleFileChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-
-            reader.onload = (e) => {
-                const content = e.target.result;
-
-                setFileContent(content);
-                localStorage.setItem('fileContent', content);
-
-                setScrollPosition(0);
-                localStorage.setItem('scrollPosition', '0');
-
-                setSavedWords([]);
-            };
-
-            reader.readAsText(file);
-        }
-    };
 
     return (
-        <div className="flex flex-col items-center text-white">
-            <div className="flex flex-row items-center mb-8">
-                <input
-                    type="file"
-                    id="reader-input"
-                    accept=".txt, .html"
-                    onChange={handleFileChange}
-                    hidden
-                />
-                <label
-                    htmlFor="reader-input"
-                    className="block text-sm mr-4 py-2 px-4 rounded-md border-0 font-semibold bg-pink-50 text-pink-700 hover:bg-pink-100 cursor-pointer transition duration-100 ease-in-out"
-                >
-                    Choose file
-                </label>
-                <label className="block text-sm text-slate-500 py-2 px-4">
-                    {fileContent && fileContent.length > 0
-                        ? `Selected file: ${fileContent.length} bytes`
-                        : 'No file selected'}
-                </label>
-            </div>
+        <div className="flex flex-col items-center text-white mt-24">
             <div className="select-auto selection:rounded-xl selection:border selection:bg-purple-300 selection:text-purple-900 text-left text-slate-300 font-normal tracking-wide text-xl container bg-slate-800 rounded-xl p-12 border-white border-[1px]">
                 {fileContent && (
                     <div dangerouslySetInnerHTML={{ __html: fileContent }} />
