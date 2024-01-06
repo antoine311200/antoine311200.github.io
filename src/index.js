@@ -15,6 +15,7 @@ import Contact from './pages/contact';
 
 import './index.css';
 import JapaneseApp from './pages/japanese/secret';
+import JapaneseReader from './pages/japanese/reader/reader';
 import Test from './pages/test';
 
 
@@ -47,6 +48,7 @@ root.render(
         />
         <Route path="/contact" element={<Contact />} />
         <Route path="/secret" element={<JapaneseApp />} />
+        <Route path="/secret/reader" element={<JapaneseReader />} />
         <Route path="/test" element={<Test />} />
       </Routes>
     </HashRouter>

@@ -55,7 +55,7 @@ const research_projects = [
     title: 'Simulation of Quantum Circuits with Tensor Networks',
     description: 'First year research project at CentraleSupélec. The goal of this project is to simulate low-entangled quantum circuits with Matrix Product States and Matrix Product Operators qnd to conduct a study on the fidelity of the simulations with respect to the depth of the circuits and the Matrix Product ranks.',
     link: '',
-    image: '/images/misc/qcircuit.PNG'
+    image: '/images/misc/qcircuit.png'
   }
 ]
 
