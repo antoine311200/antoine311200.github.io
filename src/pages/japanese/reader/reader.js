@@ -9,7 +9,7 @@ import { BsChevronDown } from "react-icons/bs";
 const queryClient = new QueryClient();
 
 const defaultSettings = {
-    fontSize: 20,
+    fontSize: "20px", // "20px
     fontColor: '#eeeeee',
     bgColor: '#1e293b',
     selectedFont: 'Arial',
