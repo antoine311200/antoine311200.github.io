@@ -7,94 +7,6 @@ import { ReaderContext } from './readercontext';
 
 import { FaStar } from "react-icons/fa6";
 
-
-const pos = {
-    "adj-i": "adjective (keiyoushi)",
-    "adj-na": "adjectival nouns or quasi-adjectives (keiyodoshi)",
-    "adj-no": "nouns which may take the genitive case particle `no'",
-    "adj-pn": "pre-noun adjectival (rentaishi)",
-    "adj-t": "`taru' adjective",
-    "adj-f": "noun or verb acting prenominally",
-    "adj": "former adjective classification (being removed)",
-    "adv": "adverb (fukushi)",
-    "adv-to": "adverb taking the `to' particle",
-    "aux": "auxiliary",
-    "aux-v": "auxiliary verb",
-    "aux-adj": "auxiliary adjective",
-    "conj": "conjunction",
-    "ctr": "counter",
-    "exp": "Expressions (phrases, clauses, etc.)",
-    "int": "interjection (kandoushi)",
-    "iv": "irregular verb",
-    "n": "noun",
-    "n-adv": "adverbial noun (fukushitekimeishi)",
-    "n-suf": "noun, used as a suffix",
-    "n-pref": "noun, used as a prefix",
-    "n-t": "noun (temporal) (jisoumeishi)",
-    "num": "numeric",
-    "pn": "pronoun",
-    "pref": "prefix",
-    "prt": "particle",
-    "suf": "suffix",
-    "v1": "Ichidan verb",
-    "v1-s": "Ichidan verb - kureru special class",
-    "v2a-s": "Nidan verb with 'u' ending (archaic)",
-    "v4h": "Yodan verb with `hu/fu' ending (archaic)",
-    "v4r": "Yodan verb with `ru' ending (archaic)",
-    "v5aru": "Godan verb - -aru special class",
-    "v5b": "Godan verb with `bu' ending",
-    "v5g": "Godan verb with `gu' ending",
-    "v5k": "Godan verb with `ku' ending",
-    "v5k-s": "Godan verb - Iku/Yuku special class",
-    "v5m": "Godan verb with `mu' ending",
-    "v5n": "Godan verb with `nu' ending",
-    "v5r": "Godan verb with `ru' ending",
-    "v5r-i": "Godan verb with `ru' ending (irregular verb)",
-    "v5s": "Godan verb with `su' ending",
-    "v5t": "Godan verb with `tsu' ending",
-    "v5u": "Godan verb with `u' ending",
-    "v5u-s": "Godan verb with `u' ending (special class)",
-    "v5uru": "Godan verb - Uru old class verb (old form of Eru)",
-    "vz": "Ichidan verb - zuru verb (alternative form of -jiru verbs)",
-    "vi": "intransitive verb",
-    "vk": "Kuru verb - special class",
-    "vn": "irregular nu verb",
-    "vr": "irregular ru verb, plain form ends with -ri",
-    "vs": "noun or participle which takes the aux. verb suru",
-    "vs-c": "su verb - precursor to the modern suru",
-    "vs-s": "suru verb - special class",
-    "vs-i": "suru verb - irregular",
-    "kyb": "Kyoto-ben",
-    "osb": "Osaka-ben",
-    "ksb": "Kansai-ben",
-    "ktb": "Kantou-ben",
-    "tsb": "Tosa-ben",
-    "thb": "Touhoku-ben",
-    "tsug": "Tsugaru-ben",
-    "kyu": "Kyuushuu-ben",
-    "rkb": "Ryuukyuu-ben",
-    "nab": "Nagano-ben",
-    "hob": "Hokkaido-ben",
-    "vt": "transitive verb",
-    "vulg": "vulgar expression or word",
-    "adj-kari": "`kari' adjective (archaic)",
-    "adj-ku": "`ku' adjective (archaic)",
-    "adj-shiku": "`shiku' adjective (archaic)",
-    "adj-nari": "archaic/formal form of na-adjective",
-    "n-pr": "proper noun",
-    "v-unspec": "verb unspecified",
-    "v4k": "Yodan verb with `ku' ending (archaic)",
-    "v4g": "Yodan verb with `gu' ending (archaic)",
-    "v4s": "Yodan verb with `su' ending (archaic)",
-    "v4t": "Yodan verb with `tsu' ending (archaic)",
-    "v4n": "Yodan verb with `nu' ending (archaic)",
-    "v4b": "Yodan verb with `bu' ending (archaic)",
-    "v4m": "Yodan verb with `mu' ending (archaic)",
-    "v2k-k": "Nidan verb (upper class) with `ku' ending (archaic)",
-    "v2g-k": "Nidan verb (upper class) with `gu' ending (archaic)",
-    "v2t-k": "Nidan verb (upper class) with `tsu' ending (archaic)",
-};
-
 function deepEqual(x, y) {
     const ok = Object.keys, tx = typeof x, ty = typeof y;
     return x && y && tx === 'object' && tx === ty ? (
@@ -103,7 +15,7 @@ function deepEqual(x, y) {
     ) : (x === y);
 }
 
-const FileUpload = () => {
+const FileUpload = ({ settings }) => {
     const { fileContent, setFileContent, savedWords, setSavedWords, scrollPosition, setScrollPosition } = useContext(ReaderContext);
 
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -229,13 +141,13 @@ const FileUpload = () => {
             const file = '/files/人間失格 太宰治.html';
 
             fetch(file)
-            .then((response) => response.text())
-            .then((htmlContent) => {
-              // Set the file content and save to localStorage
-              setFileContent(htmlContent);
-              localStorage.setItem('fileContent', htmlContent);
-            })
-            .catch((error) => console.error('Error fetching file content:', error));
+                .then((response) => response.text())
+                .then((htmlContent) => {
+                    // Set the file content and save to localStorage
+                    setFileContent(htmlContent);
+                    localStorage.setItem('fileContent', htmlContent);
+                })
+                .catch((error) => console.error('Error fetching file content:', error));
         }
 
         if (storedWords) {
@@ -261,11 +173,20 @@ const FileUpload = () => {
 
 
     return (
-        <div className="flex flex-col items-center text-white mt-24">
-            <div className="select-auto selection:rounded-xl selection:border selection:bg-purple-300 selection:text-purple-900 text-left text-slate-300 font-normal tracking-wide text-xl container bg-slate-800 rounded-xl p-12 border-white border-[1px]">
-                {fileContent && (
-                    <div dangerouslySetInnerHTML={{ __html: fileContent }} />
-                )}
+        <div className="flex flex-col items-center mt-[7%]">
+            <div className="select-auto selection:rounded-xl selection:border selection:bg-purple-300 selection:text-purple-900 text-left font-normal tracking-wide rounded-xl p-4 border-slate-500 border-[1px]">
+                <div className='overflow-y-auto h-[calc(100vh-12rem)] p-8'
+                    style={{
+                        color: settings.fontColor,
+                        backgroundColor: settings.bgColor,
+                        fontSize: settings.fontSize,
+                        // fontFamily: selectedFont,
+                    }}
+                >
+                    {fileContent && (
+                        <div className='' dangerouslySetInnerHTML={{ __html: fileContent }} />
+                    )}
+                </div>
             </div>
 
 

@@ -5,28 +5,9 @@ import { MdContentCopy } from "react-icons/md";
 
 import { ReaderContext } from "./readercontext";
 
-// let words = [
-//     {
-//         "kanji": "推定",
-//         "kana": [["すいてい", true]],
-//         "sense": {
-//             "eng": [
-//                 ["presumption @ assumption", ["n", "vs", "vt", "adj-no"]],
-//                 ["estimation", ["n", "vs", "vt", "adj-no"]]
-//             ],
-//             "fre": [
-//                 ["estimation", ["n", "vs", "vt", "adj-no"]]
-//             ]
-//         },
-//         "note": "",
-//         "date": "05/01/2024",
-//     },
-
 
 const WordItem = ({ word, pkey, isMenuOpen }) => {
     const { savedWords, setSavedWords } = useContext(ReaderContext);
-    let words = savedWords;
-
     const [isUnrolled, setIsUnrolled] = useState(false);
 
     const toggleUnrolled = (event) => {
@@ -101,8 +82,9 @@ const ReaderSidebar = ({ isMenuOpen }) => {
 
     return (
         <div className="relative z-2">
-            <div className="fixed inset-y-0 flex h-screen">
-                <div className={`bg-slate-900 ${isMenuOpen ? "w-72" : "w-20 hidden lg:block"} pt-16 p-5 duration-300`}>
+            <div className="inset-y-0 flex h-screen"> {/* Sidebar fixed*/}
+                <div className={`bg-slate-900 ${isMenuOpen ? "w-72" : "w-20 hidden lg:block"} pt-16 p-5`}>
+                    <div className=" duration-300">
                     <div className={`flex items-center rounded-md bg-gray-700 mt-6 ${isMenuOpen ? "px-4" : "px-2.5"} py-2`}>
                         <BsSearch className={`text-white text-lg block float-left cursor-pointer ${isMenuOpen && "mr-2"}`} />
                         <input
@@ -120,7 +102,7 @@ const ReaderSidebar = ({ isMenuOpen }) => {
                         {filteredWords.map((word, index) => (
                             <WordItem word={word} pkey={index} isMenuOpen={isMenuOpen} />
                         ))}
-                    </ul>
+                    </ul></div>
                 </div>
             </div>
         </div>
