@@ -7,7 +7,6 @@ import { ReaderContext } from "./readercontext";
 
 
 const WordItem = ({ word, pkey, isMenuOpen }) => {
-    const { savedWords, setSavedWords } = useContext(ReaderContext);
     const [isUnrolled, setIsUnrolled] = useState(false);
 
     const toggleUnrolled = (event) => {
@@ -85,24 +84,25 @@ const ReaderSidebar = ({ isMenuOpen }) => {
             <div className="inset-y-0 flex h-screen"> {/* Sidebar fixed*/}
                 <div className={`bg-slate-900 ${isMenuOpen ? "w-72" : "w-20 hidden lg:block"} pt-16 p-5`}>
                     <div className=" duration-300">
-                    <div className={`flex items-center rounded-md bg-gray-700 mt-6 ${isMenuOpen ? "px-4" : "px-2.5"} py-2`}>
-                        <BsSearch className={`text-white text-lg block float-left cursor-pointer ${isMenuOpen && "mr-2"}`} />
-                        <input
-                            type='search' placeholder='Search'
-                            className={`search-cancel:appearance-none bg-transparent text-white text-base focus:outline-none ${!isMenuOpen && "hidden"} after:text-yellow-300`}
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                        />
+                        <div className={`flex items-center rounded-md bg-gray-700 mt-6 ${isMenuOpen ? "px-4" : "px-2.5"} py-2`}>
+                            <BsSearch className={`text-white text-lg block float-left cursor-pointer ${isMenuOpen && "mr-2"}`} />
+                            <input
+                                type='search' placeholder='Search'
+                                className={`search-cancel:appearance-none bg-transparent text-white text-base focus:outline-none ${!isMenuOpen && "hidden"} after:text-yellow-300`}
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                            />
+                        </div>
+
+                        {/* Separator */}
+                        <div className={`border-t border-gray-600 mt-6 ${isMenuOpen ? "px-4" : "px-2.5"} py-2`}></div>
+
+                        <ul className="overflow-y-auto h-[calc(100vh-12rem)]">
+                            {filteredWords.map((word, index) => (
+                                <WordItem word={word} pkey={index} isMenuOpen={isMenuOpen} />
+                            ))}
+                        </ul>
                     </div>
-
-                    {/* Separator */}
-                    <div className={`border-t border-gray-600 mt-6 ${isMenuOpen ? "px-4" : "px-2.5"} py-2`}></div>
-
-                    <ul className="overflow-y-auto h-[calc(100vh-12rem)]">
-                        {filteredWords.map((word, index) => (
-                            <WordItem word={word} pkey={index} isMenuOpen={isMenuOpen} />
-                        ))}
-                    </ul></div>
                 </div>
             </div>
         </div>

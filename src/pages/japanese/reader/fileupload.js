@@ -91,11 +91,20 @@ const FileUpload = ({ settings }) => {
                 return null;
             }
 
+            let x, y;
+
+            if (event.type === 'mouseup') {
+                x = event.clientX;
+                y = event.clientY;
+            }
+            else if (event.type === 'touchend') {
+                x = event.changedTouches[0].clientX;
+                y = event.changedTouches[0].clientY;
+            }
+
             const selection = window.getSelection();
             const selectedText = selection.toString();
 
-            let x = event.clientX;
-            let y = event.clientY;
 
             if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
@@ -114,8 +123,10 @@ const FileUpload = ({ settings }) => {
         };
 
         document.addEventListener('mouseup', handleSelection);
+        document.addEventListener('touchend', handleSelection);
         return () => {
             document.removeEventListener('mouseup', handleSelection);
+            document.removeEventListener('touchend', handleSelection);
         };
     }, []);
 
@@ -171,15 +182,16 @@ const FileUpload = ({ settings }) => {
         };
     }, []);
 
+    const isSmartphone = window.innerWidth <= 768;
+
 
     return (
-        <div className="flex flex-col items-center mt-[7%]">
-            <div className="select-auto selection:rounded-xl selection:border selection:bg-purple-300 selection:text-purple-900 text-left font-normal tracking-wide rounded-xl p-4 border-slate-500 border-[1px]">
-                <div className='overflow-y-auto h-[calc(100vh-12rem)] p-8'
+        <div className="flex flex-col items-center mt-[22%] md:mt-[7%] h-screen">
+            <div className="select-auto selection:rounded-xl selection:border selection:bg-purple-300 selection:text-purple-900 text-left font-normal tracking-wide rounded-xl pl-4 pr-2 md:p-4 md:border-slate-500 md:border-[1px]">
+                <div className={`overflow-y-auto h-[calc(100vh-7rem)] p-1 md:p-8 ${settings.fontSize}`}
                     style={{
                         color: settings.fontColor,
                         backgroundColor: settings.bgColor,
-                        fontSize: settings.fontSize,
                         // fontFamily: selectedFont,
                     }}
                 >
@@ -192,23 +204,23 @@ const FileUpload = ({ settings }) => {
 
             {popoverVisible && popoverContent.kana.length > 0 && (
                 <div
-                    className='fixed top-0 left-0 w-full h-full text-black'
+                    className='fixed top-0 left-0 w-full md:w-full h-full text-black'
                     onClick={closePopover}
                 >
                     <div
                         style={{
-                            top: (window.innerHeight - popoverPosition.y < (58 + popoverContent.sense["eng"].length * 20 + 32) ? popoverPosition.y - (58 + popoverContent.sense["eng"].length * 20 + 32) - 50 : popoverPosition.y) + 5,
-                            left: (window.innerWidth - popoverPosition.x < (48 + 5.5 * (Math.max(popoverContent.sense["eng"].map((gloss, _) => gloss[0].split(' @ ').join(', ')).map((meaning, _) => meaning.trim().length)))) ? popoverPosition.x - ((48 + 5.5 * (Math.max(popoverContent.sense["eng"].map((gloss, _) => gloss[0].split(' @ ').join(', ')).map((meaning, _) => meaning.trim().length))))) - 20 : popoverPosition.x) + 5,
+                            top: isSmartphone ? popoverPosition.y : (window.innerHeight - popoverPosition.y < (58 + popoverContent.sense["eng"].length * 20 + 32) ? popoverPosition.y - (58 + popoverContent.sense["eng"].length * 20 + 32) - 50 : popoverPosition.y) + 5,
+                            left: isSmartphone ? popoverPosition.x : (window.innerWidth - popoverPosition.x < (48 + 5.5 * (Math.max(popoverContent.sense["eng"].map((gloss, _) => gloss[0].split(' @ ').join(', ')).map((meaning, _) => meaning.trim().length)))) ? popoverPosition.x - ((48 + 5.5 * (Math.max(popoverContent.sense["eng"].map((gloss, _) => gloss[0].split(' @ ').join(', ')).map((meaning, _) => meaning.trim().length))))) - 20 : popoverPosition.x) + 5,
                         }}
                         className="popover absolute bg-gray-700 text-gray-300 shadow-lg rounded-lg py-3 px-6 z-50 flex flex-col gap-1 text-left w-auto"
                         ref={popoverRef}
                     >
                         <div className="flex flex-col justify-between items-left">
                             <div className="flex flex-row justify-between items-center gap-x-5">
-                                <h3 className='text-xl font-medium'>{
+                                <h3 className='text-[14px] md:text-xl font-medium'>{
                                     popoverContent.kanji !== null ? popoverContent.kanji : popoverContent.kana[0]
                                 }</h3>
-                                <span className="inline-flex items-center justify-center p-1 text-sm font-medium leading-none text-white rounded-full">
+                                <span className="inline-flex items-center justify-center p-1 text-[14px] md:text-sm font-medium leading-none text-white rounded-full">
                                     <button className={`
                                         focus:outline-none hover:text-green-500 duration-100 active:text-green-800 focus:border-none
                                         ${savedWords.some((w) => deepEqual(w, popoverContent)) ? 'text-yellow-400' : 'text-gray-500'}`}
@@ -218,13 +230,13 @@ const FileUpload = ({ settings }) => {
                                     </button>
                                 </span>
                             </div>
-                            <p className='text-[12px] pb-2'>{
+                            <p className='text-[8px] md:text-[12px] pb-2'>{
                                 (popoverContent.kanji !== null > 0 ? popoverContent.kana : popoverContent.kana.slice(1)).map((kana, index) => (
                                     <span key={index} className={index !== 0 ? 'pl-2' : ''}>{kana}</span>
                                 ))
                             }</p>
                         </div>
-                        <ul className='text-sm pb-4'>
+                        <ul className='text-[9px] md:text-sm pb-4'>
                             {
                                 popoverContent.sense["eng"].map((gloss, index) => (
                                     <li key={index} className='list-decimal list-inside marker:text-green-500'>

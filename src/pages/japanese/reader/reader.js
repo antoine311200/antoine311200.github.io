@@ -9,10 +9,18 @@ import { BsChevronDown } from "react-icons/bs";
 const queryClient = new QueryClient();
 
 const defaultSettings = {
-    fontSize: "20px", // "20px
+    fontSize: "text-[14px] md:text-[20px]", // "20px
     fontColor: '#eeeeee',
     bgColor: '#1e293b',
     selectedFont: 'Arial',
+};
+
+
+const hasAncestor = (element, ancestor) => {
+    if (!element) return false;
+    if (element === ancestor) return true;
+    // console.log(element.parentElement, ancestor);
+    return hasAncestor(element.parentElement, ancestor);
 };
 
 function JapaneseReader() {
@@ -25,9 +33,12 @@ function JapaneseReader() {
 
     const [settings, setSettings] = useState(defaultSettings);
 
+    const sidebar = useRef(null);
+    const menuButton = useRef(null);
+
     const handleFontSizeChange = (e) => {
-        console.log(e.target.value);
-        setSettings({ ...settings, fontSize: e.target.value+"px" });
+        const v = e.target.value;
+        setSettings({ ...settings, fontSize: `text-[${parseInt(0.7 * v)}px] md:text-[${v}px]` });
     };
 
     const handleFontColorChange = (color) => {
@@ -55,14 +66,21 @@ function JapaneseReader() {
 
     useEffect(() => {
         const closeMenuOnOutsideClick = (event) => {
-            const sidebar = document.getElementById('sidebar');
-            const menuButton = document.getElementById('menu-button');
+            // Check if the click was on the sidebar or one of its children
 
-            // Set the menu to close if the user clicks outside of the 20% of the screen on the left
-            if ((event.clientX > window.innerWidth * 0.3) && isMenuOpen && (menuButton && !menuButton.contains(event.target))) {
+            // if (isMenuOpen && sidebar && menuButton &&
+            //     (
+            //         (sidebar.current && !hasAncestor(event.target, sidebar.current)) &&
+            //         (menuButton.current && !hasAncestor(event.target, menuButton.current)
+            //         )
+            //     )) {
+            //     setIsMenuOpen(false);
+            // }
+
+            // Check if the click is in the 200px on the left of the screen
+            if (isMenuOpen && sidebar && (sidebar.current && !hasAncestor(event.target, sidebar.current)) && sidebar.current && menuButton.current && !hasAncestor(event.target, menuButton.current) && event.clientX > 200) {
                 setIsMenuOpen(false);
             }
-
         };
 
         document.addEventListener('click', closeMenuOnOutsideClick);
@@ -70,7 +88,7 @@ function JapaneseReader() {
         return () => {
             document.removeEventListener('click', closeMenuOnOutsideClick);
         };
-    }, [isMenuOpen]);
+    }, [isMenuOpen, sidebar.current, menuButton.current]);
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
@@ -100,14 +118,14 @@ function JapaneseReader() {
                     <nav className="bg-slate-900 py-4 fixed w-full top-0 z-10">
                         <div className="px-4 mx-auto flex justify-between items-center">
                             <div className="flex items-center text-xl">
-                                <button id="menu-button" onClick={toggleMenu} className="mr-4 relative flex-none inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500">
+                                <button ref={menuButton} id="menu-button" onClick={toggleMenu} className="mr-4 relative flex-none inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500">
                                     {isMenuOpen ?
                                         <img className="h-4 w-4" src="times.svg" alt="Times Icon" />
                                         :
                                         <img className="h-4 w-4" src="bars.svg" />
                                     }
                                 </button>
-                                <h1 className="grow text-white text-lg font-semibold">Japanese Reader</h1>
+                                <h1 className="grow text-white text-lg font-semibold hidden md:block">Japanese Reader</h1>
                             </div>
 
                             <div className="flex flex-row items-center">
@@ -144,7 +162,7 @@ function JapaneseReader() {
                                                 min="15"
                                                 max="30"
                                                 step="5"
-                                                value={Number(settings.fontSize.slice(0, -2))}
+                                                value={parseInt(settings.fontSize.match(/\d+/g).pop(), 10)}
                                                 onChange={handleFontSizeChange}
                                                 className="range transition-all duration-300 ease-in-out"
                                             />
@@ -184,10 +202,10 @@ function JapaneseReader() {
                         </div>
                     </nav>
                     <div className="flex">
-                        <div onClick={() => setIsMenuOpen(true)} id="sidebar">
+                        <div onClick={() => setIsMenuOpen(true)} id="sidebar" ref={sidebar}>
                             <ReaderSidebar isMenuOpen={isMenuOpen} className="z-2" />
                         </div>
-                        <div className={`grow flex flex-col items-center gap-x-2 px-5`} style={{ fontSize: `${settings.fontSize}px`, color: `${settings.fontColor}`, backgroundColor: `${settings.bgColor}` }}>
+                        <div className={`flex flex-col items-center gap-x-2 md:px-5`} style={{ color: `${settings.fontColor}`, backgroundColor: `${settings.bgColor}` }}>
                             <FileUpload settings={settings} />
                         </div>
                     </div>
