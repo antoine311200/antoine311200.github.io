@@ -33,6 +33,8 @@ function JapaneseReader() {
 
     const [settings, setSettings] = useState(defaultSettings);
 
+    const [isFileMenuOpen, setIsFileMenuOpen] = useState(false);
+
     const sidebar = useRef(null);
     const menuButton = useRef(null);
 
@@ -62,26 +64,14 @@ function JapaneseReader() {
         }
     };
 
-
-
     useEffect(() => {
         const closeMenuOnOutsideClick = (event) => {
-            // Check if the click was on the sidebar or one of its children
-
-            // if (isMenuOpen && sidebar && menuButton &&
-            //     (
-            //         (sidebar.current && !hasAncestor(event.target, sidebar.current)) &&
-            //         (menuButton.current && !hasAncestor(event.target, menuButton.current)
-            //         )
-            //     )) {
-            //     setIsMenuOpen(false);
-            // }
-
             // Check if the click is in the 200px on the left of the screen
             if (isMenuOpen && sidebar && (sidebar.current && !hasAncestor(event.target, sidebar.current)) && sidebar.current && menuButton.current && !hasAncestor(event.target, menuButton.current) && event.clientX > 200) {
                 setIsMenuOpen(false);
             }
         };
+
 
         document.addEventListener('click', closeMenuOnOutsideClick);
 
@@ -112,7 +102,7 @@ function JapaneseReader() {
     };
 
     return (
-        <ReaderContext.Provider value={{ fileContent, setFileContent, savedWords, setSavedWords, scrollPosition, setScrollPosition }}>
+        <ReaderContext.Provider value={{ fileContent, setFileContent, savedWords, setSavedWords, scrollPosition, setScrollPosition, isFileMenuOpen, setIsFileMenuOpen }}>
             <QueryClientProvider client={queryClient}>
                 <div className="overflow-hidden h-screen w-screen bg-slate-900">
                     <nav className="bg-slate-900 py-4 fixed w-full top-0 z-10">
@@ -135,6 +125,7 @@ function JapaneseReader() {
                                         id="reader-input"
                                         accept=".txt, .html"
                                         onChange={handleFileChange}
+                                        onClick={() => setIsFileMenuOpen(true)}
                                         hidden
                                     />
                                     <label
