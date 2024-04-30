@@ -15,6 +15,7 @@ import Contact from './pages/contact';
 
 import './index.css';
 import JapaneseApp from './pages/japanese/secret';
+import DootApp from './pages/doot/doot';
 import JapaneseReader from './pages/japanese/reader/reader';
 import Test from './pages/test';
 
@@ -47,6 +48,7 @@ root.render(
           element={<Article data={dataArticles}/>}
         />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/doot" element={<DootApp />} />
         <Route path="/secret" element={<JapaneseApp />} />
         <Route path="/secret/reader" element={<JapaneseReader />} />
         <Route path="/test" element={<Test />} />
