@@ -17,6 +17,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.6.3",
     "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
     "font-awesome": "^4.7.0",
     "katex": "^0.16.8",
     "node-polyfill-webpack-plugin": "^3.0.0",

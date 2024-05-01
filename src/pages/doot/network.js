@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import Graph from "react-graph-vis";
 
-const dummy_graph = {
+import { DootContext } from "./dootcontext";
+
+let dummy_graph = {
     nodes: [
         { id: 1, label: "Node 1" },
         { id: 2, label: "Node 2" },
@@ -17,16 +19,32 @@ const dummy_graph = {
     ]
 };
 
+const DootStyle = {
+    "geography": "blue",
+    "cinema": "red",
+    "science": "lime",
+    "history": "yellow",
+    "art": "green",
+    "technology": "slate",
+    "music": "violet",
+    "literature": "pink",
+    "philosophy": "amber",
+    "sports": "orange",
+    "politics": "gray",
+    "economics": "teal",
+    "religion": "emerald",
+}
+
 const options = {
     physics: {
         enabled: true,
     },
     interaction: {
         hover: true,
-        hoverConnectedEdges: true,
-        selectConnectedEdges: false,
-        selectable: true,
-        selectConnectedNodes: false,
+        // hoverConnectedEdges: true,
+        // selectConnectedEdges: false,
+        // selectable: true,
+        // selectConnectedNodes: false,
         navigationButtons: true,
     },
     layout: {
@@ -44,11 +62,69 @@ const options = {
     edges: {
         color: "#000000"
     },
-    smooth: true,
-    zoom: 10,
+};
+
+const createEdges = (doots) => {
+    // Create edge between doot of the same keyword and links
+    let edges = [];
+    // keywords as set
+    let keywords = new Set();
+    doots.forEach(doot => {
+        if (doot.keywords) {
+            doot.keywords.forEach(keyword => {
+                keywords.add(keyword);
+            });
+        }
+    });
+
+    // Create edges between doots of the same keyword
+    keywords.forEach(keyword => {
+        let keywordDoots = doots.filter(doot => doot.keywords.includes(keyword));
+        for (let i = 0; i < keywordDoots.length; i++) {
+            for (let j = i + 1; j < keywordDoots.length; j++) {
+                edges.push({
+                    from: keywordDoots[i].id,
+                    to: keywordDoots[j].id,
+                    color: "#000000"
+                });
+                edges.push({
+                    from: keywordDoots[j].id,
+                    to: keywordDoots[i].id,
+                    color: "#000000"
+                });
+            }
+        }
+    });
+
+    return edges;
 };
 
 const DootNetwork = ({ parameters }) => {
+
+    const { doots } = useContext(DootContext);
+
+    dummy_graph = {
+        nodes: doots.map((doot, index) => {
+            return {
+                id: doot.id,
+                label: doot.title,
+            }
+        }),
+        edges: createEdges(doots)
+    };
+
+    useEffect(() => {
+        dummy_graph = {
+            nodes: doots.map((doot, index) => {
+                return {
+                    id: index,
+                    label: doot.title,
+                }
+            }),
+            edges: createEdges(doots)
+        };
+    }, [doots]);
+
     const events = {
         select: function (event) {
             let { nodes, edges } = event;
@@ -56,14 +132,14 @@ const DootNetwork = ({ parameters }) => {
     };
 
     return (
-        <div className="w-1/2 h-1/2 bg-white rounded-xl">
-        <Graph
-            graph={dummy_graph}
-            options={options}
-            events={events}
-            getNetwork={network => {
-            }}
-        />
+        <div className="bg-white rounded-xl h-screen max-h-[500px]">
+            <Graph
+                graph={dummy_graph}
+                options={options}
+                events={events}
+                getNetwork={network => {
+                }}
+            />
         </div>
     );
 

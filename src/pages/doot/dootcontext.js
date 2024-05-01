@@ -7,6 +7,9 @@ const initialState = {
     doots: [],
     setDoots: () => { },
 
+    gridDoots: [],
+    setGridDoots: () => { },
+
     window: 'network',
     setWindow: () => { },
 

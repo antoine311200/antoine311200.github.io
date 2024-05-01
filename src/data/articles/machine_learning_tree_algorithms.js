@@ -2,6 +2,7 @@ import { Paragraph, Remark, Image } from '../../components/helper';
 import ReactMarkdown from 'react-markdown';
 import { Prism as Code } from 'react-syntax-highlighter';
 import { dark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import React from 'react';
 
 const article_tree_ml = {
   title: 'Most Of ML : Tree based algorithms (decision trees, random forest, gradient boosting)',
