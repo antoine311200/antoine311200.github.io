@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { DootContext } from "./dootcontext";
 
 import DootConnection from "./login";
-import { DootCard, MiniDootCard, Doot } from "./card";
+import { DootCard, MiniDootCard, Doot, DootCardEdit, emptyDoot } from "./card";
 import DootNetwork from "./network";
 
 import { BsSearch } from "react-icons/bs";
@@ -28,15 +28,18 @@ function DootApp() {
         setIsMenuOpen(!isMenuOpen);
     }
 
+    const [currentUser, setCurrentUser] = useState(null);
+
     const [currentDoot, setCurrentDoot] = useState(null);
+    const [editDoot, setEditDoot] = useState(emptyDoot);
     const [gridDoots, setGridDoots] = useState(dummy_doots);
     const [doots, setDoots] = useState(dummy_doots);
-    const [window, setWindow] = useState('card');
+    const [window, setWindow] = useState('edit');
 
     const [searchInput, setSearchInput] = useState('');
 
     // Get the connection status from the cookie
-    const [isConnected, setIsConnected] = useState(false);
+    const [isConnected, setIsConnected] = useState(true);
     useEffect(() => {
         const connectionStatus = localStorage.getItem("isConnected");
         if (connectionStatus) {
@@ -49,6 +52,10 @@ function DootApp() {
             setWindow('grid');
         }
     }, [currentDoot, window]);
+
+    useEffect(() => {
+        setGridDoots(doots);
+    }, [doots]);
 
     useEffect(() => {
         // searchInput is the search query it can have the following values:
@@ -85,7 +92,8 @@ function DootApp() {
     return (
         <DootContext.Provider value={{
             isConnected, setIsConnected, window, setWindow,
-            doots, setDoots, currentDoot, setCurrentDoot, gridDoots, setGridDoots
+            doots, setDoots, currentDoot, setCurrentDoot, gridDoots, setGridDoots,
+            currentUser, setCurrentUser
         }}>
             <div className="overflow-auto h-screen w-screen bg-slate-900">
                 <nav className="bg-slate-900 py-4 fixed w-full top-0 z-10">
@@ -105,7 +113,7 @@ function DootApp() {
                         </div>
                         {isConnected &&
                             <div className="flex items-center justify-center">
-                                <button className="text-white text-xs font-medium py-1.5 px-3 rounded-xl bg-yellow-600 hover:bg-yellow-500 transition duration-300" onClick={() => setIsConnected(false)}>Disconnect</button>
+                                <button className="fixed h-10 w-10 mr-10 mx-auto" onClick={() => setIsConnected(false)}><img className="rounded-full border-2 border-yellow-500 dark:border-gray-800" src="https://randomuser.me/api/portraits/lego/5.jpg" alt="" /></button>
                             </div>
                         }
                     </div>
@@ -124,7 +132,8 @@ function DootApp() {
                                             onChange={(e) => setSearchInput(e.target.value)}
                                         />
                                     </div>
-                                    <button className="text-white bg-green-600 bg-opacity-80 hover:bg-opacity-100 transition-all duration-200 p-3 rounded-full text-xl">
+                                    <button className="text-white bg-green-600 bg-opacity-80 hover:bg-opacity-100 transition-all duration-200 p-3 rounded-full text-xl"
+                                        onClick={() => setWindow('edit')}>
                                         <FiFilePlus />
                                     </button>
                                     <button className="text-white bg-violet-500 bg-opacity-80 hover:bg-opacity-100 transition-all duration-200 p-3 rounded-full text-xl"
@@ -137,7 +146,7 @@ function DootApp() {
                                         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 p-4">
                                             {gridDoots.map((doot, index) => {
                                                 return (
-                                                    <MiniDootCard key={index} title={doot.title} description={doot.description} keywords={doot.keywords} imageUrl={doot.imageUrl} dootId={doot.id} />
+                                                    <MiniDootCard key={index} title={doot.title} tags={doot.keywords} imageUrl={doot.imageUrl} dootId={doot.id} />
                                                 )
                                             })}
                                         </div>
@@ -170,7 +179,9 @@ function DootApp() {
                                 </div>
                             </div>)
                             ||
-                            (window === 'card' && <div class="flex h-screen"><div className="m-auto"><DootCard title={currentDoot.title} description={currentDoot.description} keywords={currentDoot.keywords} imageUrl={currentDoot.imageUrl} dootId={currentDoot.id} /></div></div>)
+                            (window === 'card' && <div className="flex h-screen"><div className="m-auto"><DootCard title={currentDoot.title} description={currentDoot.description} tags={currentDoot.tags} imageUrl={currentDoot.imageUrl} dootId={currentDoot.id} /></div></div>)
+                            ||
+                            (window === 'edit' && <div className="flex h-screen"><div className="m-auto"><DootCardEdit title={editDoot.title} description={editDoot.description} tags={editDoot.tags} imageUrl={editDoot.imageUrl} dootId={editDoot.id} /></div></div>)
                         )}
                 </div>
             </div>

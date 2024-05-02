@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .skeleton {
+    @apply rounded-xl border-2 border-dashed border-gray-300 p-1
+  }
+}
+
 @import '~font-awesome/css/font-awesome.css';
 
 html {
@@ -53,6 +59,32 @@ code {
   /* Ensure the background covers the thumb */
 }
 
+.white-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  /* Set the width of the scrollbar */
+  background: rgb(255, 255, 255);
+  /* Set the background color of the scrollbar track */
+}
+
+/* Style the scrollbar track (background) */
+.white-scrollbar::-webkit-scrollbar-track {
+  background: rgb(255, 255, 255);
+  /* Set the background color of the scrollbar track */
+  border-radius: 8px;
+  /* Set the radius to make it rounded */
+}
+
+/* Style the scrollbar thumb (the draggable part) */
+.white-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgb(200, 200, 200);
+  /* Set the color of the scrollbar thumb */
+  border-radius: 8px;
+  /* Set the radius to make it rounded */
+  border: 2px solid transparent;
+  /* Hide the default scrollbar border */
+  background-clip: content-box;
+  /* Ensure the background covers the thumb */
+}
 
 
 .range {

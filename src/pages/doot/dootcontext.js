@@ -16,6 +16,9 @@ const initialState = {
     currentDoot: null,
     setCurrentDoot: () => { },
 
+    currentUser: null,
+    setCurrentUser: () => { },
+
     searchQuery: '',
     setSearchQuery: () => { },
 };
