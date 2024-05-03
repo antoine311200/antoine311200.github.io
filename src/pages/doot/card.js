@@ -12,8 +12,11 @@ import { GiGecko } from "react-icons/gi";
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { RxCross1 } from "react-icons/rx";
 
-import { DootContext } from "./dootcontext";
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
+import { DootContext } from "./dootcontext";
 import TagInput from "../../components/tags";
 
 import { Buffer } from 'buffer';
@@ -152,14 +155,14 @@ export const DootCard = ({
 
     return (
         // Add a back button to return to grid view in absolute position
-        <div>
+        <div className="sm:w-[80%] md:w-[80%] lg:w-[60%]">
             {/* <div className="mt-5 relative w-full max-w-[26rem] flex flex-col rounded-xl bg-white p-2 md:p-4 h-auto max-h-[30rem] md:max-h-[38rem]"> */}
-            <div className="flex flex-col rounded-xl bg-white p-2 md:p-4 w-1/2 mx-auto">
-                {/* {back && <button className="hidden md:block z-10 absolute top-2 -left-16 p-2 text-white bg-slate-700 bg-opacity-60 hover:bg-opacity-100 transition-all duration-200 rounded-full text-3xl"
+            <div className="flex flex-col rounded-xl bg-white p-2 md:p-4 mx-auto">
+                {back && <button className="hidden md:block z-10 absolute top-2 -left-16 p-2 text-white bg-slate-700 bg-opacity-60 hover:bg-opacity-100 transition-all duration-200 rounded-full text-3xl"
                     onClick={() => handleClick()}>
                     <IoReturnUpBack />
-                </button>} */}
-                {/* <div className="h-48 relative overflow-hidden text-white shadow-lg rounded-xl bg-gradient-to-r from-yellow-400 to-lime-400 shadow-slate-300">
+                </button>}
+                <div className="h-48 relative overflow-hidden text-white shadow-lg rounded-xl bg-gradient-to-r from-yellow-400 to-lime-400 shadow-slate-300">
                     {processImage(imageUrl)}
                     {back && <div className="absolute top-2 right-2 flex gap-2">
                         <button className="text-white bg-yellow-400 bg-opacity-90 hover:bg-opacity-100 transition-all duration-200 p-1 rounded-full text-2xl" >
@@ -169,13 +172,17 @@ export const DootCard = ({
                             <IoTrashOutline />
                         </button>
                     </div>}
-                </div> */}
+                </div>
                 <div className="p-2 md:p-6 md:pb-2">
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg md:text-2xl text-black font-semibold line-clamp-2">{title}</h2>
                     </div>
-                    <p className="font-sans antialiased break-all text-justify font-light leading-snug text-gray-700 text-xs md:text-sm mt-3 line-clamp-8 md:line-clamp-5">{description}</p>
-                    {/* <div className="inline-flex flex-wrap items-center gap-3 mt-2 group">
+                    {/* <p className="font-sans antialiased break-all text-justify font-light leading-snug text-gray-700 text-xs md:text-sm mt-3 line-clamp-8 md:line-clamp-5"> */}
+                    {/* <ReactMarkdown className="text-black"  remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]} children={description}/> */}
+                    {/* <div className="text-black"><ReactMarkdown>{description}</ReactMarkdown></div> */}
+                    {/* </p> */}
+                    <ReactMarkdown className="font-sans antialiased break-all font-light text-justify text-gray-700 text-sm leading-snug prose mt-3 line-clamp-8 md:line-clamp-5">{description}</ReactMarkdown>
+                    <div className="inline-flex flex-wrap items-center gap-3 mt-2 group">
                         {tags.filter((_, index) => index < 3).map((keyword, index) => {
                             if (DootTags[keyword]) {
                                 return (
@@ -198,15 +205,15 @@ export const DootCard = ({
                             type="button">
                             See more
                         </button>
-                    </div> */}
+                    </div>
                 </div>
             </div>
-            {/* <div>
+            <div>
                 <button className="md:hidden flex flex-row items-center justify-center gap-x-2 mt-5 w-full select-none rounded-lg bg-emerald-700 py-3 px-2 text-center align-middle font-sans text-sm font-bold text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                     onClick={() => handleClick()}>
                     <IoReturnUpBack /> Back
                 </button>
-            </div> */}
+            </div>
         </div>
     )
 }
@@ -218,6 +225,8 @@ export const DootCardEdit = ({
     imageUrl = "https://caravanedesdixmots.com/placeholder-png/",
     links = []
 }) => {
+
+    const { currentDoot, setCurrentDoot, setWindow } = useContext(DootContext);
 
     const [editTitle, setTitle] = useState(title);
     const [editDescription, setDescription] = useState(description);
@@ -236,13 +245,22 @@ export const DootCardEdit = ({
         setImage(selectedFile);
     };
 
+    const handleClick = () => {
+        setCurrentDoot(null);
+        setWindow('grid');
+    }
+
 
     return (
-        <div className="flex justify-between gap-5 items-top w-screen text-white px-32 pt-12">
-            <div className="w-1/2">
+        <div className="flex justify-between gap-5 items-top w-screen text-white px-4 sm:px-16 md:px-16 lg:px-32 pt-12">
+            <div className="w-full sm:w-full md:w-1/2 lg:w-1/2">
                 <div className="flex flex-col bg-white p-4 rounded-lg gap-y-4">
                     <div>
+                        <div className="flex items-center justify-between">
                         <label htmlFor="title" className="block text-sm font-medium leading-6 text-black">Title</label>
+                        <button className="hidden md:block p-2 text-white bg-slate-700 bg-opacity-60 hover:bg-opacity-100 transition-all duration-200 rounded-full text-lg" onClick={() => handleClick()}><IoReturnUpBack />
+                            </button>
+                        </div>
                         <div className="mt-2">
                             <input id="title" name="title" type="text" placeholder="Doot title" required className="px-2 block w-full rounded-md bg-gray-50 border border-gray-300 py-1. text-md p-1 text-gray-900 shadow-sm ring-1 ring-gray-400 placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500" onChange={(e) => setTitle(e.target.value)} />
                         </div>
@@ -250,7 +268,7 @@ export const DootCardEdit = ({
                     <div>
                         <label htmlFor="description" className="block text-sm font-medium leading-6 text-black">Description</label>
                         <div className="mt-2">
-                            <textarea className="resize-none rounded-md ring-1 text-black p-2 w-full h-32" onChange={(e) => setDescription(e.target.value)} />
+                            <textarea className="resize-none rounded-md ring-1 text-black p-2 w-full h-24" onChange={(e) => setDescription(e.target.value)} />
                         </div>
                     </div>
                     <div>
@@ -260,7 +278,7 @@ export const DootCardEdit = ({
                         </div>
                     </div>
                     <div>
-                        <label htmlFor="description" className="block text-sm font-medium leading-6 text-black">Banner image</label>
+                        <label htmlFor="file-upload" className="block text-sm font-medium leading-6 text-black">Banner image</label>
                         <div className="mt-2 bg-gray-500 rounded-lg" onDrop={handleDrop} onDragOver={e => e.preventDefault()}>
                             <div className="flex items-center justify-center w-full">
                                 {!editImage ?
@@ -297,7 +315,7 @@ export const DootCardEdit = ({
                     </div>
                 </div>
             </div>
-            <div className="w-1/2 h-auto flex items-center">
+            <div className="hidden sm:hidden md:flex lg:flex md:w-1/2 h-auto items-center justify-center">
                 <DootCard back={false} title={editTitle || "Placeholder Title"} description={editDescription || lorem} tags={editTags} imageUrl={editImage} />
             </div>
         </div>

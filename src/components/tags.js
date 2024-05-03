@@ -50,6 +50,9 @@ export default function TagInput({ whitelist, defaultTags, useDropdown = true, s
         else if (e.key === 'Backspace' && inputValue === '') {
             handleTagRemove(tags[tags.length - 1]);
         }
+        else if (e.key === 'Escape') {
+            setIsDropdownOpen(false);
+        }
         if (useDropdown) updateDropdownPosition();
         console.log("opt", optionTags);
     };
