@@ -24,12 +24,12 @@ const ReilContext = createContext(initialState);
 const ReilNav = () => {
     const { openSettings, setOpenSettings } = useContext(ReilContext);
     return (
-        <nav className='bg-violet-50 text-white p-4 flex flex-row justify-center items-center'>
-            <h1><span className="text-2xl font-semibold from-purple-800 to-violet-600 bg-gradient-to-r bg-clip-text text-transparent">Reil - Fast Reader</span></h1>
-            <div className='absolute right-4 flex flex-row items-center justify-between gap-4'>
-                <button className='ml-2' onClick={() => 0}><IoCloudUploadOutline  className="text-3xl text-violet-500" /></button>
-                <button className='ml-2' onClick={() => 0}><IoDocumentTextOutline  className="text-3xl text-violet-500" /></button>
-                <button className='ml-2' onClick={() => setOpenSettings(!openSettings)}><IoSettingsOutline className="text-3xl text-violet-500" /></button>
+        <nav className='bg-violet-50 text-white p-4 flex flex-row justify-between md:justify-center items-center'>
+            <h1><span className="text-xl md:text-2xl font-semibold from-purple-800 to-violet-600 bg-gradient-to-r bg-clip-text text-transparent">Reil - Fast Reader</span></h1>
+            <div className='absolute right-4 flex flex-row items-center justify-between gap-2 md:gap-4'>
+                <button className='ml-2' onClick={() => 0}><IoCloudUploadOutline  className="text-2xl md:text-3xl text-violet-500" /></button>
+                <button className='ml-2' onClick={() => 0}><IoDocumentTextOutline  className="text-2xl md:text-3xl text-violet-500" /></button>
+                <button className='ml-2' onClick={() => setOpenSettings(!openSettings)}><IoSettingsOutline className="text-2xl md:text-3xl text-violet-500" /></button>
             </div>
         </nav>
     );
@@ -126,7 +126,7 @@ const ReilMain = () => {
 
     return (
         <main className='grow flex flex-col justify-center items-center'>
-            <h1 className='w-full flex flex-col justify-center items-center grow text-4xl'>{display}</h1>
+            <h1 className='w-full flex flex-col justify-center items-center grow text-xl md:text-4xl'>{display}</h1>
             <div className='flex flex-row justify-center items-center gap-8 m-12 px-4 py-2 border rounded-xl bg-violet-50 '>
                 <button className='text-4xl text-violet-600' onClick={() => handleIndex(-1)}><IoPlaySkipBackSharp /></button>
                 {isFinished ? (<button className='text-7xl text-violet-600 rotate-180' onClick={() => { setCurrentIndex(0); setFinished(false); setIsPaused(true); }}><IoRefreshCircleOutline  /></button>) :
@@ -228,7 +228,7 @@ export default function ReilApp() {
                 <ReilNav />
                 <ReilMain />
                 {openSettings && <ReilSettings />}
-                <ReilToast message='Settings saved' />
+                {/* <ReilToast message='Settings saved' /> */}
                 <ReilFooter />
             </div>
         </ReilContext.Provider>
