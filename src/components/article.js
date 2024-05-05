@@ -129,7 +129,7 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
     return sections.map((section) => (
       <section key={section.id} id={section.id} className="mb-6">
         <h2 style={style} className="font-semibold mb-2">{section.title}</h2>
-        <p>{section.content}</p>
+        <p className='text-sm md:text-base'>{section.content}</p>
         {section.subsections && renderSections(section.subsections, depth+1)}
       </section>
     ));
@@ -169,10 +169,10 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
   return (
 
     <Template iconColor="black">
-      <main className="flex-grow w-11/12 mx-auto p-4">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-semibold">{articleContent.title}</h1>
-          <p className="text-gray-600">Posted on September 21, 2023</p>
+      <main className="flex-grow md:w-11/12 mx-auto p-3 md:p-4">
+        <div className="bg-white rounded-lg shadow-lg p-3 md:p-6">
+          <h1 className="text-xl md:text-3xl font-semibold">{articleContent.title}</h1>
+          <p className="text-sm md:text-base text-gray-600">Posted on September 21, 2023</p>
           <hr className="mb-4" />
 
           <div className="lg:w-1/4 lg:ml-4 lg:fixed lg:right-1 lg:block">

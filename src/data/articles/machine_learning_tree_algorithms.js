@@ -39,7 +39,9 @@ const article_tree_ml = {
             <span>
               <p className="my-4" />
               <Paragraph>{`When constructing a decision tree, at each iteration we try to split a leaf and construct the rest of the tree for its left and right children given a partition of the data that went to the leaf. This spliting decision is motivated upon a simple critera : among all possible split conditions find the one that maximise some gain, we also say that we try to minimise the impurity of the split. There are several definitions of the gain as we will see right after but the gist of it is to quantify the improvement of the split compared to no split. Mathematically, the gain for a specific feature $i \\in \\{1, \\cdots, n\\}$ and a training set $T$ is defined by
-              $$G(T, i) = f(T) - \\frac{|T_{X_i \\leq a}|}{|T|} f(T_{X_i \\leq a}) - \\frac{|T_{X_i > a}|}{|T|} f(T_{X_i > a})$$
+              $$\\begin{align*} G(T, i) & = f(T) - \\frac{|T_{X_i \\leq a}|}{|T|} f(T_{X_i \\leq a}) \\\\
+               & - \\frac{|T_{X_i > a}|}{|T|} f(T_{X_i > a})
+               \\end{align*}$$
 
               where $f$ is a specific function. This formula states that the gain of $T$ is the current information minus the weighted average of the information for the proportion of samples with feature $i$ less than and greater than $a$. `}</Paragraph>
             </span>
@@ -85,7 +87,7 @@ const article_tree_ml = {
               <p className="my-4" />
               <Paragraph>Regression with decision tree simply boils down to a classification decision tree except that the prediction of a sample will be the average of all points of the training set that fall down to this leaf. The information gain needs also some refinement : instead of using the Gini index or the entropy to measure the impurity, in the case of regression we will choose to reduce the variance of a given set of samples.
                 {`$$\\mathbb{V}(T) = \\frac{1}{|T|} \\sum_{i \\in T} (y_i - \\bar{y})^2$$`}
-                {`$$G(T, i) = \\mathbb{V}(T) - \\frac{|T_{X_i \\leq a}|}{|T|} \\mathbb{V}(T_{X_i \\leq a}) - \\frac{|T_{X_i > a}|}{|T|} \\mathbb{V}(T_{X_i > a})$$`}
+                {`$$\\begin{align*} G(T, i) & = \\mathbb{V}(T) - \\frac{|T_{X_i \\leq a}|}{|T|} \\mathbb{V}(T_{X_i \\leq a}) \\\\ & - \\frac{|T_{X_i > a}|}{|T|} \\mathbb{V}(T_{X_i > a}) \\end{align*}$$`}
               </Paragraph>
             </span>
           ),
@@ -105,7 +107,10 @@ const article_tree_ml = {
               content: (
                 <span>
                   <p className="my-4" />
-                  <Code language="python" style={dark}>{`import numpy as np
+                  <Code language="python" style={dark}
+                  customStyle={{ lineHeight: "1", fontSize: "0.8em"}}
+                  codeTagProps = {{style: {lineHeight: "inherit", fontSize: "inherit"}}}
+                  >{`import numpy as np
 
 class DecisionTree:
     class Node:

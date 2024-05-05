@@ -19,7 +19,7 @@ const Snippet = ({ title = "Title", date, description, keywords, imagePath = "ba
                         <img className="w-full h-32 object-cover" src={imagePath} alt="Modern building architecture" />
                     </div>
                     <div className="p-4 xl:p-8" style={{ height: "calc(100% - 32px)" }}>
-                        <h1 className="block mt-1 text-lg leading-tight font-medium text-black">{title}</h1>
+                        <h1 className="block mt-1 text-base md:text-lg leading-tight font-medium text-black">{title}</h1>
                         <p className="text-gray-600 text-sm">Posted on {date}</p>
                         <div className="mt-2"></div>
                         {
@@ -34,21 +34,6 @@ const Snippet = ({ title = "Title", date, description, keywords, imagePath = "ba
         </Link>
     );
 }
-
-// const Grid = ({ items }) => {
-//     return (
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-//             {items.map((item) => (
-//                 <Snippet
-//                     key={item.id}
-//                     title={item.title}
-//                     date={item.date}
-//                     description={item.description}
-//                 />
-//             ))}
-//         </div>
-//     );
-// }
 
 const Blog = ({ dataArticles }) => {
     const [searchTerm, setSearchTerm] = useState('');

@@ -58,6 +58,7 @@ export default function Header() {
                         {/* Navigation links */}
                         <ul
                             className={`${menuOpen ? 'block scale-100' : 'opacity-0 md:opacity-100 hidden'}
+                            z-50
                             fixed top-[8%] right-[5%] flex flex-col gap-1 bg-white text-black rounded-md px-3 py-2
                             md:relative md:flex md:justify-center md:gap-4 md:bg-transparent md:text-white md:flex-row md:opacity-100 md:scale-100 md:right-0 md:top-0
                             transition-all duration-100`}>
