@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useContext, createContext, useEffect } from 'react';
-import { IoSettingsOutline, IoCheckmarkCircleOutline, IoRefreshCircleOutline, IoSpeedometerOutline, IoPlaySkipBackSharp, IoPlaySkipForwardSharp, IoPlayCircleOutline, IoPauseCircleOutline } from "react-icons/io5";
+import { IoSettingsOutline, IoDocumentTextOutline, IoCheckmarkCircleOutline, IoRefreshCircleOutline, IoSpeedometerOutline, IoPlaySkipBackSharp, IoPlaySkipForwardSharp, IoPlayCircleOutline, IoPauseCircleOutline } from "react-icons/io5";
 import { RxCross1 } from "react-icons/rx";
 import { MdOutlineLibraryBooks } from "react-icons/md";
 import { } from "react-icons/io5";
@@ -27,7 +27,10 @@ const ReilNav = () => {
     return (
         <nav className='bg-violet-50 text-white p-4 flex flex-row justify-center items-center'>
             <h1><span className="text-2xl font-semibold from-purple-800 to-violet-600 bg-gradient-to-r bg-clip-text text-transparent">Reil - Fast Reader</span></h1>
-            <button className='absolute right-4 ml-2' onClick={() => setOpenSettings(!openSettings)}><IoSettingsOutline className="text-3xl text-violet-500" /></button>
+            <div className='absolute right-4 flex flex-row items-center justify-between gap-4'>
+                <button className='ml-2' onClick={() => 0}><IoDocumentTextOutline  className="text-3xl text-violet-500" /></button>
+                <button className='ml-2' onClick={() => setOpenSettings(!openSettings)}><IoSettingsOutline className="text-3xl text-violet-500" /></button>
+            </div>
         </nav>
     );
 }
@@ -197,7 +200,7 @@ const ReilSettings = () => {
                 </div>
                 <div className='flex flex-col gap-y-2'>
                     <label className='text-lg flex flex-row items-center gap-2'><MdOutlineLibraryBooks />Words number</label>
-                    <div className='flex flex-row justify-between gap-2'>
+                    <div className='flex flex-row justify-between items-center gap-2'>
                         <input id="small-range" type="range" min="1" max="10" value={numWords} className="grow h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer range-sm dark:bg-gray-700"
                             onChange={(e) => setNumWords(Math.round(e.target.value))} />
                         <span className='px-2'><span className='font-semibold'>{numWords}</span> words </span>
