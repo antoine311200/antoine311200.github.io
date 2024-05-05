@@ -4,7 +4,7 @@ import Template from '../components/template';
 
 const experiences = [
     {
-        title: 'Natural Language Processing / Data Scientist Intern',
+        title: 'NLP - Data Scientist Intern',
         company: 'Banque de France',
         location: 'Paris, France',
         date: '03/2023 - 08/2023',
@@ -137,18 +137,18 @@ const researches = [
 
 const Experience = () => {
     return (
-        <div className="py-6 px-4">
-            <h2 className="text-2xl text-black underline font-semibold mb-6">Experience</h2>
+        <div className="py-3 md:py-6 px-3 md:px-4">
+            <h2 className="text-xl md:text-2xl text-black underline font-semibold mb-2 md:mb-6">Experience</h2>
             {experiences.map((experience) => (
                 <div>
                     <div className="relative">
-                        <div className="pl-3">
-                            <p className="text-lg text-gray-950 font-semibold">{experience.title}</p>
+                        <div className="pl-1 md:pl-3">
+                            <p className="text-base md:text-lg text-gray-950 font-semibold leading-tight">{experience.title}</p>
                             <p className="text-gray-800 text-sm">{experience.company}</p>
                             <p className="text-gray-700 text-xs italic">{experience.location}  {experience.date}</p>
-                            <ul className="list-disc list-inside text-gray-900 ml-2 text-xs mt-2">
-                                {experience.description.map((desc) => (
-                                    <li>{desc}</li>
+                            <ul className="list-disc list-inside text-gray-900 ml-1 md:ml-2 text-xxs md:text-xs mt-2">
+                                {experience.description.map((desc, index) => (
+                                    <li key={index}>{desc}</li>
                                 ))}
                             </ul>
                         </div>
@@ -162,19 +162,18 @@ const Experience = () => {
 
 const Education = () => {
     return (
-        <div className="py-6 px-4">
-            <h2 className="text-2xl font-semibold mb-4 text-black underline">Education</h2>
-
+        <div className="py-3 md:py-6 px-3 md:px-4">
+            <h2 className="text-xl md:text-2xl text-black underline font-semibold mb-2 md:mb-6">Education</h2>
             {educations.map((education) => (
                 <div>
                     <div className="relative">
-                        <div className="pl-3">
-                            <p className="text-lg text-gray-950 font-semibold">{education.title}</p>
+                        <div className="pl-1 md:pl-3">
+                            <p className="text-base md:text-lg text-gray-950 font-semibold leading-tight">{education.title}</p>
                             <p className="text-gray-800 text-sm">{education.company}</p>
                             <p className="text-gray-700 text-xs italic">{education.location}  {education.date}</p>
-                            <ul className="list-disc list-inside text-gray-900 ml-2 text-xs mt-2">
-                                {education.description.map((desc) => (
-                                    <li>{desc}</li>
+                            <ul className="list-disc list-inside text-gray-900 ml-1 md:ml-2 text-xxs md:text-xs mt-2">
+                                {education.description.map((desc, index) => (
+                                    <li key={index}>{desc}</li>
                                 ))}
                             </ul>
                         </div>
@@ -188,39 +187,25 @@ const Education = () => {
 
 const Research = () => {
     return (
-        <div className="py-6 px-4">
-        <h2 className="text-2xl font-semibold mb-4 text-black underline">Research</h2>
+        <div className="py-3 md:py-6 px-3 md:px-4">
+            <h2 className="text-xl md:text-2xl text-black underline font-semibold mb-2 md:mb-6">Researches</h2>
             {researches.map((research) => (
                 <div>
                     <div className="relative">
-                        <div className="pl-3">
-                            <p className="text-lg text-gray-950 font-semibold">{research.title}</p>
+                        <div className="pl-1 md:pl-3">
+                            <p className="text-base md:text-lg text-gray-950 font-semibold leading-tight">{research.title}</p>
                             <p className="text-gray-800 text-sm">{research.company}</p>
                             <p className="text-gray-700 text-xs italic">{research.location}  {research.date}</p>
-                            <ul className="list-disc list-inside text-gray-900 ml-2 text-xs mt-2">
-                                {research.description.map((desc) => (
-                                    <li>{desc}</li>
+                            <ul className="list-disc list-inside text-gray-900 ml-1 md:ml-2 text-xxs md:text-xs mt-2">
+                                {research.description.map((desc, index) => (
+                                    <li key={index}>{desc}</li>
                                 ))}
                             </ul>
-                            {/* <div className="h-6"></div> */}
-                            {/* {research.link && (
-                                <div>
-                                    <a
-                                        className="text-gray-800 text-sm"
-                                        href={research.link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        Link
-                                    </a>
-                                </div>
-                            )} */}
                         </div>
                     </div>
                     <div className="h-6"></div>
                 </div>
-            ))
-            }
+            ))}
         </div>
     );
 };
@@ -243,11 +228,11 @@ const Resume = () => {
     return (
         <Template iconColor="black">
             {/* Title Resume */}
-            <div className="flex flex-col items-center justify-center text-white px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col items-center justify-center text-white px-3 sm:px-6 lg:px-8">
                 <h1 className="text-4xl font-bold">Resume</h1>
             </div>
 
-            <div className="px-8 py-8 mb-8 grid grid-cols-1 lg:grid-cols-2 gap-8 text-white">
+            <div className="px-4 md:px-8 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8 text-white min-w-screen">
                 <div className='container bg-white rounded-lg'>
                     <Experience />
                 </div>

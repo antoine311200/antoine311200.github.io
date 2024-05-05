@@ -11,6 +11,7 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import { GiGecko } from "react-icons/gi";
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { RxCross1 } from "react-icons/rx";
+import { CiImageOff } from "react-icons/ci";
 
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -18,8 +19,11 @@ import rehypeKatex from 'rehype-katex';
 
 import { DootContext } from "./dootcontext";
 import TagInput from "../../components/tags";
+import { DootStyle } from "./network";
 
+import FormData from 'form-data'
 import { Buffer } from 'buffer';
+import axios from "axios";
 window.Buffer = Buffer;
 
 const lorem = "Lorem dolor sit amet, consectetur adipiscing elit. Pellentesque vel mi ut \
@@ -53,13 +57,27 @@ function toBase64(arr) {
 }
 
 const processImage = (image) => {
-    if (image === null) image = "/images/doot/banner_placeholder.jpg";
-
+    if (image === null) {
+        return (
+            <div className="bg-gray-500 rounded-lg h-full">
+                <div className="flex items-center justify-center w-full h-full">
+                    <label className="flex flex-col items-center justify-center w-full h-full border-2 border-gray-300 border-dashed rounded-lg bg-gray-50">
+                        <div className="flex flex-col items-center justify-between pt-5 pb-6">
+                            <CiImageOff className="text-gray-500 text-4xl" />
+                            <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">Image not found</span></p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Edit the Doot with a SVG, PNG, JPG or GIF</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        )
+        // image = "/images/doot/banner_placeholder.jpg";
+    }
     if (image instanceof File) {
         return <img src={URL.createObjectURL(image)} alt="Uploaded" className="w-full h-full object-cover" />
     }
     if (image instanceof Object) {
-        const base64String = toBase64(image.data);
+        const base64String = image.data;
         return (<img src={`data:image/jpeg;base64,${base64String}`} alt="Placeholder" className="w-full h-full object-cover" />);
     }
     return (<img src={image} alt="Placeholder" className="w-full h-full object-cover" />);
@@ -67,7 +85,7 @@ const processImage = (image) => {
 
 export const MiniDootCard = ({ title = "Title", imageUrl = "/images/doot/banner_placeholder.jpg", dootId = 42 }) => {
 
-    const { gridDoots, setGridDoots, doots, setDoots, setCurrentDoot, setWindow } = useContext(DootContext);
+    const { gridDoots, setGridDoots, doots, setDoots, setCurrentDoot, setWindow, setEditDoot } = useContext(DootContext);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 
@@ -85,6 +103,13 @@ export const MiniDootCard = ({ title = "Title", imageUrl = "/images/doot/banner_
     const deleteDoot = () => {
         setDoots(doots.filter(doot => doot.id !== dootId));
         setGridDoots(gridDoots.filter(doot => doot.id !== dootId));
+    }
+
+    const handleEdit = () => {
+        const doot = doots.find(doot => doot.id === dootId);
+        setEditDoot(doot);
+        setCurrentDoot(doot);
+        setWindow('edit');
     }
 
     useEffect(() => {
@@ -124,7 +149,8 @@ export const MiniDootCard = ({ title = "Title", imageUrl = "/images/doot/banner_
                     className={`.dropdown-menu-${dootId} absolute bg-white rounded-md shadow-md p-2 flex flex-col gap-2 z-10 text-xs border border-gray-300`}
                     style={{ top: menuPosition.y, left: menuPosition.x }}
                 >
-                    <button className="text-left rounded-md hover:bg-gray-200 px-2 transition-all duration-300">
+                    <button className="text-left rounded-md hover:bg-gray-200 px-2 transition-all duration-300"
+                        onClick={() => handleEdit()}>
                         Edit
                     </button>
                     <button className="text-left rounded-md hover:bg-gray-200 px-2 transition-all duration-300"
@@ -141,12 +167,11 @@ export const DootCard = ({
     title = "Title",
     description = lorem,
     tags = ["music", "cinema", "Keyword 3", "Keyword 4", "Keyword 5"],
-    imageUrl = "/images/doot/banner_placeholder.jpg",
+    imageUrl = null,//"/images/doot/banner_placeholder.jpg",
     dootId = 42,
     back = true
 }) => {
-
-    const { currentDoot, setCurrentDoot, setWindow } = useContext(DootContext);
+    const { currentDoot, setCurrentDoot, setWindow, setEditDoot } = useContext(DootContext);
 
     const handleClick = () => {
         setCurrentDoot(null);
@@ -158,17 +183,17 @@ export const DootCard = ({
         <div className="sm:w-[80%] md:w-[80%] lg:w-[60%]">
             {/* <div className="mt-5 relative w-full max-w-[26rem] flex flex-col rounded-xl bg-white p-2 md:p-4 h-auto max-h-[30rem] md:max-h-[38rem]"> */}
             <div className="flex flex-col rounded-xl bg-white p-2 md:p-4 mx-auto">
-                {back && <button className="hidden md:block z-10 absolute top-2 -left-16 p-2 text-white bg-slate-700 bg-opacity-60 hover:bg-opacity-100 transition-all duration-200 rounded-full text-3xl"
+                {/* {back && <button className="hidden md:block z-10 absolute top-2 -left-16 p-2 text-white bg-slate-700 bg-opacity-60 hover:bg-opacity-100 transition-all duration-200 rounded-full text-3xl"
                     onClick={() => handleClick()}>
                     <IoReturnUpBack />
-                </button>}
+                </button>} */}
                 <div className="h-48 relative overflow-hidden text-white shadow-lg rounded-xl bg-gradient-to-r from-yellow-400 to-lime-400 shadow-slate-300">
                     {processImage(imageUrl)}
-                    {back && <div className="absolute top-2 right-2 flex gap-2">
-                        <button className="text-white bg-yellow-400 bg-opacity-90 hover:bg-opacity-100 transition-all duration-200 p-1 rounded-full text-2xl" >
+                    {back && <div className="absolute top-2 right-2 flex flex-col gap-2">
+                        <button className="text-gray-800 transition-all duration-200 p-1 rounded-full text-xl" onClick={() => { setEditDoot(currentDoot); setWindow('edit'); }}>
                             <MdOutlineEdit />
                         </button>
-                        <button className="text-white bg-teal-400 bg-opacity-90 hover:bg-opacity-100 transition-all duration-200 p-1 rounded-full text-2xl" >
+                        <button className="text-gray-800 transition-all duration-200 p-1 rounded-full text-xl" >
                             <IoTrashOutline />
                         </button>
                     </div>}
@@ -177,10 +202,6 @@ export const DootCard = ({
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg md:text-2xl text-black font-semibold line-clamp-2">{title}</h2>
                     </div>
-                    {/* <p className="font-sans antialiased break-all text-justify font-light leading-snug text-gray-700 text-xs md:text-sm mt-3 line-clamp-8 md:line-clamp-5"> */}
-                    {/* <ReactMarkdown className="text-black"  remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]} children={description}/> */}
-                    {/* <div className="text-black"><ReactMarkdown>{description}</ReactMarkdown></div> */}
-                    {/* </p> */}
                     <ReactMarkdown className="font-sans antialiased break-all font-light text-justify text-gray-700 text-sm leading-snug prose mt-3 line-clamp-8 md:line-clamp-5">{description}</ReactMarkdown>
                     <div className="inline-flex flex-wrap items-center gap-3 mt-2 group">
                         {tags.filter((_, index) => index < 3).map((keyword, index) => {
@@ -208,31 +229,36 @@ export const DootCard = ({
                     </div>
                 </div>
             </div>
-            <div>
-                <button className="md:hidden flex flex-row items-center justify-center gap-x-2 mt-5 w-full select-none rounded-lg bg-emerald-700 py-3 px-2 text-center align-middle font-sans text-sm font-bold text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                    onClick={() => handleClick()}>
-                    <IoReturnUpBack /> Back
-                </button>
-            </div>
+            {back &&
+                <div>
+                    <button className="flex flex-row items-center justify-center gap-x-2 mt-5 w-full select-none rounded-lg bg-emerald-700 py-3 px-2 text-center align-middle font-sans text-sm font-bold text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                        onClick={() => handleClick()}>
+                        <IoReturnUpBack /> Back
+                    </button>
+                </div>}
         </div>
     )
 }
 
 export const DootCardEdit = ({
-    title = "Title...",
-    description = "Description...",
-    tags = ["Keyword 1", "Keyword 2", "Keyword 3", "Keyword 4", "Keyword 5"],
-    imageUrl = "https://caravanedesdixmots.com/placeholder-png/",
+    title,
+    description,
+    tags = [],
+    imageUrl = null,
     links = []
 }) => {
 
-    const { currentDoot, setCurrentDoot, setWindow } = useContext(DootContext);
+    const { currentDoot, setCurrentDoot, setWindow, doots, setDoots, currentUser, isConnected, nodes, setNodes, edges, setEdges } = useContext(DootContext);
+
+    const [isNew, setIsNew] = useState(title.length == 0 && description.length == 0);
 
     const [editTitle, setTitle] = useState(title);
     const [editDescription, setDescription] = useState(description);
     const [editTags, setTags] = useState(tags);
-    const [editImage, setImage] = useState(null);
+    const [editImage, setImage] = useState(imageUrl);
     const [editLinks, setLinks] = useState(links);
+
+    const [error, setError] = useState('');
 
     const handleDrop = (event) => {
         event.preventDefault();
@@ -250,6 +276,71 @@ export const DootCardEdit = ({
         setWindow('grid');
     }
 
+    const handleDoot = async () => {
+        if (!editTitle) {
+            setError("Error: title is required");
+            return;
+        }
+        else if (!editDescription) {
+            setError("Error: description is required");
+            return;
+        }
+
+        let newDoot = {
+            id: isNew ? doots.length + 1 : currentDoot.id,
+            title: editTitle,
+            description: editDescription,
+            tags: editTags,
+            imageUrl: editImage,
+            links: editLinks
+        };
+
+        console.log(newDoot);
+        console.log(editImage);
+
+        let dootData = new FormData();
+        dootData.append('doot', JSON.stringify(newDoot));
+        dootData.append('user', JSON.stringify(currentUser));
+        dootData.append('image', editImage);
+
+        // Check if doot already exists with same title
+
+        if (false) {
+            if (isNew) {
+                const response = await axios.post("http://localhost:5000/doot/add", dootData);
+                if (response.data.success) {
+                    setDoots([...doots, newDoot]);
+                    setNodes([...nodes, Doot.from(newDoot).toNode()]);
+                }
+                console.log(response);
+            }
+            else {
+                const response = await axios.post("http://localhost:5000/doot/update", dootData);
+                if (response.data.success) {
+                    setDoots(doots.map(doot => doot.id === currentDoot.id ? newDoot : doot));
+                    setNodes(nodes.map(node => node.id === currentDoot.id ? Doot.from(newDoot).toNode() : node));
+                }
+                console.log(response);
+            }
+        }
+        else {
+            newDoot = new Doot(newDoot.id, newDoot.title, newDoot.description, newDoot.tags, newDoot.imageUrl, newDoot.links);
+            if (isNew) {
+                setDoots([...doots, newDoot]);
+                setNodes([...nodes, newDoot.toNode()]);
+            }
+            else {
+                setDoots(doots.map(doot => doot.id === currentDoot.id ? newDoot : doot));
+                setNodes(nodes.map(node => node.id === currentDoot.id ? newDoot.toNode() : node));
+            }
+        }
+        setWindow('grid');
+    }
+
+    useEffect(() => {
+        setTags(tags);
+    }, [tags]);
+
 
     return (
         <div className="flex justify-between gap-5 items-top w-screen text-white px-4 sm:px-16 md:px-16 lg:px-32 pt-12">
@@ -257,24 +348,24 @@ export const DootCardEdit = ({
                 <div className="flex flex-col bg-white p-4 rounded-lg gap-y-4">
                     <div>
                         <div className="flex items-center justify-between">
-                        <label htmlFor="title" className="block text-sm font-medium leading-6 text-black">Title</label>
-                        <button className="hidden md:block p-2 text-white bg-slate-700 bg-opacity-60 hover:bg-opacity-100 transition-all duration-200 rounded-full text-lg" onClick={() => handleClick()}><IoReturnUpBack />
+                            <label htmlFor="title" className="block text-sm font-medium leading-6 text-black">Title</label>
+                            <button className="hidden md:block p-1 text-gray-800 text-opacity-80 hover:text-opacity-100 transition-all duration-200 rounded-full text-lg focus:ring-1" onClick={() => handleClick()}><RxCross1 />
                             </button>
                         </div>
                         <div className="mt-2">
-                            <input id="title" name="title" type="text" placeholder="Doot title" required className="px-2 block w-full rounded-md bg-gray-50 border border-gray-300 py-1. text-md p-1 text-gray-900 shadow-sm ring-1 ring-gray-400 placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500" onChange={(e) => setTitle(e.target.value)} />
+                            <input id="title" name="title" type="text" placeholder="Doot title" required className="px-2 block w-full rounded-md bg-gray-50 border border-gray-300 py-1. text-md p-1 text-gray-900 shadow-sm ring-1 ring-gray-400 placeholder:text-gray-400 focus:ring-blue-500 focus:border-blue-500" value={editTitle} onChange={(e) => setTitle(e.target.value)} />
                         </div>
                     </div>
                     <div>
                         <label htmlFor="description" className="block text-sm font-medium leading-6 text-black">Description</label>
                         <div className="mt-2">
-                            <textarea className="resize-none rounded-md ring-1 text-black p-2 w-full h-24" onChange={(e) => setDescription(e.target.value)} />
+                            <textarea className="white-scrollbar resize-none rounded-md ring-1 text-black p-2 w-full h-24" value={editDescription} onChange={(e) => setDescription(e.target.value)} />
                         </div>
                     </div>
                     <div>
                         <label htmlFor="tags" className="block text-sm font-medium leading-6 text-black">Tags</label>
                         <div className="mt-2">
-                            <TagInput id="tags" whitelist={Object.keys(DootTags)} onTagsChange={t => setTags(t)} />
+                            <TagInput id="tags" defaultTags={editTags} whitelist={Object.keys(DootTags)} onTagsChange={t => setTags(t)} />
                         </div>
                     </div>
                     <div>
@@ -288,13 +379,14 @@ export const DootCardEdit = ({
                                             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                                             <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
                                         </div>
-                                        <input id="file-upload" type="file" className="hidden" onChange={handleFileInputChange}/>
+                                        <input id="file-upload" type="file" className="hidden" onChange={handleFileInputChange} />
                                     </label>
                                     : <div className="relative w-full h-32">
-                                        <img src={URL.createObjectURL(editImage)} alt="Uploaded" className="w-full h-full object-contain" />
+                                        {processImage(editImage)}
+                                        {/* <img src={URL.createObjectURL(editImage)} alt="Uploaded" className="w-full h-full object-contain" /> */}
                                         <div className="absolute right-0 top-0 flex gap-2">
                                             <button className="text-white m-2 hover:text-yellow-400 transition-all duration-300 p-1 rounded-full text-2xl"
-                                             onClick={() => setImage(null)}>
+                                                onClick={() => setImage(null)}>
                                                 <RxCross1 />
                                             </button>
                                         </div>
@@ -308,10 +400,11 @@ export const DootCardEdit = ({
                     </div>
                     <div>
                         <button
-                            className="block w-full select-none rounded-lg bg-gray-900 py-2 px-2 text-center align-middle font-sans text-sm font-bold text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                            type="button">
-                            Create Doot
+                            className="block w-full select-none rounded-lg bg-gray-900 py-2 px-2 text-center align-middle font-sans text-sm font-bold text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button"
+                            onClick={() => handleDoot()}>
+                            {editTitle.length == 0 && editDescription.length == 0 ? "Create Doot" : "Save Doot"}
                         </button>
+                        <div className="mt-2 text-red-500 text-xs">{error}</div>
                     </div>
                 </div>
             </div>
@@ -343,6 +436,19 @@ export class Doot {
             />
         )
     }
+
+    toNode() {
+        return {
+            id: this.id,
+            label: this.title,
+            color: DootStyle[this.tags[0]] || "#f6ad55",
+            group: this.tags[0] ||"none"
+        }
+    }
+
+    static from(json) {
+        return new Doot(json.id, json.title, json.description, json.tags, json.imageUrl, json.links);
+    }
 }
 
-export const emptyDoot = new Doot(0, "", "", [], "https://caravanedesdixmots.com/placeholder-png/", []);
+export const emptyDoot = new Doot(0, "", "", [], null, []);

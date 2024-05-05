@@ -54,7 +54,6 @@ export default function TagInput({ whitelist, defaultTags, useDropdown = true, s
             setIsDropdownOpen(false);
         }
         if (useDropdown) updateDropdownPosition();
-        console.log("opt", optionTags);
     };
 
     const handleTagRemove = (tagToRemove) => {

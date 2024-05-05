@@ -14,10 +14,10 @@ export default function Header() {
 
     return (
         <div className=''>
-            <header className="text-white px-7">
+            <header className="text-white px-7 z-40">
                 <section>
-                    <nav className="mb-12 py-5 flex justify-between">
-                        <Link to="/"><h1 className="text-2xl">Antoine Debouchage</h1></Link>
+                    <nav className="py-5 flex justify-between">
+                        <Link to="/"><h1 className="text-md md:text-2xl">Antoine Debouchage</h1></Link>
                         {/* Toggle button for small screens */}
                         <button
                             className="lg:hidden text-white focus:outline-none"
@@ -57,35 +57,36 @@ export default function Header() {
                         </button>
                         {/* Navigation links */}
                         <ul
-                            className={`${menuOpen ? 'block' : 'hidden'
-                                } lg:flex lg:justify-center lg:gap-4`}
-                        >
-                            <li>
+                            className={`${menuOpen ? 'block scale-100' : 'opacity-0 md:opacity-100 hidden'}
+                            fixed top-[8%] right-[5%] flex flex-col gap-1 bg-white text-black rounded-md px-3 py-2
+                            md:relative md:flex md:justify-center md:gap-4 md:bg-transparent md:text-white md:flex-row md:opacity-100 md:scale-100 md:right-0 md:top-0
+                            transition-all duration-100`}>
+                            <li key="home">
                                 <Link to="/" onClick={toggleMenu}>
                                     <TextHover text='Home' />
                                 </Link>
                             </li>
-                            <li>
+                            <li key="resume">
                                 <Link to="/resume" onClick={toggleMenu}>
                                     <TextHover text='Resume' />
                                 </Link>
                             </li>
-                            <li>
+                            <li key="projects">
                                 <Link to="/projects" onClick={toggleMenu}>
                                     <TextHover text='Projects' />
                                 </Link>
                             </li>
-                            <li>
+                            <li key="publications">
                                 <Link to="/publications" onClick={toggleMenu}>
                                     <TextHover text='Publications' />
                                 </Link>
                             </li>
-                            <li>
+                            <li key="blog">
                                 <Link to="/blog" onClick={toggleMenu}>
                                     <TextHover text='Blog' />
                                 </Link>
                             </li>
-                            <li>
+                            <li key="contact">
                                 <a href="/#/contact" onClick={toggleMenu}>
                                     <TextHover text='Contact' />
                                 </a>

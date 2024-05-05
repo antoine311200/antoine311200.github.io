@@ -1,13 +1,19 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import sha256 from 'crypto-js/sha256';
 import axios from 'axios';
+
 import { Spinner } from "@material-tailwind/react";
 
 import { DootContext } from "./dootcontext";
 import { Doot } from "./card";
+import { DootStyle } from "./network";
 
 const DootConnection = () => {
-    const { isConnected, setIsConnected, doots, setDoots, currentUser, setCurrentUser } = useContext(DootContext);
+    const {
+        isConnected, setIsConnected, currentUser, setCurrentUser,
+        doots, setDoots, nodes, setNodes, edges, setEdges
+    } = useContext(DootContext);
+
     const [loginPage, setLoginPage] = useState(true);
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
@@ -47,10 +53,18 @@ const DootConnection = () => {
         });
 
         response.then((res) => {
-            if (res.data.success) {
+            if (res.status === 200) {
                 setCurrentUser(res.data.user);
                 setDoots(res.data.doots.map(
                     doot => new Doot(doot.id, doot.title, doot.description, doot.tags, doot.image, doot.links)
+                ));
+                setNodes(res.data.doos.map(
+                    doot => { return {
+                        id: doot.id,
+                        label: doot.title,
+                        color: DootStyle[doot.tags[0]] || "#f6ad55",
+                        group: doot.tags[0] ||"none"
+                    } }
                 ));
                 setIsConnected(true);
             }
