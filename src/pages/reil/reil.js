@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useContext, createContext, useEffect } from 'react';
-import { IoSettingsOutline, IoDocumentTextOutline, IoCheckmarkCircleOutline, IoRefreshCircleOutline, IoSpeedometerOutline, IoPlaySkipBackSharp, IoPlaySkipForwardSharp, IoPlayCircleOutline, IoPauseCircleOutline } from "react-icons/io5";
+import { IoSettingsOutline, IoCloudUploadOutline, IoDocumentTextOutline, IoCheckmarkCircleOutline, IoRefreshCircleOutline, IoSpeedometerOutline, IoPlaySkipBackSharp, IoPlaySkipForwardSharp, IoPlayCircleOutline, IoPauseCircleOutline } from "react-icons/io5";
 import { RxCross1 } from "react-icons/rx";
-import { MdOutlineLibraryBooks } from "react-icons/md";
-import { } from "react-icons/io5";
+import { MdOutlineLibraryBooks, MdUploadFile } from "react-icons/md";
 
 const initialState = {
     text: "",
@@ -28,6 +27,7 @@ const ReilNav = () => {
         <nav className='bg-violet-50 text-white p-4 flex flex-row justify-center items-center'>
             <h1><span className="text-2xl font-semibold from-purple-800 to-violet-600 bg-gradient-to-r bg-clip-text text-transparent">Reil - Fast Reader</span></h1>
             <div className='absolute right-4 flex flex-row items-center justify-between gap-4'>
+                <button className='ml-2' onClick={() => 0}><IoCloudUploadOutline  className="text-3xl text-violet-500" /></button>
                 <button className='ml-2' onClick={() => 0}><IoDocumentTextOutline  className="text-3xl text-violet-500" /></button>
                 <button className='ml-2' onClick={() => setOpenSettings(!openSettings)}><IoSettingsOutline className="text-3xl text-violet-500" /></button>
             </div>
