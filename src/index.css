@@ -36,11 +36,10 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #0f172a;
-  background-image: radial-gradient(circle at 10% 90%, #203157, transparent 500px), radial-gradient(circle at 95% 20%, #192745, transparent 500px);
   max-width: 100vw; /* Ensures the body does not extend beyond the viewport width */
   max-height: 100vh; /* Ensures the body does not extend beyond the viewport height */
-
+  background-color: #0f172a;
+  background-image: radial-gradient(circle at 10% 90%, #203157, transparent 500px), radial-gradient(circle at 95% 20%, #192745, transparent 500px);
 }
 
 code {

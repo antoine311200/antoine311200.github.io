@@ -138,7 +138,7 @@ function DootApp() {
                                     <img className="h-4 w-4" src="bars.svg" />
                                 }
                             </button>
-                            <h1 className="grow  hidden md:block">
+                            <h1 className="grow hidden md:block">
                                 <span className="text-xl font-semibold from-yellow-400 to-lime-400 bg-gradient-to-r bg-clip-text text-transparent">Doot</span>
                                 <span className="text-white text-lg font-medium"> - Knowledge Manager</span>
                             </h1>
