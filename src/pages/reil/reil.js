@@ -2,6 +2,7 @@ import React, { useState, useMemo, useContext, createContext, useEffect } from '
 import { IoSettingsOutline, IoCloudUploadOutline, IoDocumentTextOutline, IoCheckmarkCircleOutline, IoRefreshCircleOutline, IoSpeedometerOutline, IoPlaySkipBackSharp, IoPlaySkipForwardSharp, IoPlayCircleOutline, IoPauseCircleOutline } from "react-icons/io5";
 import { RxCross1 } from "react-icons/rx";
 import { MdOutlineLibraryBooks, MdUploadFile } from "react-icons/md";
+import { FaCheck } from "react-icons/fa6";
 
 const initialState = {
     text: "",
@@ -16,8 +17,12 @@ const initialState = {
     setNumWords: () => { },
     openSettings: false,
     setOpenSettings: () => { },
+    openViewer: false,
+    setOpenViewer: () => { },
     isPaused: true,
-    setIsPaused: () => { }
+    setIsPaused: () => { },
+    currentIndex: 0,
+    setCurrentIndex: () => { }
 };
 const ReilContext = createContext(initialState);
 
@@ -35,11 +40,45 @@ const ReilNav = () => {
     );
 }
 
+const ReilHighlightStyle = {
+    'highlight': 'bg-yellow-200',
+    'bold': 'font-bold',
+}
+
+const ReilViewer = () => {
+    const { text, blocks, currentIndex } = useContext(ReilContext);
+    const [textJSX, setTextJSX] = useState('');
+
+    const styleIndex = 'highlight';
+
+    useEffect(() => {
+        console.log("rendering", currentIndex);
+        setTextJSX(blocks.map((block, index) => {
+            const isCurrent = index === currentIndex;
+
+            return (
+                <span>
+                <span key={index} className={`text-justify ${isCurrent ? ReilHighlightStyle[styleIndex] : ''}`}>
+                    {block}
+                </span>
+                {index < blocks.length - 1 && <span>&nbsp;</span>}
+                </span>
+            );
+        }));
+    }, [blocks, currentIndex]);
+
+    return (
+        <div className='flex flex-col justify-center items-center'>
+            <p>
+            {textJSX}
+            </p>
+        </div>
+    );
+};
+
 const ReilMain = () => {
 
-    const { isPaused, setIsPaused, text, setText, blocks, setBlocks, display, setDisplay, numWords, speed } = useContext(ReilContext);
-    // const [isPaused, setIsPaused] = useState(true);
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const { currentIndex, setCurrentIndex, isPaused, setIsPaused, text, setText, blocks, setBlocks, display, setDisplay, numWords, speed, openViewer } = useContext(ReilContext);
     const [isFinished, setFinished] = useState(false);
 
     const handleIndex = (offset) => {
@@ -134,6 +173,9 @@ const ReilMain = () => {
                 }
                 <button className='text-4xl text-violet-600' onClick={() => handleIndex(1)}><IoPlaySkipForwardSharp /></button>
             </div>
+            {openViewer && <div className="absolute w-1/4 min-h-full mx-4 py-24 top-1/2 left-0  transform -translate-y-1/2 flex flex-row items-start gap-4">
+                <div className='border border-gray-200 rounded-lg p-4 bg-white shadow-lg overflow-visible text-justify'><ReilViewer /></div>
+            </div>}
         </main>
     );
 }
@@ -171,7 +213,7 @@ const ReilToast = ({ message }) => {
 }
 
 const ReilSettings = () => {
-    const { openSettings, setOpenSettings, speed, setSpeed, numWords, setNumWords } = useContext(ReilContext);
+    const { openViewer, setOpenViewer, openSettings, setOpenSettings, speed, setSpeed, numWords, setNumWords } = useContext(ReilContext);
 
     const changeSpeed = (delta) => () => {
         console.log(speed + delta);
@@ -206,6 +248,21 @@ const ReilSettings = () => {
                         <span className='px-2'><span className='font-semibold'>{numWords}</span> words </span>
                     </div>
                 </div>
+                {/* Show Viewer */}
+                <div className='flex flex-col gap-y-2'>
+
+                    <label className='text-lg flex flex-row items-center gap-2'>
+                        {/* <MdUploadFile /> */}
+                        <input id="small-range" type="checkbox" checked={openViewer} onChange={(e) => setOpenViewer(e.target.checked)} className="
+                            peer relative h-5 w-5 cursor-pointer appearance-none rounded-md border border-blue-gray-200 transition-all
+                            checked:border-pink-400 checked:bg-pink-400 checked:before:bg-pink-400 hover:before:opacity-10
+                            before:absolute before:top-2/4 before:left-2/4 before:block before:h-10 before:w-10 before:-translate-y-2/4 before:-translate-x-2/4 before:rounded-full before:bg-blue-gray-500 before:opacity-0 before:transition-opacity
+                         " />
+                        <FaCheck className="absolute scale-75 translate-x-[8%] text-white transition-opacity opacity-100 pointer-events-none peer-checked:opacity-100" />
+                        Show Viewer
+                    </label>
+                </div>
+
             </div>
         </div>
     );
@@ -220,10 +277,16 @@ export default function ReilApp() {
     const [numWords, setNumWords] = useState(3);
     const [display, setDisplay] = useState('word to read fast');
     const [openSettings, setOpenSettings] = useState(false);
+    const [openViewer, setOpenViewer] = useState(false);
     const [isPaused, setIsPaused] = useState(true);
+    const [currentIndex, setCurrentIndex] = useState(0);
 
     return (
-        <ReilContext.Provider value={{ text, setText, blocks, setBlocks, speed, setSpeed, display, setDisplay, numWords, setNumWords, openSettings, setOpenSettings, isPaused, setIsPaused }}>
+        <ReilContext.Provider value={{
+            text, setText, blocks, setBlocks, speed, setSpeed, display, setDisplay, numWords, setNumWords,
+            openSettings, setOpenSettings, openViewer, setOpenViewer,
+            isPaused, setIsPaused, currentIndex, setCurrentIndex
+        }}>
             <div className='bg-white h-[100vh] w-[100vw] flex flex-col'>
                 <ReilNav />
                 <ReilMain />
