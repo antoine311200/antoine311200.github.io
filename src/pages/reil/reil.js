@@ -19,6 +19,8 @@ const initialState = {
     setOpenSettings: () => { },
     openViewer: false,
     setOpenViewer: () => { },
+    openPanel: false,
+    setOpenPanel: () => { },
     isPaused: true,
     setIsPaused: () => { },
     currentIndex: 0,
@@ -27,13 +29,13 @@ const initialState = {
 const ReilContext = createContext(initialState);
 
 const ReilNav = () => {
-    const { openSettings, setOpenSettings } = useContext(ReilContext);
+    const { openSettings, setOpenSettings, openPanel, setOpenPanel } = useContext(ReilContext);
     return (
         <nav className='bg-violet-50 text-white p-4 flex flex-row justify-between md:justify-center items-center'>
             <h1><span className="text-xl md:text-2xl font-semibold from-purple-800 to-violet-600 bg-gradient-to-r bg-clip-text text-transparent">Reil - Fast Reader</span></h1>
             <div className='absolute right-4 flex flex-row items-center justify-between gap-2 md:gap-4'>
-                <button className='ml-2' onClick={() => 0}><IoCloudUploadOutline  className="text-2xl md:text-3xl text-violet-500" /></button>
-                <button className='ml-2' onClick={() => 0}><IoDocumentTextOutline  className="text-2xl md:text-3xl text-violet-500" /></button>
+                <button className='ml-2' onClick={() => setOpenPanel(!openPanel)}><IoCloudUploadOutline className="text-2xl md:text-3xl text-violet-500" /></button>
+                {/* <button className='ml-2' onClick={() => 0}><IoDocumentTextOutline  className="text-2xl md:text-3xl text-violet-500" /></button> */}
                 <button className='ml-2' onClick={() => setOpenSettings(!openSettings)}><IoSettingsOutline className="text-2xl md:text-3xl text-violet-500" /></button>
             </div>
         </nav>
@@ -58,10 +60,10 @@ const ReilViewer = () => {
 
             return (
                 <span>
-                <span key={index} className={`text-justify ${isCurrent ? ReilHighlightStyle[styleIndex] : ''}`}>
-                    {block}
-                </span>
-                {index < blocks.length - 1 && <span>&nbsp;</span>}
+                    <span key={index} className={`text-justify ${isCurrent ? ReilHighlightStyle[styleIndex] : ''}`}>
+                        {block}
+                    </span>
+                    {index < blocks.length - 1 && <span>&nbsp;</span>}
                 </span>
             );
         }));
@@ -70,7 +72,7 @@ const ReilViewer = () => {
     return (
         <div className='flex flex-col justify-center items-center'>
             <p>
-            {textJSX}
+                {textJSX}
             </p>
         </div>
     );
@@ -146,11 +148,11 @@ const ReilMain = () => {
     }, [isPaused, speed, blocks]);
 
     useEffect(() => {
-            if (currentIndex >= blocks.length && blocks.length > 0) {
-                console.log("finished 3");
-                setFinished(true);
-            }
-        }, [currentIndex, blocks]);
+        if (currentIndex >= blocks.length && blocks.length > 0) {
+            console.log("finished 3");
+            setFinished(true);
+        }
+    }, [currentIndex, blocks]);
 
 
     useEffect(() => {
@@ -168,7 +170,7 @@ const ReilMain = () => {
             <h1 className='w-full flex flex-col justify-center items-center grow text-xl md:text-4xl'>{display}</h1>
             <div className='flex flex-row justify-center items-center gap-8 m-12 px-4 py-2 border rounded-xl bg-violet-50 '>
                 <button className='text-4xl text-violet-600' onClick={() => handleIndex(-1)}><IoPlaySkipBackSharp /></button>
-                {isFinished ? (<button className='text-7xl text-violet-600 rotate-180' onClick={() => { setCurrentIndex(0); setFinished(false); setIsPaused(true); }}><IoRefreshCircleOutline  /></button>) :
+                {isFinished ? (<button className='text-7xl text-violet-600 rotate-180' onClick={() => { setCurrentIndex(0); setFinished(false); setIsPaused(true); }}><IoRefreshCircleOutline /></button>) :
                     (<button className='text-7xl text-violet-600' onClick={() => setIsPaused(!isPaused)}>{!isPaused ? <IoPauseCircleOutline /> : <IoPlayCircleOutline />}</button>)
                 }
                 <button className='text-4xl text-violet-600' onClick={() => handleIndex(1)}><IoPlaySkipForwardSharp /></button>
@@ -266,7 +268,96 @@ const ReilSettings = () => {
             </div>
         </div>
     );
+}
 
+const ReilBooks = [
+    {
+        name: 'Frankenstein',
+        author: 'Mary Shelley',
+        language: 'English',
+        release: 1818,
+    },
+    {
+        name: 'The Picture of Dorian Gray',
+        author: 'Oscar Wilde',
+        language: 'English',
+        release: 1890,
+    },
+    {
+        name: 'The Great Gatsby',
+        author: 'F. Scott Fitzgerald',
+        language: 'English',
+        release: 1925,
+    },
+]
+
+const ReilPanel = () => {
+    const { openPanel, setOpenPanel } = useContext(ReilContext);
+    const [activeTab, setActiveTab] = useState(1);
+
+    const inactiveStyle = "inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300";
+    const activeStyle = "inline-block p-4 border-b-2 rounded-t-lg text-purple-600 hover:text-purple-600 dark:text-purple-500 dark:hover:text-purple-500 border-purple-600 dark:border-purple-500";
+
+    return (
+        <div className='w-[calc(50vw)] absolute top-[15%] left-1/2 transform -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg ease-in-out transition-all duration-300'>
+            <div className="mb-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex flex-row justify-between items-center">
+                    <ul className="flex flex-wrap -mb-px text-sm font-medium text-center">
+                        <li><button onClick={() => setActiveTab(0)} className={activeTab === 0 ? activeStyle : inactiveStyle}>Upload file</button></li>
+                        <li><button onClick={() => setActiveTab(1)} className={activeTab === 1 ? activeStyle : inactiveStyle}>Library</button></li>
+                    </ul>
+                    <button className='mr-2 text-gray-500 dark:text-gray-400' onClick={() => setOpenPanel(false)}><RxCross1 /></button>
+                </div>
+            </div>
+            <div>
+                <div className={`p-4 rounded-lg bg-gray-50 dark:bg-gray-800 ${activeTab === 0 ? 'block' : 'hidden'}`}>
+                    {/* <p className="text-sm text-gray-500 dark:text-gray-400">This is some placeholder content the <strong className="font-medium text-gray-800 dark:text-white">Profile tab's associated content</strong>. Clicking another tab will toggle the visibility of this one for the next. The tab JavaScript swaps classes to control the content visibility and styling.</p> */}
+                    <div>
+                        <label htmlFor="file-upload" className="block text-sm font-medium leading-6 text-black">Upload .txt file</label>
+                        <div className="mt-2 bg-gray-500 rounded-lg">
+                            {/* onDrop={handleDrop} onDragOver={e => e.preventDefault()}> */}
+                            <div className="flex items-center justify-center w-full">
+                                <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                                    <div className="flex flex-col items-center justify-between pt-5 pb-6">
+                                        <IoCloudUploadOutline className="text-gray-500 text-4xl" />
+                                        <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                                        {/* <p className="text-xs text-gray-500 dark:text-gray-400">TEXT</p> */}
+                                    </div>
+                                    <input id="file-upload" type="file" className="hidden" />
+                                    {/* onChange={handleFileInputChange} /> */}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className={`p-4 rounded-lg bg-gray-50 dark:bg-gray-800 ${activeTab === 1 ? 'block' : 'hidden'}`}>
+                    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">Book name</th>
+                                    <th scope="col" class="px-6 py-3">Author</th>
+                                    <th scope="col" class="px-6 py-3">Language</th>
+                                    <th scope="col" class="px-6 py-3">Release date</th>
+                                    <th scope="col" class="px-6 py-3">Download</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {ReilBooks.map((book, index) => (
+                                    <tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">
+                                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{book.name}</th>
+                                    <td class="text-xs px-6 py-4">{book.author}</td>
+                                    <td class="text-xs px-6 py-4">{book.language}</td>
+                                    <td class="text-xs px-6 py-4">{book.release}</td>
+                                    <td class="text-xs px-6 py-4"><a href="#" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Download</a></td>
+                                </tr>))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 export default function ReilApp() {
@@ -278,20 +369,21 @@ export default function ReilApp() {
     const [display, setDisplay] = useState('word to read fast');
     const [openSettings, setOpenSettings] = useState(false);
     const [openViewer, setOpenViewer] = useState(false);
+    const [openPanel, setOpenPanel] = useState(false);
     const [isPaused, setIsPaused] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
 
     return (
         <ReilContext.Provider value={{
             text, setText, blocks, setBlocks, speed, setSpeed, display, setDisplay, numWords, setNumWords,
-            openSettings, setOpenSettings, openViewer, setOpenViewer,
+            openSettings, setOpenSettings, openViewer, setOpenViewer, openPanel, setOpenPanel,
             isPaused, setIsPaused, currentIndex, setCurrentIndex
         }}>
             <div className='bg-white h-[100vh] w-[100vw] flex flex-col'>
                 <ReilNav />
                 <ReilMain />
                 {openSettings && <ReilSettings />}
-                {/* <ReilToast message='Settings saved' /> */}
+                {openPanel && <ReilPanel />}
                 <ReilFooter />
             </div>
         </ReilContext.Provider>
