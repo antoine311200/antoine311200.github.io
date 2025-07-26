@@ -192,7 +192,6 @@ export default function MandallApp() {
     return (
         <div className="flex flex-col-reverse md:flex-row h-screen relative white-scrollbar">
             <div className="h-1/3 md:h-screen md:w-1/2 border-r bg-gray-100 border-gray-300 p-4 overflow-auto relative">
-                {/*  w-screen order-last md:h-screen md:order-first md:w-1/2 xl:h-screen xl:order-first xl:w-1/2 */}
                 <div className="flex flex-col  mb-4">
                     <div className="grid grid-cols-10 gap-2 font-kaiti ">
                         {rows.map((row, ridx) =>
@@ -289,7 +288,7 @@ export default function MandallApp() {
                             <div className="flex flex-col items-center text-center text-3xl text-gray-700">
                                 <div className="text-9xl font-kaiti">{selectedCharacter}</div>
                                 <div className="border-t border-gray-300 my-4 w-full"></div>
-                                <div className="text-lg text-left text-gray-600 mb-4 overflow-y-auto overflow-x-auto max-h-64 flex flex-row gap-4">
+                                <div className="text-lg text-left text-gray-600 mb-4 overflow-y-auto overflow-x-auto max-h-32 md:max-h-64 flex flex-row flex-wrap gap-4">
                                     {meanings[selectedCharacter].map((m, idx) => {
                                         const [firstPart, ...rest] = m.split("-");
                                         const res = chineseToneTransform(firstPart);
