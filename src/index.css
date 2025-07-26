@@ -195,3 +195,7 @@ code {
     cursor: grabbing;
   }
 }
+
+.markdown > * {
+  all: revert;
+}

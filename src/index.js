@@ -19,7 +19,11 @@ import DootApp from './pages/doot/doot';
 import ReilApp from './pages/reil/reil';
 import JapaneseReader from './pages/japanese/reader/reader';
 import Test from './pages/test';
-
+import Test2 from './pages/test2';
+import IshedApp from './pages/ished/ished';
+import EditorApp from './pages/editor/editor';
+import TonePracticeApp from './pages/toner/toner';
+import MandallApp from './pages/mandall/mandall';
 
 const articleModules = [];
 const requireArticle = require.context('./data/articles', false, /.js$/);
@@ -54,6 +58,11 @@ root.render(
         <Route path="/secret" element={<JapaneseApp />} />
         <Route path="/secret/reader" element={<JapaneseReader />} />
         <Route path="/test" element={<Test />} />
+        <Route path="/test2" element={<Test2 />} />
+        <Route path="/ished" element={<IshedApp />} />
+        <Route path="/editor" element={<EditorApp />} />
+        <Route path="/toner" element={<TonePracticeApp />} />
+        <Route path="/mandall" element={<MandallApp />} />
       </Routes>
     </HashRouter>
   // </React.StrictMode>

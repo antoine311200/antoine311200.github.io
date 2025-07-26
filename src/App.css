@@ -63,3 +63,31 @@
   background: linear-gradient(45deg, #59da40, #1de9d1);
 }
 
+.transparent-scrollbar::-webkit-scrollbar-track
+{
+  background-color: transparent;
+  width: 7px;
+  border-radius: 10px;
+}
+
+.transparent-scrollbar::-webkit-scrollbar
+{
+  width: 7px;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.transparent-scrollbar::-webkit-scrollbar-thumb
+{
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.font-fangzheng {
+  font-family: 'FangZheng', serif;
+}
+
+.font-kaiti {
+  font-family: 'KaiTi', serif;
+}
+
