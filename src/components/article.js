@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRef } from 'react';
 import Template from '../components/template';
 import 'katex/dist/katex.min.css';
 import { useParams } from 'react-router-dom';
@@ -67,6 +68,9 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
   // Sample content with sections, subsections, and subsubsections
 
   const { title } = useParams();
+  const [isSticky, setIsSticky] = useState(true);
+  const tocRef = useRef(null);
+
 
   articleContent = data.find(
     (a) => encodeURIComponent(title2uri(a.title)) === encodeURIComponent(title2uri(title))
@@ -81,6 +85,18 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
+  useEffect(() => {
+    const handleScroll = () => {
+      if (tocRef.current) {
+        const rect = tocRef.current.getBoundingClientRect();
+        setIsSticky(rect.top <= 0);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
 
   useEffect(() => {
     document.title = `Blog - ${articleContent.title}`;
@@ -129,7 +145,7 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
     return sections.map((section) => (
       <section key={section.id} id={section.id} className="mb-6">
         <h2 style={style} className="font-semibold mb-2">{section.title}</h2>
-        <p className='text-sm md:text-base'>{section.content}</p>
+        <p className='text-base md:text-base text-gray-900'>{section.content}</p>
         {section.subsections && renderSections(section.subsections, depth+1)}
       </section>
     ));
@@ -154,7 +170,7 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
               onClick={() => handleSectionClick(section.id)}
             >
               {section.title.length > maxLength ? section.title.slice(0, maxLength) + "..." : section.title}
-              {section.title.length > maxLength ? (<span className="absolute bg-gray-200 text-gray-800 p-2 text-sm rounded-md opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out group-hover:opacity-100 top-10 left-1/2 transform -translate-x-3/4 z-10">
+              {section.title.length > maxLength ? (<span className="absolute bg-gray-200 text-gray-900 p-2 text-sm rounded-md opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out group-hover:opacity-100 top-10 left-1/2 transform -translate-x-3/4 z-10">
                 {section.title}
               </span>) : null}
             </a>
@@ -170,13 +186,25 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
 
     <Template iconColor="black">
       <main className="flex-grow md:w-11/12 mx-auto p-3 md:p-4">
-        <div className="bg-white rounded-lg shadow-lg p-3 md:p-6">
+        <div className="bg-white rounded-lg shadow-lg p-3 md:p-6 lg:relative">
           <h1 className="text-xl md:text-3xl font-semibold">{articleContent.title}</h1>
           <p className="text-sm md:text-base text-gray-600">Posted on September 21, 2023</p>
           <hr className="mb-4" />
 
           <div className="lg:w-1/4 lg:ml-4 lg:fixed lg:right-1 lg:block">
-            <div className="sticky top-16">
+          {/*  */}
+          <div className="sticky top-16">
+            {/* <div className="lg:w-1/4 lg:ml-4 lg:sticky lg:top-16 lg:self-start lg:block">
+            <div> */}
+          {/* <div className="lg:w-1/4 lg:ml-4 lg:absolute lg:right-0 lg:top-28">
+            <div className=""> */}
+            {/* <div className="lg:w-1/4 lg:absolute lg:right-0 lg:top-0">
+    <div className="lg:sticky lg:top-16"> */}
+{/* <div className="lg:w-1/4 lg:ml-4 lg:self-start lg:fixed lg:right-0 lg:top-28">
+  <div className="lg:sticky lg:top-16 lg:right-4"> */}
+          {/* <div ref={tocRef} className={`lg:w-1/4 lg:ml-4  lg:right-0 lg:self-start ${isSticky ? 'lg:absolute}' : 'lg:sticky lg:top-16'} `}>
+           {/* ${isSticky ? 'lg:fixed lg:top-4' : 'lg:sticky lg:top-16 lg:right-0'}`}> */}
+          {/* <div className='lg:right-4 p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-md'> */}
               <h2 className="text-xl font-semibold mb-2">Table of Contents</h2>
               {renderTableOfContents(articleContent.content, 0)}
             </div>
@@ -184,7 +212,7 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
 
           <hr className="mb-4 md:hidden" />
 
-          <div className="lg:w-3/4 mx-2 md:mx-2 mt-10 text-justify">
+          <div className="lg:w-3/4 mx-2 md:mx-2 mt-10 text-justify" style={{ fontFamily: 'Garamond, Georgia, serif' }}>
             {renderSections(articleContent.content, 0)}
           </div>
         </div>

@@ -4,6 +4,17 @@ import Template from '../components/template';
 
 const experiences = [
     {
+        title: 'Research Intern',
+        company: 'Rikan AIP - Tensor Learning Team',
+        location: 'Tokyo, Japan',
+        date: '07/2024 - 12/2024',
+        description: [
+            "Researched a novel method for pretraining LLMs using accumulation of low-rank matrices.",
+            "Proved theoretical properties on rank evolution of LoRA and sums of matrices.",
+            "Paper \"AccLoRT: Pretraining and tuning of Large Language Models from accumulation of low-rank weights\"."
+        ]
+    },
+    {
         title: 'NLP - Data Scientist Intern',
         company: 'Banque de France',
         location: 'Paris, France',
@@ -91,10 +102,20 @@ const educations = [
 
 const researches = [
     {
+        title: "Paper : AccLoRT: Pretraining and tuning of Large Language Models from accumulation of low-rank weights",
+        company: 'Antoine Debouchage, Yuning Qiu, Qibin Zhao',
+        location: "Under review",
+        date: '',
+        description: [
+            'Novel method for memory efficient pretraining of large language models using accumulation of low-rank weights.',
+            'Derived theoretical properties on rank evolution of LoRA as well as inequalities on the rank of sums of matrices.',
+        ],
+    },
+    {
         title: "Resolution of high-dimensional PDEs using tensor networks",
         company: 'Crédit Agricole CIB - CentraleSupélec',
         location: "Montrouge / Gif-sur-Yvette, France",
-        date: '10/2023 - Present',
+        date: '10/2023 - 04/2024',
         description: [
             'Research on the resolution of high-dimensional PDEs using tensor networks.',
             'Application in finance on Black-Scholes PDEs with high dimensionality.'
@@ -106,7 +127,8 @@ const researches = [
         location: "Big Data From Space 2023 Conference",
         date: '11/2023',
         description: [
-            'Paper in progress',
+            'Proposed novel deep learning architectures for estimating Leaf Area Index (LAI) from multi-temporal Sentinel 1 and 2 satellite data.',
+            "Achieved declouding as a byproduct, improving LAI estimation accuracy.",
         ],
         link: 'https://github.com/valentingol/LeafNothingBehind'
     },
@@ -226,7 +248,7 @@ const Resume = () => {
     }, []);
 
     return (
-        <Template iconColor="black">
+        <Template iconColor="grey">
             {/* Title Resume */}
             <div className="flex flex-col items-center justify-center text-white px-3 sm:px-6 lg:px-8">
                 <h1 className="text-4xl font-bold">Resume</h1>

@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import '../App.css';
 
 import Template from '../components/template';
-import { FaGithub, FaTwitter, FaLinkedin, FaKaggle, FaEnvelope } from 'react-icons/fa';
+import { FaGithub, FaTwitter, FaLinkedin, FaKaggle, FaEnvelope, FaCode } from 'react-icons/fa';
 
 
 const LinkComponent = ({ href, text, icon }) => {
@@ -39,10 +39,11 @@ export default function App() {
             <LinkComponent href="https://twitter.com/antoine311200" text="Twitter @antoine311200" icon={<FaTwitter size={24} className='text-grey-500' />} />
             <LinkComponent href="https://www.kaggle.com/antoinedebouchage" text="Kaggle @antoinedebouchage" icon={<FaKaggle size={24} className='text-grey-500' />} />
             <LinkComponent href="https://www.linkedin.com/in/antoine-debouchage/" text="LinkedIn Antoine Debouchage" icon={<FaLinkedin size={24} className='text-grey-500' />} />
+            <LinkComponent href="https://leetcode.com/u/antoine311200/" text="Leetcode antoine311200" icon={<FaCode size={24} className='text-grey-500' />} />
             <div className="h-10"></div>
             <LinkComponent href="mailto:antoine311200@gmail.com" text="antoine311200@gmail.com" icon={<FaEnvelope size={24} className='text-grey-500' />} />
-            <LinkComponent href="mailto:antoine.debouchage@student-cs.fr" text="antoine.debouchage@student-cs.fr" icon={<FaEnvelope size={24} className='text-grey-500' />} />
-            <LinkComponent href="mailto:antoine.debouchage@ens-paris-saclay.fr" text="antoine.debouchage@ens-paris-saclay.fr" icon={<FaEnvelope size={24} className='text-grey-500' />} />
+            {/* <LinkComponent href="mailto:antoine.debouchage@student-cs.fr" text="antoine.debouchage@student-cs.fr" icon={<FaEnvelope size={24} className='text-grey-500' />} />
+            <LinkComponent href="mailto:antoine.debouchage@ens-paris-saclay.fr" text="antoine.debouchage@ens-paris-saclay.fr" icon={<FaEnvelope size={24} className='text-grey-500' />} /> */}
           </div>
         </div>
       </div>

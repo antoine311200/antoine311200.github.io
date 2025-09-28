@@ -138,12 +138,14 @@ const SentenceTrainer = () => {
         <div>
 
             {/* Pagination */}
-            <button onClick={previousSentence} className={`${history.length > 0 && index > 0 ? 'h-full' : 'hidden'} fixed top-1/3 left-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
-                <img src="light_chevron_left.svg" />
-            </button>
-            <button onClick={nextSentence} className={`${index < history.length - 1 ? 'h-full' : 'hidden'} fixed top-1/3 right-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
-                <img src="light_chevron_right.svg" />
-            </button>
+            <div className="absolute top-5 left-5 text-white text-sm lg:text-base">
+                <button onClick={previousSentence} className={`${history.length > 0 && index > 0 ? 'h-full' : 'hidden'} w-1/6 fixed left-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
+                    <img src="light_chevron_left.svg" />
+                </button>
+                <button onClick={nextSentence} className={`${index < history.length - 1 ? 'h-full' : 'hidden'} w-1/6 fixed right-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
+                    <img src="light_chevron_right.svg" />
+                </button>
+            </div>
 
             {/* Content */}
             {isJP2ENSentence ? renderJapanese2EnglishSentence() : renderEnglish2JapaneseSentence()}
