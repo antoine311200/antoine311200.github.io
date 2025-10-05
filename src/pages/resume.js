@@ -220,8 +220,8 @@ export default function ResumeMain() {
                                                 <p className="text-slate-200 text-base md:text-lg font-semibold leading-tight">
                                                     {experience.title}
                                                 </p>
-                                                <p className="text-sky-200 text-sm">{experience.company}</p>
-                                                <p className="text-slate-400 text-xs italic">
+                                                <p className="text-orange-300 text-sm">{experience.company}</p>
+                                                <p className="text-slate-300 text-xs italic">
                                                     {experience.location} • {experience.date}
                                                 </p>
 
@@ -251,8 +251,8 @@ export default function ResumeMain() {
                                                 <p className="text-slate-200 text-base md:text-lg font-semibold leading-tight">
                                                     {education.title}
                                                 </p>
-                                                <p className="text-sky-200 text-sm">{education.company}</p>
-                                                <p className="text-slate-400 text-xs italic">
+                                                <p className="text-violet-300 text-sm">{education.company}</p>
+                                                <p className="text-slate-300 text-xs italic">
                                                     {education.location} • {education.date}
                                                 </p>
 
@@ -282,8 +282,8 @@ export default function ResumeMain() {
                                                 <p className="text-slate-200 text-base md:text-lg font-semibold leading-tight">
                                                     {research.title}
                                                 </p>
-                                                <p className="text-sky-200 text-sm">{research.company}</p>
-                                                <p className="text-slate-400 text-xs italic">
+                                                <p className="text-green-200 text-sm">{research.company}</p>
+                                                <p className="text-slate-300 text-xs italic">
                                                     {research.location} {research.date && `• ${research.date}`}
                                                 </p>
 
