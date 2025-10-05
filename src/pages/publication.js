@@ -11,6 +11,7 @@ const conf_papers = [
     title: 'Leveraging Multi-Temporal Sentinel 1 and 2 Satellite Data for Leaf Area Index Estimation With Deep Learning',
     description: 'This paper presents a deep learning approach to estimate Leaf Area Index (LAI) using multi-temporal Sentinel 1 and 2 satellite data.',
     github: 'https://github.com/valentingol/LeafNothingBehind',
+    conference: 'Big Data from Space 2023',
     arxiv: 'https://arxiv.org/abs/2410.19787',
     image: '/images/misc/lnb.png',
     authors: 'Clement Wang, Antoine Debouchage, Valentin Goldité, Aurélien Wery, Jules Salzinger',
@@ -45,7 +46,7 @@ export default function Publication() {
           </div>
 
           <div className='flex flex-col items-center mb-8'>
-            {conf_papers.map(project => <ProjectItem title={project.title} description={project.description} link={project.link} image={project.image} file={project.file} github={project.github} arxiv={project.arxiv} authors={project.authors} />)}
+            {conf_papers.map(project => <ProjectItem data={project} />)}
           </div>
 
           <div className='flex flex-col items-left pl-5 md:pl-20 mt-5'>
@@ -54,7 +55,7 @@ export default function Publication() {
           </div>
 
           <div className='flex flex-col items-center mb-8'>
-            {review_papers.map(project => <ProjectItem title={project.title} description={project.description} link={project.link} image={project.image} file={project.file} github={project.github} arxiv={project.arxiv} authors={project.authors} />)}
+            {review_papers.map(project => <ProjectItem data={project} />)}
           </div>
         </div>
       </div>

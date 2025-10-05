@@ -114,7 +114,7 @@ export default function Project() {
           </div>
 
           <div className='flex flex-col items-center mb-8'>
-            {research_projects.map(project => <ProjectItem title={project.title} description={project.description} link={project.link} image={project.image} file={project.file} github={project.github} arxiv={project.arxiv} authors={project.authors} />)}
+            {research_projects.map(project => <ProjectItem data={project} />)}
           </div>
 
           <div className='flex flex-col items-left pl-5 md:pl-20 mt-5'>
@@ -123,7 +123,7 @@ export default function Project() {
           </div>
 
           <div className='flex flex-col items-center mb-8'>
-            {personal_projects.map(project => <ProjectItem title={project.title} description={project.description} link={project.link} image={project.image} file={project.file} github={project.github} arxiv={project.arxiv} authors={project.authors} />)}
+            {personal_projects.map(project => <ProjectItem data={project} />)}
           </div>
 
           <div className='flex flex-col items-left pl-5 md:pl-20 mt-5'>
@@ -132,7 +132,7 @@ export default function Project() {
           </div>
 
           <div className='flex flex-col items-center mb-8'>
-            {school_projects.map(project => <ProjectItem title={project.title} description={project.description} link={project.link} image={project.image} file={project.file} github={project.github} arxiv={project.arxiv} authors={project.authors} />)}
+            {school_projects.map(project => <ProjectItem data={project} />)}
           </div>
 
           {/* <div className='mx-auto h-32 transform flex flex-col items-center mb-20'>

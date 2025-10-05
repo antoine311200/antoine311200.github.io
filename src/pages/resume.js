@@ -282,7 +282,7 @@ export default function ResumeMain() {
                                                 <p className="text-slate-200 text-base md:text-lg font-semibold leading-tight">
                                                     {research.title}
                                                 </p>
-                                                <p className="text-green-200 text-sm">{research.company}</p>
+                                                <p className="text-amber-400 text-sm">{research.company}</p>
                                                 <p className="text-slate-300 text-xs italic">
                                                     {research.location} {research.date && `• ${research.date}`}
                                                 </p>
@@ -297,44 +297,6 @@ export default function ResumeMain() {
                                     ))}
                                 </div>
                             </div>
-
-
-                            {/* <div className="rounded-2xl p-6 bg-gradient-to-br from-white/2 to-white/3 border border-white/5 shadow-inner">
-                                <SectionTitle icon={<LuTestTube2 className="w-5 h-5 text-white" />}>Education</SectionTitle>
-                                <div className="mt-2">
-                                    {educations.map((ed, i) => (
-                                        <div key={i} className="mb-4">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <div className="text-slate-100 font-medium">{ed.title}</div>
-                                                    <div className="text-sky-200 text-sm mt-0.5">{ed.company}</div>
-                                                </div>
-                                                <div className="text-slate-400 text-sm">{ed.date}</div>
-                                            </div>
-                                            <div className="text-slate-300 text-sm mt-2">
-                                                {ed.description.join(' • ')}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="rounded-2xl p-6 bg-gradient-to-br from-white/2 to-white/3 border border-white/5">
-                                <SectionTitle>Research & Selected Publications</SectionTitle>
-                                <div className="mt-2 space-y-3 text-sm text-slate-300">
-                                    {researches.map((r, i) => (
-                                        <div key={i} className="">
-                                            <div className="flex justify-between items-start">
-                                                <div className="font-medium text-slate-100">{r.title}</div>
-                                                <div className="text-slate-400 text-sm ml-3">{r.date}</div>
-                                            </div>
-                                            <div className="text-sky-200 text-xs mt-1">{r.company} • {r.location}</div>
-                                            <div className="mt-2 text-slate-300 text-sm">{r.description.join(' • ')}</div>
-                                            {r.link && <a href={r.link} target="_blank" rel="noreferrer" className="inline-block mt-2 text-sky-300 text-sm underline">Repository</a>}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div> */}
                         </div>
                     </aside>
                 </div>

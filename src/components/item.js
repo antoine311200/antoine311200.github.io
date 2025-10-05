@@ -1,13 +1,16 @@
 import React from 'react';
 import { FaGithub } from 'react-icons/fa';
 
-const ProjectItem = ({ title, description, link, image, file, github = undefined, arxiv = undefined, authors = undefined }) => {
+const ProjectItem = ({ data }) => {
+  const { title, description, link, image, file, github = undefined, arxiv = undefined, authors = undefined, conference = undefined } = data;
+
   return (
     <div className="my-4 group relative grid gap-4 pb-1 sm:grid-cols-8 sm:gap-8 md:gap-4 px-4 md:px-32 transition-all hover:!opacity-100 group-hover/list:opacity-50 lg:hover:!opacity-100 lg:group-hover/list:opacity-50">
       <div className="absolute hidden z-0 rounded-md border-2 mx-2 -inset-y-2 inset-0 md:-inset-x-4 md:-inset-y-4 md:mx-32 transition group-hover:block group-hover:border-slate-200/20 lg:group-hover:drop-shadow-lg" />
       <div class="flex flex-col justify-between m-2 p-2 md:p-4 leading-normal z-10 sm:order-2 sm:col-span-6">
         <h6 class="inline-flex items-baseline mb-2 text-xl font-bold tracking-tight text-white">{title}</h6>
         {authors && <p class="mb-2 text-sm font-light text-gray-400"><span class="font-bold text-slate-400">Authors:</span> {authors}</p>}
+        {conference && <p class="mb-2 text-sm font-light text-gray-400"><span class="font-bold text-slate-400">Conference:</span> {conference}</p>}
         <p class="mb-3 text-sm font-normal text-gray-400">{description}</p>
 
         <div className="flex flex-row space-x-4">
