@@ -49,8 +49,7 @@ export default function App() {
             />
           </div>
 
-      {/* <div className="absolute  -bottom-2 inline-flex items-center gap-2 rounded-full bg-gray-800/60 px-2 py-1 text-xs font-thin text-gray-200 backdrop-blur-md shadow-md"> */}
-          <div className="absolute -right-10 -bottom-2 inline-flex items-center gap-2 rounded-full bg-gray-800/60 px-2 py-1 text-xs font-thin text-gray-200 backdrop-blur-md shadow-md whitespace-nowrap">
+          <div className="absolute -right-14 -bottom-2 inline-flex items-center gap-2 rounded-full bg-gray-800/60 px-2 py-1 text-xs font-thin text-gray-200 backdrop-blur-md shadow-md whitespace-nowrap">
             <span className="hidden sm:inline">『井の中の蛙、大海を知らず。されど空の深さを知る』</span>
           </div>
         </div>

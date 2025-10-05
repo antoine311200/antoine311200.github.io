@@ -2,20 +2,24 @@ import React, { useEffect } from 'react';
 
 import Template from '../components/template';
 
+import { FaCalendarAlt, FaMapMarkerAlt, FaDownload, FaPaperclip } from "react-icons/fa";
+import { LuTestTube2 } from "react-icons/lu";
+
 const experiences = [
     {
         title: 'Research Intern',
-        company: 'Rikan AIP - Tensor Learning Team',
+        company: 'Riken AIP - Tensor Learning Team',
         location: 'Tokyo, Japan',
         date: '07/2024 - 12/2024',
         description: [
             "Researched a novel method for pretraining LLMs using accumulation of low-rank matrices.",
             "Proved theoretical properties on rank evolution of LoRA and sums of matrices.",
             "Paper \"AccLoRT: Pretraining and tuning of Large Language Models from accumulation of low-rank weights\"."
-        ]
+        ],
+        image: '/images/riken.jpg'
     },
     {
-        title: 'NLP - Data Scientist Intern',
+        title: 'Data Scientist Intern',
         company: 'Banque de France',
         location: 'Paris, France',
         date: '03/2023 - 08/2023',
@@ -24,7 +28,8 @@ const experiences = [
             'Built the basis of an internal application for general NLP at the bank (topic analysis and LLMs).',
             'Scrapped billions of tokens to create financial datasets.',
             'Created a fine-tuning framework of transformers & LLM models with SOTA method (LoRA, quantization)'
-        ]
+        ],
+        image: '/images/bdf.svg'
     },
     {
         title: 'Natural Language Processing Intern',
@@ -35,7 +40,8 @@ const experiences = [
             'Investigated paraphrasing with fast inference using CTranslate2.',
             'Realized novel strategies for ensuring diversity and quality of rephrasing.',
             'Creation of a complete paraphrasing dataset'
-        ]
+        ],
+        image: '/images/reverso.png'
     },
     {
         title: 'Quantum Inspired & Tensor Network Intern',
@@ -45,10 +51,11 @@ const experiences = [
         description: [
             'Tensor Network Intern. Developed a new optimization algorithm based on specific tensor networks with imaginary-time evolution tested on dozens of problems.',
             'Resulted in constraint-satisfied quasi-optimal solutions on Quadratic Portfolio Optimisation problems.'
-        ]
+        ],
+        image: '/images/multiverse.png'
     },
     {
-        title: 'Natural Language Processing Student Manager',
+        title: 'Member of Automatants - CentraleSupélec AI Club',
         company: 'Automatants',
         location: 'Gif-sur-Yvette, France',
         date: '09/2021 - 01/2022',
@@ -57,15 +64,15 @@ const experiences = [
             'Used Tensorflow, Keras, PyTorch, Numpy, Pandas, NLTK, Spacy, HuggingFace.'
         ]
     },
-    {
-        title: 'Trainee',
-        company: 'S.I.D.E',
-        location: 'Sucy-en-Brie, France',
-        date: '06/2021 - 07/2021',
-        description: [
-            'Collaborated as a trainee for order picking during 5 weeks for the engineering mandatory operational internship in a company specialized on importation & exportation of books in France and abroad.'
-        ]
-    }
+    // {
+    //     title: 'Trainee',
+    //     company: 'S.I.D.E',
+    //     location: 'Sucy-en-Brie, France',
+    //     date: '06/2021 - 07/2021',
+    //     description: [
+    //         'Collaborated as a trainee for order picking during 5 weeks for the engineering mandatory operational internship in a company specialized on importation & exportation of books in France and abroad.'
+    //     ]
+    // }
 ];
 
 const educations = [
@@ -102,7 +109,7 @@ const educations = [
 
 const researches = [
     {
-        title: "Paper : AccLoRT: Pretraining and tuning of Large Language Models from accumulation of low-rank weights",
+        title: "Paper : AccLoRT - Pretraining and tuning of Large Language Models from accumulation of low-rank weights",
         company: 'Antoine Debouchage, Yuning Qiu, Qibin Zhao',
         location: "Under review",
         date: '',
@@ -157,116 +164,295 @@ const researches = [
     },
 ];
 
-const Experience = () => {
+
+function SectionTitle({ children, icon }) {
     return (
-        <div className="py-3 md:py-6 px-3 md:px-4">
-            <h2 className="text-xl md:text-2xl text-black underline font-semibold mb-2 md:mb-6">Experience</h2>
-            {experiences.map((experience) => (
+        <h3 className="text-slate-200/90 text-xl font-semibold tracking-wide mb-3 flex items-center gap-3">
+            {icon}
+            {children}
+        </h3>
+    );
+}
+
+function Item({ item }) {
+    return (
+        <div className="mb-6 last:mb-0">
+            <div className="flex items-start justify-between">
                 <div>
-                    <div className="relative">
-                        <div className="pl-1 md:pl-3">
-                            <p className="text-base md:text-lg text-gray-950 font-semibold leading-tight">{experience.title}</p>
-                            <p className="text-gray-800 text-sm">{experience.company}</p>
-                            <p className="text-gray-700 text-xs italic">{experience.location}  {experience.date}</p>
-                            <ul className="list-disc list-inside text-gray-900 ml-1 md:ml-2 text-xxs md:text-xs mt-2">
-                                {experience.description.map((desc, index) => (
-                                    <li key={index}>{desc}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="h-6"></div>
+                    <h4 className="text-slate-100 font-semibold text-lg leading-tight">{item.title}</h4>
+                    <div className="text-sky-200/80 text-sm mt-1">{item.company} • <span className="text-slate-300">{item.location}</span></div>
                 </div>
-            ))}
-        </div>
-    );
-};
-
-const Education = () => {
-    return (
-        <div className="py-3 md:py-6 px-3 md:px-4">
-            <h2 className="text-xl md:text-2xl text-black underline font-semibold mb-2 md:mb-6">Education</h2>
-            {educations.map((education) => (
-                <div>
-                    <div className="relative">
-                        <div className="pl-1 md:pl-3">
-                            <p className="text-base md:text-lg text-gray-950 font-semibold leading-tight">{education.title}</p>
-                            <p className="text-gray-800 text-sm">{education.company}</p>
-                            <p className="text-gray-700 text-xs italic">{education.location}  {education.date}</p>
-                            <ul className="list-disc list-inside text-gray-900 ml-1 md:ml-2 text-xxs md:text-xs mt-2">
-                                {education.description.map((desc, index) => (
-                                    <li key={index}>{desc}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="h-6"></div>
-                </div>
-            ))}
-        </div>
-    );
-};
-
-const Research = () => {
-    return (
-        <div className="py-3 md:py-6 px-3 md:px-4">
-            <h2 className="text-xl md:text-2xl text-black underline font-semibold mb-2 md:mb-6">Researches</h2>
-            {researches.map((research) => (
-                <div>
-                    <div className="relative">
-                        <div className="pl-1 md:pl-3">
-                            <p className="text-base md:text-lg text-gray-950 font-semibold leading-tight">{research.title}</p>
-                            <p className="text-gray-800 text-sm">{research.company}</p>
-                            <p className="text-gray-700 text-xs italic">{research.location}  {research.date}</p>
-                            <ul className="list-disc list-inside text-gray-900 ml-1 md:ml-2 text-xxs md:text-xs mt-2">
-                                {research.description.map((desc, index) => (
-                                    <li key={index}>{desc}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="h-6"></div>
-                </div>
-            ))}
-        </div>
-    );
-};
-
-const Projects = () => {
-    return (
-        <div className="py-6">
-            <h2 className="text-2xl font-semibold mb-4">Projects</h2>
-            {/* Similar structure as Experience and Education */}
-        </div>
-    );
-};
-
-const Resume = () => {
-
-    useEffect(() => {
-        document.title = `Resume | Antoine Debouchage`;
-    }, []);
-
-    return (
-        <Template iconColor="grey">
-            {/* Title Resume */}
-            <div className="flex flex-col items-center justify-center text-white px-3 sm:px-6 lg:px-8">
-                <h1 className="text-4xl font-bold">Resume</h1>
+                <div className="text-slate-400 text-sm ml-4 whitespace-nowrap">{item.date}</div>
             </div>
+            <ul className="mt-3 ml-4 list-disc text-slate-300 text-sm space-y-1">
+                {item.description.map((d, i) => (
+                    <li key={i}>{d}</li>
+                ))}
+            </ul>
+            {item.link && (
+                <div className="mt-2">
+                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-sky-300 text-sm underline">View repository</a>
+                </div>
+            )}
+        </div>
+    );
+}
 
-            <div className="px-4 md:px-8 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8 text-white min-w-screen">
-                <div className='container bg-white rounded-lg'>
-                    <Experience />
+export default function ResumeMain() {
+    return (
+        <Template>
+            <main className={`max-w-6xl mx-auto px-6 py-10`}>
+                <div className="grid grid-cols-1 gap-8">
+                    <aside className="lg:col-span-4">
+                        <div className="sticky top-24 space-y-6">
+                            <div className="rounded-2xl p-6 bg-gradient-to-br from-white/2 to-white/3 border border-white/5 shadow-inner backdrop-blur-sm">
+                                <SectionTitle icon={<FaPaperclip className="w-5 h-5 text-white" />}>
+                                    Experiences
+                                </SectionTitle>
+
+                                <div className="mt-4 space-y-6">
+                                    {experiences.map((experience, i) => (
+                                        <div
+                                            key={i}
+                                            className="pl-6 flex items-start gap-4 hover:bg-white/5 rounded-xl p-3 transition-all duration-100"
+                                        >
+                                            <div className="flex-1">
+                                                <p className="text-slate-200 text-base md:text-lg font-semibold leading-tight">
+                                                    {experience.title}
+                                                </p>
+                                                <p className="text-sky-200 text-sm">{experience.company}</p>
+                                                <p className="text-slate-400 text-xs italic">
+                                                    {experience.location} • {experience.date}
+                                                </p>
+
+                                                <ul className="text-slate-400 list-disc list-inside ml-1 md:ml-2 text-xs mt-2 space-y-1">
+                                                    {experience.description.map((desc, index) => (
+                                                        <li key={index}>{desc}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="rounded-2xl p-6 bg-gradient-to-br from-white/2 to-white/3 border border-white/5 shadow-inner backdrop-blur-sm">
+                                <SectionTitle icon={<FaPaperclip className="w-5 h-5 text-white" />}>
+                                    Education
+                                </SectionTitle>
+
+                                <div className="mt-4 space-y-6">
+                                    {educations.map((education, i) => (
+                                        <div
+                                            key={i}
+                                            className="pl-6 flex items-start gap-4 hover:bg-white/5 rounded-xl p-3 transition-all duration-100"
+                                        >
+                                            <div className="flex-1">
+                                                <p className="text-slate-200 text-base md:text-lg font-semibold leading-tight">
+                                                    {education.title}
+                                                </p>
+                                                <p className="text-sky-200 text-sm">{education.company}</p>
+                                                <p className="text-slate-400 text-xs italic">
+                                                    {education.location} • {education.date}
+                                                </p>
+
+                                                <ul className="text-slate-400 list-disc list-inside ml-1 md:ml-2 text-xs mt-2 space-y-1">
+                                                    {education.description.map((desc, index) => (
+                                                        <li key={index}>{desc}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="rounded-2xl p-6 bg-gradient-to-br from-white/2 to-white/3 border border-white/5 shadow-inner backdrop-blur-sm">
+                                <SectionTitle icon={<FaPaperclip className="w-5 h-5 text-white" />}>
+                                    Research & Selected Publications
+                                </SectionTitle>
+
+                                <div className="mt-4 space-y-6">
+                                    {researches.map((research, i) => (
+                                        <div
+                                            key={i}
+                                            className="pl-6 flex items-start gap-4 hover:bg-white/5 rounded-xl p-3 transition-all duration-100"
+                                        >
+                                            <div className="flex-1">
+                                                <p className="text-slate-200 text-base md:text-lg font-semibold leading-tight">
+                                                    {research.title}
+                                                </p>
+                                                <p className="text-sky-200 text-sm">{research.company}</p>
+                                                <p className="text-slate-400 text-xs italic">
+                                                    {research.location} {research.date && `• ${research.date}`}
+                                                </p>
+
+                                                <ul className="text-slate-400 list-disc list-inside ml-1 md:ml-2 text-xs mt-2 space-y-1">
+                                                    {research.description.map((desc, index) => (
+                                                        <li key={index}>{desc}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+
+                            {/* <div className="rounded-2xl p-6 bg-gradient-to-br from-white/2 to-white/3 border border-white/5 shadow-inner">
+                                <SectionTitle icon={<LuTestTube2 className="w-5 h-5 text-white" />}>Education</SectionTitle>
+                                <div className="mt-2">
+                                    {educations.map((ed, i) => (
+                                        <div key={i} className="mb-4">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <div className="text-slate-100 font-medium">{ed.title}</div>
+                                                    <div className="text-sky-200 text-sm mt-0.5">{ed.company}</div>
+                                                </div>
+                                                <div className="text-slate-400 text-sm">{ed.date}</div>
+                                            </div>
+                                            <div className="text-slate-300 text-sm mt-2">
+                                                {ed.description.join(' • ')}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="rounded-2xl p-6 bg-gradient-to-br from-white/2 to-white/3 border border-white/5">
+                                <SectionTitle>Research & Selected Publications</SectionTitle>
+                                <div className="mt-2 space-y-3 text-sm text-slate-300">
+                                    {researches.map((r, i) => (
+                                        <div key={i} className="">
+                                            <div className="flex justify-between items-start">
+                                                <div className="font-medium text-slate-100">{r.title}</div>
+                                                <div className="text-slate-400 text-sm ml-3">{r.date}</div>
+                                            </div>
+                                            <div className="text-sky-200 text-xs mt-1">{r.company} • {r.location}</div>
+                                            <div className="mt-2 text-slate-300 text-sm">{r.description.join(' • ')}</div>
+                                            {r.link && <a href={r.link} target="_blank" rel="noreferrer" className="inline-block mt-2 text-sky-300 text-sm underline">Repository</a>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div> */}
+                        </div>
+                    </aside>
                 </div>
-                <div className='container bg-white rounded-lg'>
-                    <Research />
-                </div>
-                <div className='container bg-white rounded-lg'>
-                    <Education />
-                </div>
-            </div>
+            </main>
         </Template>
     );
 };
 
-export default Resume;
+// const Experience = () => {
+//     return (
+//         <div className="py-3 md:py-6 px-3 md:px-4">
+//             <h2 className="text-xl md:text-2xl text-black underline font-semibold mb-2 md:mb-6">Experience</h2>
+//             {experiences.map((experience) => (
+//                 <div>
+//                     <div className="relative">
+//                         <div className="pl-1 md:pl-3">
+//                             <p className="text-base md:text-lg text-gray-950 font-semibold leading-tight">{experience.title}</p>
+//                             <p className="text-gray-800 text-sm">{experience.company}</p>
+//                             <p className="text-gray-700 text-xs italic">{experience.location}  {experience.date}</p>
+//                             <ul className="list-disc list-inside text-gray-900 ml-1 md:ml-2 text-xxs md:text-xs mt-2">
+//                                 {experience.description.map((desc, index) => (
+//                                     <li key={index}>{desc}</li>
+//                                 ))}
+//                             </ul>
+//                         </div>
+//                     </div>
+//                     <div className="h-6"></div>
+//                 </div>
+//             ))}
+//         </div>
+//     );
+// };
+
+// const Education = () => {
+//     return (
+//         <div className="py-3 md:py-6 px-3 md:px-4">
+//             <h2 className="text-xl md:text-2xl text-black underline font-semibold mb-2 md:mb-6">Education</h2>
+//             {educations.map((education) => (
+//                 <div>
+//                     <div className="relative">
+//                         <div className="pl-1 md:pl-3">
+//                             <p className="text-base md:text-lg text-gray-950 font-semibold leading-tight">{education.title}</p>
+//                             <p className="text-gray-800 text-sm">{education.company}</p>
+//                             <p className="text-gray-700 text-xs italic">{education.location}  {education.date}</p>
+//                             <ul className="list-disc list-inside text-gray-900 ml-1 md:ml-2 text-xxs md:text-xs mt-2">
+//                                 {education.description.map((desc, index) => (
+//                                     <li key={index}>{desc}</li>
+//                                 ))}
+//                             </ul>
+//                         </div>
+//                     </div>
+//                     <div className="h-6"></div>
+//                 </div>
+//             ))}
+//         </div>
+//     );
+// };
+
+// const Research = () => {
+//     return (
+//         <div className="py-3 md:py-6 px-3 md:px-4">
+//             <h2 className="text-xl md:text-2xl text-black underline font-semibold mb-2 md:mb-6">Researches</h2>
+//             {researches.map((research) => (
+//                 <div>
+//                     <div className="relative">
+//                         <div className="pl-1 md:pl-3">
+//                             <p className="text-base md:text-lg text-gray-950 font-semibold leading-tight">{research.title}</p>
+//                             <p className="text-gray-800 text-sm">{research.company}</p>
+//                             <p className="text-gray-700 text-xs italic">{research.location}  {research.date}</p>
+//                             <ul className="list-disc list-inside text-gray-900 ml-1 md:ml-2 text-xxs md:text-xs mt-2">
+//                                 {research.description.map((desc, index) => (
+//                                     <li key={index}>{desc}</li>
+//                                 ))}
+//                             </ul>
+//                         </div>
+//                     </div>
+//                     <div className="h-6"></div>
+//                 </div>
+//             ))}
+//         </div>
+//     );
+// };
+
+// const Projects = () => {
+//     return (
+//         <div className="py-6">
+//             <h2 className="text-2xl font-semibold mb-4">Projects</h2>
+//             {/* Similar structure as Experience and Education */}
+//         </div>
+//     );
+// };
+
+// const Resume = () => {
+
+//     useEffect(() => {
+//         document.title = `Resume | Antoine Debouchage`;
+//     }, []);
+
+//     return (
+//         <Template iconColor="grey">
+//             {/* Title Resume */}
+//             <div className="flex flex-col items-center justify-center text-white px-3 sm:px-6 lg:px-8">
+//                 <h1 className="text-4xl font-bold">Resume</h1>
+//             </div>
+
+//             <div className="px-4 md:px-8 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8 text-white min-w-screen">
+//                 <div className='container bg-white rounded-lg'>
+//                     <Experience />
+//                 </div>
+//                 <div className='container bg-white rounded-lg'>
+//                     <Research />
+//                 </div>
+//                 <div className='container bg-white rounded-lg'>
+//                     <Education />
+//                 </div>
+//             </div>
+//         </Template>
+//     );
+// };
+
+// export default Resume;
