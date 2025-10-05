@@ -145,7 +145,7 @@ const Article = ({ articleContent = DUMMY, data = undefined }) => {
     return sections.map((section) => (
       <section key={section.id} id={section.id} className="mb-6">
         <h2 style={style} className="font-semibold mb-2">{section.title}</h2>
-        <p className='text-base md:text-base text-gray-900'>{section.content}</p>
+        <p className='text-base md:text-lg text-gray-900'>{section.content}</p>
         {section.subsections && renderSections(section.subsections, depth+1)}
       </section>
     ));

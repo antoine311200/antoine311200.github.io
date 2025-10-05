@@ -5,46 +5,47 @@ import '../App.css';
 import Template from '../components/template';
 import { FaGithub, FaTwitter, FaLinkedin, FaKaggle, FaEnvelope, FaCode } from 'react-icons/fa';
 
-
-const LinkComponent = ({ href, text, icon }) => {
-  return (
-    <div className="flex items-left space-x-4">
-      {icon}
-      <a
-        className="text-gray-800 text-left"
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {text}
-      </a>
-    </div>
-  );
-}
-
 export default function App() {
-
   useEffect(() => {
-    document.title = `Contact | Antoine Debouchage`;
+    document.title = `Contact - Antoine Debouchage`;
   }, []);
+
+
+  const contacts = [
+    { icon: <FaEnvelope />, label: 'Email', link: 'mailto:antoine311200@gmail.com' },
+    { icon: <FaLinkedin />, label: 'LinkedIn', link: 'https://www.linkedin.com/in/antoine-debouchage/' },
+    { icon: <FaGithub />, label: 'GitHub', link: 'https://github.com/antoine311200' },
+    { icon: <FaTwitter />, label: 'Twitter', link: 'https://twitter.com/antoine311200' },
+    { icon: <FaKaggle />, label: 'Kaggle', link: 'https://www.kaggle.com/antoinedebouchage' },
+    { icon: <FaCode />, label: 'LeetCode', link: 'https://leetcode.com/antoine311200/' },
+  ];
+
 
   return (
     <Template>
-      <div className="flex flex-col justify-center mx-4 md:mx-10 mt-10 text-center bg-white rounded-lg p-4 md:p-10">
-        <h1 className="text-3xl font-bold text-gray-800 mb-12">Contact Me</h1>
+      <div className="min-h-screen flex flex-col items-center px-6 py-24">
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-6 text-orange-400">Contact Me</h1>
+        <p className="text-center max-w-xl text-gray-300 mb-16">
+          Feel free to reach out via any of the platforms below or send me an email. I'm always open to collaboration, questions, or discussions about research, projects, or tech.
+        </p>
 
-        <div className="flex flex-col items-center justify-center md:flex-row space-x-12">
-          <div className="flex flex-col items-left space-y-4 text-sm md:text-base">
-            <LinkComponent href="https://github.com/antoine311200" text="Github @antoine311200" icon={<FaGithub size={24} className='text-grey-500' />} />
-            <LinkComponent href="https://twitter.com/antoine311200" text="Twitter @antoine311200" icon={<FaTwitter size={24} className='text-grey-500' />} />
-            <LinkComponent href="https://www.kaggle.com/antoinedebouchage" text="Kaggle @antoinedebouchage" icon={<FaKaggle size={24} className='text-grey-500' />} />
-            <LinkComponent href="https://www.linkedin.com/in/antoine-debouchage/" text="LinkedIn Antoine Debouchage" icon={<FaLinkedin size={24} className='text-grey-500' />} />
-            <LinkComponent href="https://leetcode.com/u/antoine311200/" text="Leetcode antoine311200" icon={<FaCode size={24} className='text-grey-500' />} />
-            <div className="h-10"></div>
-            <LinkComponent href="mailto:antoine311200@gmail.com" text="antoine311200@gmail.com" icon={<FaEnvelope size={24} className='text-grey-500' />} />
-            {/* <LinkComponent href="mailto:antoine.debouchage@student-cs.fr" text="antoine.debouchage@student-cs.fr" icon={<FaEnvelope size={24} className='text-grey-500' />} />
-            <LinkComponent href="mailto:antoine.debouchage@ens-paris-saclay.fr" text="antoine.debouchage@ens-paris-saclay.fr" icon={<FaEnvelope size={24} className='text-grey-500' />} /> */}
-          </div>
+
+        <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-6">
+          {contacts.map((c) => (
+            <a
+              key={c.label}
+              href={c.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full 
+             bg-white/10 text-gray-100 text-sm
+             hover:bg-white/20 hover:shadow-lg
+             transition-colors duration-200"
+            >
+              <span className="text-xl">{c.icon}</span>
+              <span className="font-medium text-gray-100">{c.label}</span>
+            </a>
+          ))}
         </div>
       </div>
     </Template>

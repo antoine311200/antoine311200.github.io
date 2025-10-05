@@ -112,7 +112,7 @@ const SentenceTrainer = () => {
             <div className="flex flex-col items-center gap-10">
                 <h1 className="fixed px-10 text-2xl lg:text-4xl text-white text-center">{sentence}</h1>
                 {/* {sentence != furiganaSentence && isToggledSentence && <h1 className="fixed text-3xl text-white text-center top-40">{furiganaSentence}</h1>} */}
-                {isToggledSentence && <h1 className="fixed text-xl lg:text-3xl text-white text-center bottom-[50%] px-8">{meaningSentence}</h1>}
+                {isToggledSentence && <h1 className="fixed text-xl lg:text-3xl text-white text-center bottom-0 lg:bottom-[50%] px-8">{meaningSentence}</h1>}
                 {/* Add level badge */}
                 <div className="absolute top-[22%]">
                     <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">{levelSentence}</span>

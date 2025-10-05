@@ -199,3 +199,7 @@ code {
 .markdown > * {
   all: revert;
 }
+
+
+
+.katex { font-size: 1em !important; }
