@@ -17,6 +17,13 @@ function useStickyState(defaultVal, key) {
     return [val, setVal];
 }
 
+// Create slices of 100 characters from 0 to 2000
+const profilesBy100 = {};
+for (let i = 0; i < 20; i++) {
+    const start = i * 100;
+    const end = start + 100;
+    profilesBy100[`Set 100 #${i + 1}`] = data.slice(start, end);
+}
 const profile1000 = data.slice(0, 1000);
 const profile2000 = data.slice(1000, 2000);
 const profile3000 = data.slice(2000, 3000);
@@ -92,6 +99,7 @@ export default function MandallApp() {
     const [showFront, setShowFront] = useState(true);
 
     const [profiles, setProfiles] = useStickyState({
+        ...profilesBy100,
         "Set 1k": profile1000,
         "Set 2k": profile2000,
         "Set 3k": profile3000,

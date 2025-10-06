@@ -5,11 +5,11 @@ import { dark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import React from 'react';
 
 const article_tree_ml = {
-  title: 'Most Of ML : Tree based algorithms (decision trees, random forest, gradient boosting)',
+  title: 'Tree based algorithms (decision trees, random forest, gradient boosting)',
   date: '21 October 2023',
   description: 'A short and concise guide to tree based algorithms in machine learning (decision trees, random forest, gradient boosting)',
   keywords: ['Mathematics', 'Machine Learning', 'Algorithms'],
-  imagePath: '/images/decision_trees/banner.PNG',
+  imagePath: '/images/decision_trees/banner2.PNG',
   content: [
     {
       id: 'introduction',
