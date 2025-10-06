@@ -16,28 +16,39 @@ const Snippet = ({ title = "Title", date, description, keywords, imagePath = "ba
             <div className="container mx-auto p-3 hover:shadow-sm">
                 <div
                     key={title}
-                    className="pl-3 flex items-start gap-6 hover:bg-white/5 rounded-xl p-3 transition-all duration-100
-                    border border-slate-700 hover:border-slate-600 border-opacity-60"
+                    className="flex flex-col md:flex-row items-start gap-4 md:gap-6 
+                            hover:bg-white/5 rounded-xl p-3 md:p-4 transition-all duration-100
+                            border border-slate-700 hover:border-slate-600 border-opacity-60"
                 >
-                    <div className="flex-shrink-0">
-                        <img className="w-80 h-fit object-cover rounded" src={imagePath} alt="Modern building architecture" />
+                    <div className="w-full md:w-auto flex-shrink-0">
+                        <img
+                            className="w-full md:w-80 h-auto object-cover rounded-md"
+                            src={imagePath}
+                            alt={title}
+                        />
                     </div>
-                    <div className="flex-1">
+
+                    <div className="flex-1 mt-3 md:mt-0">
                         <p className="text-slate-200 text-base md:text-lg font-semibold leading-tight">
                             {title}
                         </p>
                         <p className="text-orange-300 text-xs italic">{date}</p>
-                        <p className="text-slate-300 text-sm">{description}</p>
+                        <p className="text-slate-300 text-sm mt-1">{description}</p>
 
                         <ul className="text-slate-300 list-disc list-inside ml-1 md:ml-2 text-xs mt-2 space-y-1">
-                            {
-                                keywords.slice(0, 3).map((keyword, index) => (
-                                    <span key={index} style={{ fontSize: "9px" }} className="inline-block rounded-full px-2 py-1 font-semibold text-slate-300 mr-1 mb-1 border border-gray-300">{keyword}</span>
-                                ))
-                            }
+                            {keywords.slice(0, 3).map((keyword, index) => (
+                                <span
+                                    key={index}
+                                    style={{ fontSize: '9px' }}
+                                    className="inline-block rounded-full px-2 py-1 font-semibold text-slate-300 mr-1 mb-1 border border-gray-300"
+                                >
+                                    {keyword}
+                                </span>
+                            ))}
                         </ul>
                     </div>
                 </div>
+
                 {/* <div style={{ height: "430px" }} className="container max-w-md mx-auto bg-white rounded-md shadow-md overflow-hidden transition-transform transform hover:scale-105">
                     <div className="flex-shrink-0">
                         <img className="w-full h-32 object-cover" src={imagePath} alt="Modern building architecture" />
@@ -117,7 +128,7 @@ const Blog = ({ dataArticles }) => {
                     </div>
                 </div>
                 <hr className="my-4" />
-                <TransitionGroup className="grid grid-cols-1  gap-4">
+                <TransitionGroup className="grid grid-cols-1 gap-4">
                     {/* md:grid-cols-2 lg:grid-cols-3 */}
                     {filteredArticles.map((item, index) => (
                         <CSSTransition
@@ -130,6 +141,7 @@ const Blog = ({ dataArticles }) => {
                     ))}
                 </TransitionGroup>
             </div>
+            <div className="h-10"></div>
         </Template>
     );
 };
