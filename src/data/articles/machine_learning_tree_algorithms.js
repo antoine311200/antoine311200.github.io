@@ -9,7 +9,7 @@ const article_tree_ml = {
   date: '21 October 2023',
   description: 'A short and concise guide to tree based algorithms in machine learning (decision trees, random forest, gradient boosting)',
   keywords: ['Mathematics', 'Machine Learning', 'Algorithms'],
-  imagePath: '/images/decision_trees/banner2.PNG',
+  imagePath: '/images/decision_trees/banner2.png',
   content: [
     {
       id: 'introduction',
