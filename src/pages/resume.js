@@ -80,7 +80,7 @@ const educations = [
         title: 'Ecole Normale Supérieure - Paris Saclay',
         company: 'MVA - Master of Science in Applied Mathematics',
         location: 'Gif-sur-Yvette, France',
-        date: '09/2023 - Present',
+        date: '09/2023 - 12/2024',
         description: [
             'Master : Mathematics - Vision - Learning',
             'Master of Science in applied mathematics, machine learning and deep learning'
@@ -90,7 +90,7 @@ const educations = [
         title: 'CentraleSupélec',
         company: 'Master of Science in Engineering & Data Science',
         location: 'Gif-sur-Yvette, France',
-        date: '09/2020 - Present',
+        date: '09/2020 - 12/2024',
         description: [
             'Student in engineering, mathematics and data science.',
             'Studied measure theory, probability, PDE, signal processing, statistics and machine learning'
