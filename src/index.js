@@ -12,8 +12,6 @@ import Resume from './pages/resume';
 import Article from './components/article';
 import Contact from './pages/contact';
 import Hobbies from './pages/hobbies';
-import BlogItem from './components/blogitem';
-
 
 import './index.css';
 import JapaneseApp from './pages/japanese/secret';
@@ -27,24 +25,62 @@ import EditorApp from './pages/editor/editor';
 import TonePracticeApp from './pages/toner/toner';
 import MandallApp from './pages/mandall/mandall';
 
+import { parseFrontMatter } from './utils/articleUtils';
 
-const articleModules = [];
+// ─── Load JS articles (synchronous) ──────────────────────────────────────────
+
+const jsArticles = [];
 const requireArticle = require.context('./data/articles', false, /.js$/);
-
 requireArticle.keys().forEach((filename) => {
   const article = requireArticle(filename).default;
-
-  articleModules.push(article);
+  if (article) jsArticles.push({ ...article, isMd: false });
 });
 
-const dataArticles = [...articleModules];
+// ─── Load MD article file URLs ─────────────────────────────────────────────────
 
-const blogArticles = require.context('./data/articles', false, /.md$/).keys().map((path) => path.replace('./', ''));
-console.log('Blog articles:', blogArticles);
+const mdFileUrls = {};
+const requireMd = require.context('./data/articles', false, /.md$/);
+requireMd.keys().forEach((key) => {
+  const filename = key.replace('./', '');
+  mdFileUrls[filename] = requireMd(key);
+});
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  // <React.StrictMode>
+// ─── Fetch MD front matter for blog listing ────────────────────────────────────
+
+async function loadMdArticles() {
+  const entries = Object.entries(mdFileUrls);
+  const results = await Promise.all(
+    entries.map(async ([filename, url]) => {
+      try {
+        const text = await fetch(url).then(r => r.text());
+        const { meta } = parseFrontMatter(text);
+        if (!meta.title) return null;
+        return {
+          title: meta.title,
+          date: meta.date || '',
+          description: meta.description || '',
+          imagePath: meta.imagepath || '',
+          keywords: meta.tags
+            ? meta.tags.split(',').map(t => t.trim()).filter(Boolean)
+            : [],
+          isMd: true,
+          fileUrl: url,
+          filename,
+        };
+      } catch (err) {
+        console.error(`Failed to load article metadata for ${filename}:`, err);
+        return null;
+      }
+    })
+  );
+  return results.filter(Boolean);
+}
+
+// ─── Bootstrap ────────────────────────────────────────────────────────────────
+
+function renderApp(allArticles) {
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(
     <HashRouter basename="/">
       <Routes>
         <Route path="/" element={<App />} />
@@ -52,12 +88,8 @@ root.render(
         <Route path="/projects" element={<Project />} />
         <Route path="/publications" element={<Publication />} />
         <Route path="/papers" element={<Paper />} />
-        <Route path="/blog" element={<Blog dataArticles={dataArticles} />} />
-        <Route
-          path="/blog/:title"
-          element={<Article data={dataArticles}/>}
-        />
-        <Route path="/item" element={<BlogItem filename={blogArticles[1]}/>} />
+        <Route path="/blog" element={<Blog dataArticles={allArticles} />} />
+        <Route path="/blog/:title" element={<Article data={allArticles} />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/hobbies" element={<Hobbies />} />
         <Route path="/doot" element={<DootApp />} />
@@ -72,10 +104,16 @@ root.render(
         <Route path="/mandall" element={<MandallApp />} />
       </Routes>
     </HashRouter>
-  // </React.StrictMode>
-);
+  );
+}
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+loadMdArticles()
+  .then(mdArticles => {
+    renderApp([...jsArticles, ...mdArticles]);
+  })
+  .catch(err => {
+    console.error('Failed to load MD articles, falling back to JS articles only:', err);
+    renderApp(jsArticles);
+  });
+
 reportWebVitals();
