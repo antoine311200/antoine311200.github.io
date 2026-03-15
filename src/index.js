@@ -11,6 +11,8 @@ import Publication from './pages/publication';
 import Resume from './pages/resume';
 import Article from './components/article';
 import Contact from './pages/contact';
+import Hobbies from './pages/hobbies';
+import BlogItem from './components/blogitem';
 
 
 import './index.css';
@@ -25,6 +27,7 @@ import EditorApp from './pages/editor/editor';
 import TonePracticeApp from './pages/toner/toner';
 import MandallApp from './pages/mandall/mandall';
 
+
 const articleModules = [];
 const requireArticle = require.context('./data/articles', false, /.js$/);
 
@@ -36,6 +39,8 @@ requireArticle.keys().forEach((filename) => {
 
 const dataArticles = [...articleModules];
 
+const blogArticles = require.context('./data/articles', false, /.md$/).keys().map((path) => path.replace('./', ''));
+console.log('Blog articles:', blogArticles);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -52,7 +57,9 @@ root.render(
           path="/blog/:title"
           element={<Article data={dataArticles}/>}
         />
+        <Route path="/item" element={<BlogItem filename={blogArticles[1]}/>} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/hobbies" element={<Hobbies />} />
         <Route path="/doot" element={<DootApp />} />
         <Route path="/reil" element={<ReilApp />} />
         <Route path="/secret" element={<JapaneseApp />} />

@@ -23,22 +23,22 @@ export default function App() {
 
   return (
     <Template>
-      <div className="min-h-screen flex flex-col items-center px-6 py-24">
+      <div className="flex flex-col items-center px-6 py-12 md:py-24">
         <h1 className="text-4xl sm:text-5xl font-extrabold mb-6 text-orange-400">Contact Me</h1>
-        <p className="text-center max-w-xl text-gray-300 mb-16">
+        <p className="text-center max-w-xl text-gray-300 mb-8 md:mb-16">
           Feel free to reach out via any of the platforms below or send me an email. I'm always open to collaboration, questions, or discussions about research, projects, or tech.
         </p>
 
 
-        <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-6">
+        <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 md:gap-6">
           {contacts.map((c) => (
             <a
               key={c.label}
               href={c.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full 
-             bg-white/10 text-gray-100 text-sm
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full
+             bg-white/10 text-gray-100 text-xs md:text-sm
              hover:bg-white/20 hover:shadow-lg
              transition-colors duration-200"
             >

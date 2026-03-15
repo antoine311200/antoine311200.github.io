@@ -203,3 +203,7 @@ code {
 
 
 .katex { font-size: 1em !important; }
+
+.markdown > * {
+  all: revert;
+}

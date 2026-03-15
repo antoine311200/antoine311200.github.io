@@ -7,6 +7,17 @@ import { LuTestTube2 } from "react-icons/lu";
 
 const experiences = [
     {
+        title: 'PhD Student',
+        company: 'Barclays x LaMME',
+        location: 'Paris, France',
+        date: '12/2025 - Present',
+        description: [
+            "Cifre PhD program between Barclays and the Laboratoire de Mathématiques et de Modélisation d'Evry under the supervision of Zhenjie Ren and François Buet-Golfouse",
+            "Statistical learning for quantitative finance, optimal transport, probability and machine learning.",
+        ],
+        image: ''
+    },
+    {
         title: 'Research Intern',
         company: 'Riken AIP - Tensor Learning Team',
         location: 'Tokyo, Japan',
@@ -76,6 +87,16 @@ const experiences = [
 ];
 
 const educations = [
+    {
+        title: 'Ecole Doctorale de Mathématiques Hadamard',
+        company: 'PhD in Applied Mathematics',
+        location: 'Gif-sur-Yvette, France',
+        date: '12/2025 - Present',
+        description: [
+            'PhD : Applied Mathematics - Quantitative Finance - Machine Learning - Probability',
+            'Supervisors : Zhenjie Ren (LaMME) and François Buet-Golfouse (Barclays)',
+        ]
+    },
     {
         title: 'Ecole Normale Supérieure - Paris Saclay',
         company: 'MVA - Master of Science in Applied Mathematics',
