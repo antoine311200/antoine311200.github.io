@@ -9,7 +9,7 @@ import 'katex/dist/katex.min.css';
 
 import Template from './template';
 import Callout from './callout';
-import { parseFrontMatter, slugify, readingTime, buildToc } from '../utils/articleUtils';
+import { parseFrontMatter, slugify, readingTime } from '../utils/articleUtils';
 
 // ─── Typography constants ──────────────────────────────────────────────────────
 
@@ -17,34 +17,43 @@ import { parseFrontMatter, slugify, readingTime, buildToc } from '../utils/artic
 const ARTICLE_FONT = '"EB Garamond", "Palatino Linotype", Georgia, serif';
 const SANS_FONT    = 'system-ui, -apple-system, sans-serif';
 
+// ─── Stable plugin arrays ─────────────────────────────────────────────────────
+// Defined at module level so they are the SAME reference on every render.
+// If defined inline as JSX props (e.g. remarkPlugins={[remarkGfm, remarkMath]}),
+// a new array is created each render, ReactMarkdown sees a prop change, and
+// re-runs the full markdown pipeline (KaTeX + syntax highlighting) every time.
+const REMARK_PLUGINS = [remarkGfm, remarkMath];
+const REHYPE_PLUGINS = [rehypeKatex];
+
 // ─── Table of Contents ────────────────────────────────────────────────────────
 
-function TocItem({ node, depth, activeId }) {
-  const isActive = activeId === node.id;
+function TocItem({ node, depth }) {
+  const scrollTo = () => {
+    const el = document.getElementById(node.id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <li className="list-none">
-      <a
-        href={`#${node.id}`}
-        className={`block py-[3px] leading-snug transition-all duration-150 no-underline
-          ${isActive
-            ? 'text-orange-300 font-medium'
-            : 'text-slate-400 hover:text-slate-200'
-          }`}
+      <button
+        onClick={scrollTo}
+        className="block w-full text-left py-[3px] leading-snug text-slate-400 hover:text-slate-200 transition-colors duration-100"
         style={{
           fontSize: depth === 0 ? '12.5px' : '11.5px',
           paddingLeft: `${depth * 12}px`,
-          borderLeft: isActive ? '2px solid rgb(251 146 60)' : '2px solid transparent',
           paddingRight: '4px',
           fontFamily: SANS_FONT,
-          textDecoration: 'none',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
         }}
       >
         {node.title}
-      </a>
+      </button>
       {node.children?.length > 0 && (
         <ul className="p-0 m-0">
           {node.children.map(c => (
-            <TocItem key={c.id} node={c} depth={depth + 1} activeId={activeId} />
+            <TocItem key={c.id} node={c} depth={depth + 1} />
           ))}
         </ul>
       )}
@@ -52,19 +61,13 @@ function TocItem({ node, depth, activeId }) {
   );
 }
 
-function TableOfContents({ toc, activeId }) {
+function TableOfContents({ toc }) {
   if (!toc?.length) return null;
   return (
     <nav>
-      <p
-        className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 mb-3"
-        style={{ fontFamily: SANS_FONT }}
-      >
-        Contents
-      </p>
       <ul className="p-0 m-0 space-y-0.5">
         {toc.map(node => (
-          <TocItem key={node.id} node={node} depth={0} activeId={activeId} />
+          <TocItem key={node.id} node={node} depth={0} />
         ))}
       </ul>
     </nav>
@@ -73,7 +76,7 @@ function TableOfContents({ toc, activeId }) {
 
 // ─── Mobile TOC (collapsible) ─────────────────────────────────────────────────
 
-function MobileToc({ toc, activeId }) {
+function MobileToc({ toc }) {
   if (!toc?.length) return null;
   return (
     <div className="md:hidden mb-8 rounded-xl border border-slate-700/60 overflow-hidden">
@@ -98,7 +101,7 @@ function MobileToc({ toc, activeId }) {
           </svg>
         </summary>
         <div className="px-4 py-4 bg-slate-900/40">
-          <TableOfContents toc={toc} activeId={activeId} />
+          <TableOfContents toc={toc} />
         </div>
       </details>
     </div>
@@ -215,33 +218,37 @@ export default function MarkdownRenderer({ fileUrl, source: sourceProp }) {
   }, [fileUrl, sourceProp]);
 
   const { meta, body } = useMemo(() => parseFrontMatter(rawSource), [rawSource]);
-  const toc = useMemo(() => buildToc(body), [body]);
 
-  // Track which heading is currently in view
-  const [activeId, setActiveId] = useState('');
+  // Build TOC from the rendered DOM — more reliable than regex-parsing the raw
+  // source, because the heading elements are already in the page with correct
+  // ids set by makeHeading(), regardless of line-ending or encoding quirks.
+  const [toc, setToc] = useState([]);
+  const [tocOpen, setTocOpen] = useState(true);
+
+  // Build TOC from the rendered DOM after ReactMarkdown paints.
   useEffect(() => {
     if (!body) return;
-    // Small delay so DOM is populated after ReactMarkdown renders
     const timer = setTimeout(() => {
-      const headingEls = document.querySelectorAll(
+      const headingEls = Array.from(document.querySelectorAll(
         'article.md-article h1[id], article.md-article h2[id], article.md-article h3[id], article.md-article h4[id]'
-      );
+      ));
       if (!headingEls.length) return;
-
-      const observer = new IntersectionObserver(
-        entries => {
-          const visible = entries
-            .filter(e => e.isIntersecting)
-            .sort((a, b) => a.target.getBoundingClientRect().top - b.target.getBoundingClientRect().top);
-          if (visible.length > 0) setActiveId(visible[0].target.id);
-        },
-        { rootMargin: '-72px 0px -65% 0px', threshold: 0 }
-      );
-
-      headingEls.forEach(el => observer.observe(el));
-      return () => observer.disconnect();
-    }, 120);
-
+      const flat = headingEls.map(el => ({
+        id: el.id,
+        title: el.textContent.trim(),
+        level: parseInt(el.tagName[1], 10),
+        children: [],
+      }));
+      const root = [];
+      const stack = [{ level: 0, children: root }];
+      for (const h of flat) {
+        while (stack.length > 1 && h.level <= stack[stack.length - 1].level) stack.pop();
+        const node = { ...h };
+        stack[stack.length - 1].children.push(node);
+        stack.push(node);
+      }
+      setToc(root);
+    }, 300);
     return () => clearTimeout(timer);
   }, [body]);
 
@@ -251,10 +258,12 @@ export default function MarkdownRenderer({ fileUrl, source: sourceProp }) {
   );
   const estReadTime = useMemo(() => readingTime(body), [body]);
 
-  // ── Heading styles ─────────────────────────────────────────────────────────
-  // Use EB Garamond for headings too – gives the scholarly feel.
+  // ── Markdown component map ─────────────────────────────────────────────────
+  // Wrapped in useMemo so the object reference is stable across re-renders
+  // caused by unrelated state changes (e.g. tocOpen). ReactMarkdown bails out
+  // of re-rendering the whole article when components hasn't changed.
   const headingBase = { fontFamily: ARTICLE_FONT };
-  const markdownComponents = {
+  const markdownComponents = useMemo(() => ({
     h1: makeHeading(1, {
       className: 'text-slate-100 mt-12 mb-5 pb-2 border-b border-slate-700/50 font-semibold',
       css: { ...headingBase, fontSize: '2rem', lineHeight: 1.25 },
@@ -392,7 +401,8 @@ export default function MarkdownRenderer({ fileUrl, source: sourceProp }) {
         )}
       </figure>
     ),
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [body]); // body is the only dependency (used by CalloutBlockquote)
 
   // ── Loading skeleton ────────────────────────────────────────────────────────
   if (!rawSource) {
@@ -411,7 +421,7 @@ export default function MarkdownRenderer({ fileUrl, source: sourceProp }) {
   // ── Article ─────────────────────────────────────────────────────────────────
   return (
     <Template iconColor="black">
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-10">
+      <div className="max-w-[90rem] mx-auto px-6 sm:px-10 lg:px-16 py-10">
 
         {/* ── Back button ── */}
         <div className="mb-6">
@@ -480,30 +490,81 @@ export default function MarkdownRenderer({ fileUrl, source: sourceProp }) {
         </header>
 
         {/* ── Mobile TOC ── */}
-        <MobileToc toc={toc} activeId={activeId} />
+        <MobileToc toc={toc} />
 
-        {/* ── Desktop TOC — fixed, viewport-relative (same pattern as JSArticleRenderer) ── */}
-        {toc.length > 0 && (
-          <div className="hidden lg:block lg:fixed lg:right-4 lg:top-28 w-52 z-30">
-            <div
-              className="bg-slate-900/90 backdrop-blur-md border border-slate-700 rounded-xl p-4 shadow-2xl overflow-y-auto"
-              style={{ maxHeight: 'calc(100vh - 8rem)' }}
+        {/* ── Body + sidebar ── */}
+        {/*
+          Correct CSS sticky-sidebar pattern inside flex:
+          • align-self: flex-start  →  the aside is only as tall as its content.
+            Without this the aside stretches to the article height, the sticky
+            element has nowhere to travel, and sticky never activates.
+          • position: sticky + top  →  sticks within the tall flex container.
+          • The aside is ALWAYS rendered on lg+ so it is never silently hidden
+            by a conditional that could be false at mount time.
+        */}
+        <div className="flex gap-10 xl:gap-16">
+
+          {/* Article */}
+          <article className="md-article flex-1 min-w-0">
+            <ReactMarkdown
+              remarkPlugins={REMARK_PLUGINS}
+              rehypePlugins={REHYPE_PLUGINS}
+              components={markdownComponents}
             >
-              <TableOfContents toc={toc} activeId={activeId} />
-            </div>
-          </div>
-        )}
+              {body}
+            </ReactMarkdown>
+          </article>
 
-        {/* ── Article body — right padding reserves space for the fixed TOC on lg+ ── */}
-        <article className="md-article lg:pr-64">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm, remarkMath]}
-            rehypePlugins={[rehypeKatex]}
-            components={markdownComponents}
+          {/* TOC sidebar — fixed width, collapses vertically only */}
+          <aside
+            className="hidden lg:block w-52 flex-shrink-0"
+            style={{ alignSelf: 'flex-start', position: 'sticky', top: '5rem' }}
           >
-            {body}
-          </ReactMarkdown>
-        </article>
+            <div
+              className="rounded-xl border border-slate-700 overflow-hidden"
+              style={{ background: 'rgb(13,20,38)' }}
+            >
+              {/* Header — always visible, click chevron to toggle */}
+              <button
+                onClick={() => setTocOpen(o => !o)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/[0.03] transition-colors"
+              >
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500"
+                  style={{ fontFamily: SANS_FONT }}
+                >
+                  Contents
+                </span>
+                <svg
+                  className="w-3 h-3 text-slate-600 transition-transform duration-200 flex-shrink-0"
+                  style={{ transform: tocOpen ? 'rotate(0deg)' : 'rotate(180deg)' }}
+                  fill="none" viewBox="0 0 10 6"
+                >
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="m1 1 4 4 4-4" />
+                </svg>
+              </button>
+
+              {/* List — CSS max-height transition, always in DOM (no remount cost) */}
+              <div
+                className="border-t border-slate-800/60 overflow-hidden"
+                style={{
+                  maxHeight: tocOpen ? '70vh' : '0px',
+                  transition: 'max-height 0.22s ease',
+                }}
+              >
+                <div className="px-4 py-3 overflow-y-auto" style={{ maxHeight: '70vh' }}>
+                  {toc.length > 0
+                    ? <TableOfContents toc={toc} />
+                    : <p className="text-slate-700 text-xs" style={{ fontFamily: SANS_FONT }}>
+                        {rawSource ? '—' : 'Loading…'}
+                      </p>
+                  }
+                </div>
+              </div>
+            </div>
+          </aside>
+
+        </div>
       </div>
     </Template>
   );
