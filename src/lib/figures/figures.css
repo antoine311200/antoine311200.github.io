@@ -47,6 +47,27 @@
   overflow: hidden;
 }
 
+.figx__frame:focus-visible {
+  outline: 2px solid var(--figx-accent-soft);
+  outline-offset: 2px;
+}
+
+/* In fullscreen the stage takes whatever is left after the chrome. */
+.figx__frame:fullscreen,
+.figx__frame:-webkit-full-screen {
+  display: flex;
+  flex-direction: column;
+  border: 0;
+  border-radius: 0;
+  background: var(--figx-bg);
+}
+.figx__frame:fullscreen .figx__stage,
+.figx__frame:-webkit-full-screen .figx__stage {
+  flex: 1 1 auto;
+  height: auto !important;
+  aspect-ratio: auto !important;
+}
+
 /* ── toolbar ─────────────────────────────────────────────────────────────── */
 
 .figx__bar {
@@ -376,18 +397,72 @@
 }
 .figx__toggle[aria-pressed="true"] .figx__dot { background: var(--figx-accent); }
 
-.figx__select {
+/* listbox — replaces the native select, whose popup the OS themes itself */
+.figx__combo { display: block; position: relative; }
+
+.figx__combo-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 100%;
   font-family: inherit;
   font-size: 11px;
+  text-align: left;
   color: var(--figx-fg);
   background: rgba(2, 6, 23, 0.5);
   border: 1px solid var(--figx-border);
   border-radius: var(--figx-radius-sm);
   padding: 5px 7px;
   cursor: pointer;
+  transition: border-color .15s, background-color .15s;
 }
-.figx__select:focus-visible { outline: 2px solid var(--figx-accent-soft); outline-offset: 1px; }
+.figx__combo-btn:hover { border-color: var(--figx-border-strong); }
+.figx__combo-btn[aria-expanded="true"] {
+  border-color: rgba(251, 146, 60, 0.5);
+  background: rgba(2, 6, 23, 0.75);
+}
+.figx__combo-btn:focus-visible { outline: 2px solid var(--figx-accent-soft); outline-offset: 1px; }
+
+.figx__combo-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.figx__combo-caret { width: 9px; height: 6px; flex: none; color: var(--figx-faint); }
+.figx__combo-btn[aria-expanded="true"] .figx__combo-caret { color: var(--figx-accent-fg); }
+
+.figx__combo-list {
+  position: fixed;
+  z-index: 60;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  overflow-y: auto;
+  background: #0d1425;
+  border: 1px solid var(--figx-border-strong);
+  border-radius: var(--figx-radius-sm);
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.65);
+}
+.figx__combo-list:focus { outline: none; }
+
+.figx__combo-opt {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--figx-muted);
+  padding: 5px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.figx__combo-opt--active { background: rgba(148, 163, 184, 0.12); color: var(--figx-fg); }
+.figx__combo-opt--selected { color: var(--figx-accent-fg); }
+.figx__combo-tick { width: 8px; flex: none; text-align: center; }
 
 .figx__toggles { display: flex; flex-wrap: wrap; gap: 6px; }
 

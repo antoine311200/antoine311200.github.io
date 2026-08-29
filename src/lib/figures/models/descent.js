@@ -219,6 +219,21 @@ export default defineModel({
     } },
   ],
 
+  // The loss curve is the plot every optimiser paper prints, and it comes from
+  // one declaration per optimiser. `visible` keeps a curve out of the strip
+  // when its toggle is off, and `log: true` puts it on the usual log axis.
+  traces: OPTIMS.map(o => ({
+    id: o.id,
+    label: o.label,
+    color: o.color,
+    visible: p => p[o.id],
+    value: (state) => {
+      const w = state.walkers.find(x => x.id === o.id);
+      return w && !w.dead ? Math.max(1e-12, w.loss) : NaN;
+    },
+  })),
+  traceOptions: { height: 0.3, window: 900, log: true, yLabel: 'log₁₀ f', xLabel: 'iterations' },
+
   init(params) {
     const surface = SURFACES[params.surface] || SURFACES.bowl;
     const state = {

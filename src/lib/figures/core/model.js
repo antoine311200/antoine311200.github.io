@@ -1,4 +1,5 @@
 import { normalizeSpecs } from './params';
+import { withTraces } from './traces';
 
 /**
  * The model contract.
@@ -40,6 +41,8 @@ export function defineModel(def) {
       throw new Error(`defineModel("${def.id || def.name || '?'}"): missing required ${fn}()`);
     }
   }
+  const src = def.traces && def.traces.length ? withTraces(def) : def;
+
   return {
     id: def.id || def.name,
     name: def.name || def.id,
@@ -47,7 +50,7 @@ export function defineModel(def) {
     rate: def.rate || 60,
     presets: def.presets || [],
     actions: def.actions || [],
-    ...def,
+    ...src,
     params: normalizeSpecs(def.params || []),
   };
 }

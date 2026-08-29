@@ -101,6 +101,14 @@ export default defineModel({
     { name: 'Gas',      values: { separation: 2.6, alignment: 0.0, cohesion: 0.0, perception: 25, personal: 22, count: 160 } },
   ],
 
+  traces: [
+    { id: 'order', label: 'circulation', tex: '|L|', color: '#fb923c',
+      value: state => state.order },
+    { id: 'cluster', label: 'clustering', tex: '|\\bar{p}|', color: '#38bdf8', dash: [5, 3],
+      value: state => state.clustering },
+  ],
+  traceOptions: { height: 0.24, window: 700, range: [0, 1] },
+
   init(params, rng) {
     const agents = [];
     for (let i = 0; i < params.count; i++) agents.push(spawn(rng, params));

@@ -115,6 +115,15 @@ export default defineModel({
     { name: 'Gas',       values: { separation: 3.00, alignment: 0.00, cohesion: 0.00, perception: 40, separationRadius: 34, fieldOfView: 360, count: 200 } },
   ],
 
+  // The order parameter is the interesting number, and a number is much easier
+  // to read as a curve than as a digit that flickers. Declaring it here is all
+  // it takes: the library reserves the strip, samples per step and plots it.
+  traces: [
+    { id: 'order', label: 'order', tex: '\\varphi', color: '#fb923c',
+      value: state => state.order },
+  ],
+  traceOptions: { height: 0.24, window: 700, range: [0, 1] },
+
   init(params, rng, env) {
     const agents = [];
     for (let i = 0; i < params.count; i++) agents.push(spawn(rng, env, params));

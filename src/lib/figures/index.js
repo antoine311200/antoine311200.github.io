@@ -19,12 +19,14 @@ export { default as Figure } from './react/Figure';
 export { default as useFigure } from './react/useFigure';
 export { default as FigureBlock } from './react/FigureBlock';
 export { default as LabelLayer } from './react/LabelLayer';
+export { default as Select } from './react/Select';
 export { default as TexLabel, RichText } from './react/TexLabel';
 
 export { defineModel } from './core/model';
 export { definePlot } from './core/definePlot';
 export { default as Engine } from './core/engine';
-export { createPlot, autoRange, niceTicks } from './core/plot';
+export { createPlot, panelRects, autoRange, niceTicks } from './core/plot';
+export { withTraces } from './core/traces';
 export {
   createScene, makeCamera, orbitFromPointer,
   add, sub, scale, dot, cross, len, normalize, rotateAbout, tangent,
@@ -38,4 +40,5 @@ export { parseFigureSpec } from './core/spec';
 export {
   models, boids, life, pendulum, harmonic, fourier,
   bloch, sphereflock, descent, lorenz, clt,
+  phase, spectrum, ising,
 } from './models';

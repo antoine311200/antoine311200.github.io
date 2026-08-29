@@ -102,6 +102,14 @@ export default defineModel({
     { name: 'Damped',      values: { damping: 0.12, copies: 4, theta1: 150, theta2: 160 } },
   ],
 
+  // Exponential divergence is the claim; a log-scale trace is the evidence.
+  traces: [
+    { id: 'sep', label: 'tip separation', tex: '\\|\\Delta\\|', color: '#fb923c',
+      visible: p => p.copies > 1,
+      value: state => (state.divergence > 0 ? state.divergence : NaN) },
+  ],
+  traceOptions: { height: 0.24, window: 900, log: true, yLabel: 'log₁₀' },
+
   init(params) {
     const bodies = [];
     for (let i = 0; i < params.copies; i++) {

@@ -27,8 +27,15 @@ models/   the figures themselves
 figures.css
 ```
 
-Seven models ship with it: `boids`, `game-of-life`, `double-pendulum`,
-`harmonic-oscillator`, `fourier-series`, `bloch-sphere`, `sphere-flock`.
+Thirteen models ship with it:
+
+| | |
+| --- | --- |
+| 2D simulation | `boids`, `game-of-life`, `ising` |
+| ODE / chaos | `double-pendulum`, `phase-portrait`, `lorenz` |
+| plots | `harmonic-oscillator`, `fourier-series`, `spectrum` |
+| 3D | `bloch-sphere`, `sphere-flock`, `lorenz` |
+| statistics & ML | `central-limit`, `gradient-descent` |
 
 ## Two kinds of figure
 
@@ -118,6 +125,12 @@ series) come for free. `core/plot.js` is also usable directly from a
 Everything else is live: dragging a slider reshapes the running simulation.
 Prefer absorbing a change in `sync` over marking it `reinit` — `boids` grows
 and shrinks its population in place rather than restarting.
+
+## Toolbar and keyboard
+
+Play/pause, single-step, restart (same seed), reseed, fullscreen, and playback
+speed from 0.25× to 4×. With the figure focused: `Space` play/pause, `→` step,
+`R` restart, `S` reseed, `F` fullscreen.
 
 ## `<Figure>` props
 

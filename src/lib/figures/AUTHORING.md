@@ -142,7 +142,26 @@ use this — just read `state.pointer` inside `step`.
 | `hint` | tooltip text |
 | `format` | `(v) => string`, for a custom readout |
 | `options` | `select` only: `[{ value, label }]` |
+| `visible` | `(params) => bool` — hide a control that does not apply |
 | `reinit` | changing it rebuilds state instead of being absorbed live |
+
+`select` renders as a themed listbox rather than a native `<select>`, whose
+popup the OS draws and themes itself — a white Windows menu on a dark figure.
+The replacement follows the ARIA listbox pattern, so Enter/Space/↓ open it and
+↑/↓/Home/End/Enter/Escape work as before.
+
+`visible` is what lets one model cover several variants without showing knobs
+that do nothing. `phase-portrait` has one parameter set per system and reveals
+only the relevant ones:
+
+```js
+const usedBy = key => p => SYSTEMS[p.system].uses.indexOf(key) !== -1;
+
+{ key: 'mu', label: 'Nonlinearity', tex: '\\mu', …, visible: usedBy('mu') },
+```
+
+Hidden parameters still exist and still have values; they are only absent from
+the panel.
 
 Everything is **live** by default: dragging a slider reshapes the running
 simulation. Only mark `reinit` when the change genuinely cannot be absorbed —
@@ -344,6 +363,85 @@ GPU-scale geometry. That would be a second renderer alongside this one, not a
 change to it — the model contract (a model sees only a 2D context) is what keeps
 models testable and deterministic, and it is worth keeping.
 
+## 7a. Live metric traces
+
+The commonest thing a simulation figure wants is a curve of something it
+computes — a population, an order parameter, a loss. Declare it and the library
+reserves a strip under the main view, samples it and plots it:
+
+```js
+traces: [
+  { id: 'order', label: 'order', tex: '\\varphi', color: '#fb923c',
+    value: (state, params) => state.order },
+  { id: 'cluster', label: 'clustering', tex: '|\\bar{p}|', color: '#38bdf8',
+    dash: [5, 3], visible: p => p.showClustering,
+    value: state => state.clustering },
+],
+traceOptions: { height: 0.24, window: 700, range: [0, 1] },
+```
+
+| trace field | |
+| --- | --- |
+| `value` | `(state, params) => number`. Return `NaN` to break the line. |
+| `id` `label` `tex` `color` `dash` `width` | as for a plot series; the line is named at its right-hand end |
+| `visible` | `(params) => bool`, for a curve behind a toggle |
+
+| `traceOptions` | default | |
+| --- | --- | --- |
+| `height` | `0.26` | fraction of the canvas given to the strip |
+| `window` | `600` | samples retained |
+| `sampleEvery` | `1` | steps per sample |
+| `range` | `'auto'` | `[lo, hi]` to pin the axis; auto is eased so it settles |
+| `log` | `false` | plot log₁₀ of the value |
+| `xLabel` `yLabel` `gap` | | |
+
+**Samples are taken per simulation step, not per frame**, so a trace is
+unaffected by frame rate and honours pause, single-step and playback speed.
+
+Your `draw` does not change. The wrapper shrinks `env.height` *and*
+`state.height` for the duration of every `sync`, `step`, `draw` and `onPointer`
+call and clips drawing to the region — which is why `boids` grew a live φ curve
+without a line of its drawing code being touched. Pointer events in the strip
+are not forwarded to the model.
+
+`descent` is the fullest example: one trace per optimiser, each behind its own
+toggle, on a log axis — the loss curve every optimiser paper prints, from a
+`.map()` over the optimiser list.
+
+Use `panelRects` instead (below) when the second view is not a time series, or
+when you want two panels side by side rather than one strip underneath.
+
+## 7b2. Several panels in one figure
+
+`panelRects` splits the canvas into a grid, and `createPlot` accepts a `rect` to
+confine itself to one of them. Two views of the same computation belong in one
+figure far more often than in two.
+
+```js
+import { createPlot, panelRects } from '../core/plot';
+
+const [left, right] = panelRects(env, { rows: 1, cols: 2, colRatios: [1.25, 1], gap: 10 });
+const portrait = createPlot(ctx, env, { rect: left,  xDomain, yDomain, labels: state.labels });
+const series   = createPlot(ctx, env, { rect: right, xDomain: [t0, t1], yDomain, labels: state.labels });
+```
+
+`rows`, `cols`, `gap`, `ratios` (per row) and `colRatios` (per column) are all
+optional. A rect is plain `{ x, y, w, h }` in CSS pixels, so **a panel does not
+have to become a plot** — `ising` paints its lattice straight into the top rect
+and only makes the magnetisation trace below into a `createPlot`.
+
+If a panel needs `onPointer`, stash it on the state during `draw` and read the
+geometry back in the handler:
+
+```js
+draw() { …; state.panels = [portrait, series]; },
+onPointer(state, pointer) {
+  const plot = state.panels && state.panels[0];
+  if (!plot || !pointer.down) return;
+  …
+}
+```
+
 ## 7c. KaTeX inside a figure
 
 Canvas cannot draw KaTeX — it is HTML and web fonts, and rasterising it through
@@ -406,8 +504,23 @@ not what the model computes:
 
 Everything else is handled: sliders are native `<input type="range">` (arrow-key
 steppable, with `aria-valuetext` carrying the formatted value and unit),
-toggles and speed buttons carry `aria-pressed`, and a figure starts paused when
-the OS asks for reduced motion.
+toggles and speed buttons carry `aria-pressed`, selects follow the ARIA listbox
+pattern, and a figure starts paused when the OS asks for reduced motion.
+
+The figure frame is focusable, and when it has focus (not one of its controls):
+
+| key | |
+| --- | --- |
+| `Space` | play / pause |
+| `→` | step one frame |
+| `R` | restart, same seed |
+| `S` | reseed |
+| `F` | fullscreen |
+
+Fullscreen needs nothing from a model: the canvas resizes through the engine's
+`ResizeObserver` and the KaTeX overlay repositions on the next frame. It is
+worth reaching for on dense figures — `gradient-descent` and `ising` in
+particular.
 
 ---
 

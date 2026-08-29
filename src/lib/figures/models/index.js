@@ -10,6 +10,9 @@ import sphereflock from './sphereflock';
 import descent from './descent';
 import lorenz from './lorenz';
 import clt from './clt';
+import phase from './phase';
+import spectrum from './spectrum';
+import ising from './ising';
 
 /**
  * Every model that ships with the library, registered by id so figures can be
@@ -27,10 +30,14 @@ export const models = registerModels([
   descent,
   lorenz,
   clt,
+  phase,
+  spectrum,
+  ising,
 ]);
 
 export {
   boids, life, pendulum, harmonic, fourier,
   bloch, sphereflock, descent, lorenz, clt,
+  phase, spectrum, ising,
 };
 export default models;

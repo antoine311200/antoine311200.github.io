@@ -36,6 +36,48 @@ function formatTick(v, step) {
   return s.replace(/\.?0+$/, m => (m.includes('.') ? '' : m));
 }
 
+/**
+ * Split the canvas into a grid of sub-regions, for figures that want more than
+ * one plot — a signal and its spectrum, a phase portrait and a time series, a
+ * lattice above its order parameter.
+ *
+ *   const [top, bottom] = panelRects(env, { rows: 2, ratios: [2, 1] });
+ *   const p1 = createPlot(ctx, env, { rect: top, xDomain, yDomain });
+ *
+ * A rect is plain `{ x, y, w, h }` in CSS pixels, so a panel can also be
+ * painted into directly — it does not have to become a plot.
+ */
+export function panelRects(env, opts = {}) {
+  const rows = opts.rows || 1;
+  const cols = opts.cols || 1;
+  const gap = opts.gap == null ? 6 : opts.gap;
+  const ratios = opts.ratios && opts.ratios.length === rows
+    ? opts.ratios
+    : new Array(rows).fill(1);
+  const colRatios = opts.colRatios && opts.colRatios.length === cols
+    ? opts.colRatios
+    : new Array(cols).fill(1);
+
+  const totalR = ratios.reduce((a, b) => a + b, 0);
+  const totalC = colRatios.reduce((a, b) => a + b, 0);
+  const usableH = env.height - gap * (rows - 1);
+  const usableW = env.width - gap * (cols - 1);
+
+  const out = [];
+  let y = 0;
+  for (let r = 0; r < rows; r++) {
+    const h = (usableH * ratios[r]) / totalR;
+    let x = 0;
+    for (let c = 0; c < cols; c++) {
+      const w = (usableW * colRatios[c]) / totalC;
+      out.push({ x, y, w, h });
+      x += w + gap;
+    }
+    y += h + gap;
+  }
+  return out;
+}
+
 export function createPlot(ctx, env, opts = {}) {
   const theme = env.theme || {};
   const labels = opts.labels || null;
@@ -43,10 +85,14 @@ export function createPlot(ctx, env, opts = {}) {
   const [xa, xb] = opts.xDomain;
   const [ya, yb] = opts.yDomain;
 
-  const left = pad.left;
-  const right = env.width - pad.right;
-  const top = pad.top;
-  const bottom = env.height - pad.bottom;
+  // A plot normally owns the whole canvas, but `rect` confines it to a
+  // sub-region so several plots can share one figure. See `panelRects`.
+  const region = opts.rect || { x: 0, y: 0, w: env.width, h: env.height };
+
+  const left = region.x + pad.left;
+  const right = region.x + region.w - pad.right;
+  const top = region.y + pad.top;
+  const bottom = region.y + region.h - pad.bottom;
   const innerW = Math.max(1, right - left);
   const innerH = Math.max(1, bottom - top);
 
@@ -121,11 +167,11 @@ export function createPlot(ctx, env, opts = {}) {
       if (xLabel) {
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
-        ctx.fillText(xLabel, right, env.height - 2);
+        ctx.fillText(xLabel, right, region.y + region.h - 2);
       }
       if (yLabel) {
         ctx.save();
-        ctx.translate(11, top);
+        ctx.translate(region.x + 11, top);
         ctx.rotate(-Math.PI / 2);
         ctx.textAlign = 'right';
         ctx.textBaseline = 'top';
