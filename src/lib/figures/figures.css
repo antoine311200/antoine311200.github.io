@@ -365,6 +365,26 @@
 
 .figx__toggles { display: flex; flex-wrap: wrap; gap: 6px; }
 
+/* ── authoring error ─────────────────────────────────────────────────────── */
+
+.figx__error {
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(127, 29, 29, 0.16);
+  border-radius: var(--figx-radius);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #fecaca;
+}
+.figx__error strong { color: #fca5a5; font-weight: 600; }
+.figx__error ul { margin: 6px 0 0; padding-left: 18px; }
+.figx__error p { margin: 8px 0 0; color: var(--figx-muted); }
+.figx__error code {
+  font-family: var(--figx-font-mono);
+  font-size: 0.92em;
+  color: var(--figx-accent-fg);
+}
+
 /* visually hidden, but still read out */
 .figx__sr {
   position: absolute;

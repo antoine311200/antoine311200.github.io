@@ -10,6 +10,9 @@ import 'katex/dist/katex.min.css';
 import Template from './template';
 import Callout from './callout';
 import { parseFrontMatter, slugify, readingTime } from '../utils/articleUtils';
+// Importing the barrel also registers the models that ship with the library,
+// which is what lets a ```figure block refer to one by id.
+import { FigureBlock } from '../lib/figures';
 
 // ─── Typography constants ──────────────────────────────────────────────────────
 
@@ -329,9 +332,20 @@ export default function MarkdownRenderer({ fileUrl, source: sourceProp }) {
       <CalloutBlockquote node={node} children={children} body={body} />
     ),
 
+    // A ```figure block renders a real <figure>, which cannot legally live
+    // inside the <pre> react-markdown wraps around every fenced block.
+    pre: ({ node, children }) => {
+      const cls = node?.children?.[0]?.properties?.className;
+      if (Array.isArray(cls) && cls.includes('language-figure')) return <>{children}</>;
+      return <pre>{children}</pre>;
+    },
+
     code: ({ node, inline, className, children, ...props }) => {
       const match = /language-(\w+)/.exec(className || '');
       const lang = match?.[1];
+      if (lang === 'figure') {
+        return <FigureBlock source={String(children)} />;
+      }
       if (inline) {
         return (
           <code

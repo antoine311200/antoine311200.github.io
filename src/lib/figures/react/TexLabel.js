@@ -28,3 +28,39 @@ export default function TexLabel({ tex, label, className }) {
     </span>
   );
 }
+
+/**
+ * Text with inline `$…$` maths — used for captions written in a markdown
+ * figure block. KaTeX's own output carries MathML alongside the visual HTML,
+ * so this stays readable to assistive tech without extra markup.
+ */
+export function RichText({ text }) {
+  const parts = useMemo(() => {
+    const src = String(text == null ? '' : text);
+    const out = [];
+    const re = /\$([^$]+)\$/g;
+    let last = 0;
+    let m;
+    while ((m = re.exec(src)) !== null) {
+      if (m.index > last) out.push({ type: 'text', value: src.slice(last, m.index) });
+      let html = null;
+      try {
+        html = katex.renderToString(m[1], { throwOnError: false, displayMode: false });
+      } catch (err) {
+        html = null;
+      }
+      out.push(html ? { type: 'tex', value: html } : { type: 'text', value: m[0] });
+      last = m.index + m[0].length;
+    }
+    if (last < src.length) out.push({ type: 'text', value: src.slice(last) });
+    return out;
+  }, [text]);
+
+  return (
+    <>
+      {parts.map((p, i) => (p.type === 'tex'
+        ? <span key={i} dangerouslySetInnerHTML={{ __html: p.value }} />
+        : <span key={i}>{p.value}</span>))}
+    </>
+  );
+}
