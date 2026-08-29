@@ -324,6 +324,19 @@ export default defineModel({
       ctx.fillStyle = '#f8fafc';
       ctx.beginPath(); ctx.arc(a.x, a.y, 3.2, 0, Math.PI * 2); ctx.fill();
     }
+
+    // A raw 2D model has no plot or scene helper, so it pushes to the label
+    // sink directly: the definition of the order parameter, and its value.
+    if (state.labels) {
+      state.labels.push({
+        id: 'order',
+        tex: `\\varphi = \\frac{1}{N}\\Big|\\sum_i \\hat{v}_i\\Big| = ${state.order.toFixed(3)}`,
+        x: 12,
+        y: 12,
+        anchor: 'top-left',
+        chip: true,
+      });
+    }
   },
 
   stats(state) {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import useFigure from './useFigure';
 import { IconButton, ParamPanel, PresetBar, StatBar, SpeedGroup } from './Controls';
+import LabelLayer from './LabelLayer';
 import { getModel } from '../core/registry';
 import '../figures.css';
 
@@ -134,6 +135,7 @@ export default function Figure({
             role="img"
             aria-label={model.description || model.name}
           />
+          <LabelLayer labels={fig.labels} registry={fig.labelRegistry} />
           {!fig.running && (
             <div className="figx__paused"><span>Paused</span></div>
           )}

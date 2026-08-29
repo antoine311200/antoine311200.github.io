@@ -6,8 +6,8 @@ import { createPlot, autoRange } from './plot';
  *
  * The counterpart to `defineModel` for figures that are a *drawing of a
  * function* rather than a simulation. You give the domain and a list of
- * series; the library handles axes, ticks, animation time, the legend, and
- * the hover readout.
+ * series; the library handles axes, ticks, animation time, the legend, the
+ * hover readout, and KaTeX annotation.
  *
  *   definePlot({
  *     id, name, description,
@@ -17,19 +17,25 @@ import { createPlot, autoRange } from './plot';
  *     yDomain: [-2, 2] | (params, t) => [a, b] | 'auto',
  *     xLabel, yLabel,
  *
+ *     // A KaTeX card in the corner. As a function it re-renders with the
+ *     // parameters substituted, so the formula shown is the one being drawn.
+ *     equation: '\\ddot x + \\omega_0^2 x = 0' | (params, t, state) => tex,
+ *     equationAnchor: 'top-left',
+ *
  *     series: [{
- *       id, label, tex, color,
- *       dash, width, alpha,
+ *       id, label, tex, color,                      // `tex` labels the curve end
+ *       dash, width, alpha, samples,
  *       fn: (x, params, t, state) => y,
- *       visible: (params) => boolean,               // optional
- *       readout: true,                              // show value in the legend
+ *       visible: (params) => boolean,
  *     }],
+ *     seriesLabels: false,                           // opt out of curve-end labels
  *
  *     // optional extras
- *     state:   (params, rng, env) => ({ ... }),      // extra state
- *     advance: (state, params, dt) => void,          // extra per-step work
- *     decorate:(plot, params, t, state) => void,     // draw on top of the series
- *     legend:  false,                                // suppress the auto legend
+ *     state:   (params, rng, env) => ({ ... }),
+ *     advance: (state, params, dt) => void,
+ *     decorate:(plot, params, t, state) => void,     // draws on top of the series
+ *     hoverTex:(x, values, params) => tex,
+ *     legend:  false,
  *   })
  *
  * `t` is the engine's simulated time in seconds, so playback speed, pause and
@@ -104,6 +110,7 @@ export function definePlot(spec) {
         xDomain,
         yDomain,
         padding: spec.padding,
+        labels: state.labels,
       });
 
       plot.frame({
@@ -124,7 +131,39 @@ export function definePlot(spec) {
         if (spec.decorate) spec.decorate(plot, params, t, state);
       });
 
-      // Hover readout: a vertical cut through every series.
+      // ── The equation being drawn, with the live parameter values in it ──
+      if (spec.equation) {
+        const tex = typeof spec.equation === 'function'
+          ? spec.equation(params, t, state)
+          : spec.equation;
+        if (tex) {
+          plot.labelPx(plot.left + 10, plot.top + 9, tex, {
+            id: 'equation',
+            anchor: spec.equationAnchor === 'top-right' ? 'top-right' : 'top-left',
+            chip: true,
+          });
+        }
+      }
+
+      // ── Curve-end labels, so a legend is not needed to tell curves apart ──
+      if (spec.seriesLabels !== false) {
+        const xr = xDomain[0] + (xDomain[1] - xDomain[0]) * 0.995;
+        for (const s of active) {
+          if (!s.tex) continue;
+          const y = s.fn(xr, params, t, state);
+          if (!isFinite(y)) continue;
+          const py = plot.yToPx(y);
+          if (py < plot.top + 4 || py > plot.bottom - 4) continue;
+          plot.label(xr, y, s.tex, {
+            id: `series-${s.id}`,
+            anchor: 'right',
+            dx: -6,
+            color: s.color,
+          });
+        }
+      }
+
+      // ── Hover: a vertical cut through every series ──
       const ptr = state.pointer;
       state.hover = null;
       if (ptr && ptr.active && ptr.x >= plot.left && ptr.x <= plot.right) {
@@ -139,11 +178,16 @@ export function definePlot(spec) {
             plot.dot(x, y, { color: s.color, r: 3, ring: true });
           }
         });
-        plot.tag(x, yDomain[1], `x = ${x.toFixed(2)}`, {
-          color: plot.theme.muted || '#94a3b8',
-          baseline: 'top',
-          dy: 4,
-        });
+        const hoverTex = spec.hoverTex
+          ? spec.hoverTex(x, state.hover.values, params)
+          : `x = ${x.toFixed(2)}`;
+        if (hoverTex) {
+          plot.labelPx(ptr.x, plot.bottom - 8, hoverTex, {
+            id: 'hover',
+            anchor: 'bottom',
+            chip: true,
+          });
+        }
       }
     },
 

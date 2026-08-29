@@ -20,11 +20,15 @@ then a *model*: plain data and plain functions with no React in them. Adding a
 figure costs one small file and one registry line, not a component.
 
 ```
-core/     engine, model & plot contracts, params, registry, seeded rng
-react/    Figure, useFigure, controls  — the only files that import React
+core/     engine, model & plot contracts, params, registry, seeded rng,
+          plot.js (2D axes), scene3d.js (orbit camera + painter's algorithm)
+react/    Figure, FigureBlock, useFigure, controls — the only files with React
 models/   the figures themselves
 figures.css
 ```
+
+Seven models ship with it: `boids`, `game-of-life`, `double-pendulum`,
+`harmonic-oscillator`, `fourier-series`, `bloch-sphere`, `sphere-flock`.
 
 ## Two kinds of figure
 
@@ -81,6 +85,10 @@ export default definePlot({
 Axes, ticks, the legend, and the hover readout (a vertical cut through every
 series) come for free. `core/plot.js` is also usable directly from a
 `defineModel` if a figure needs axes *and* a simulation.
+
+**3D** is a third option, not a third contract: a `defineModel` imports
+`createScene` from `core/scene3d.js` and draws into the same 2D context. See
+[AUTHORING.md](./AUTHORING.md) — there is no WebGL and no extra dependency.
 
 ## Rules for a model
 

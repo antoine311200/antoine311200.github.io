@@ -38,6 +38,7 @@ function formatTick(v, step) {
 
 export function createPlot(ctx, env, opts = {}) {
   const theme = env.theme || {};
+  const labels = opts.labels || null;
   const pad = { ...DEFAULT_PADDING, ...(opts.padding || {}) };
   const [xa, xb] = opts.xDomain;
   const [ya, yb] = opts.yDomain;
@@ -217,7 +218,43 @@ export function createPlot(ctx, env, opts = {}) {
       ctx.restore();
     },
 
-    /** Small text tag anchored in data coordinates. */
+    /**
+     * A KaTeX label anchored in data coordinates.
+     *
+     * Canvas cannot draw KaTeX, so this queues the label for the HTML overlay
+     * the figure shell paints on top of the stage — real KaTeX fonts, real
+     * MathML for assistive tech, crisp at any pixel ratio.
+     */
+    label(x, y, tex, o = {}) {
+      if (!labels || !tex) return;
+      labels.push({
+        id: o.id || `plot-${labels.length}`,
+        tex,
+        x: xToPx(x) + (o.dx || 0),
+        y: yToPx(y) + (o.dy || 0),
+        anchor: o.anchor || 'center',
+        color: o.color,
+        size: o.size,
+        chip: o.chip === true,
+      });
+    },
+
+    /** The same, positioned in canvas pixels — for corner cards and HUDs. */
+    labelPx(x, y, tex, o = {}) {
+      if (!labels || !tex) return;
+      labels.push({
+        id: o.id || `hud-${labels.length}`,
+        tex,
+        x: x + (o.dx || 0),
+        y: y + (o.dy || 0),
+        anchor: o.anchor || 'top-left',
+        color: o.color,
+        size: o.size,
+        chip: o.chip !== false,
+      });
+    },
+
+    /** Small canvas text tag anchored in data coordinates. */
     tag(x, y, text, { color = '#94a3b8', align = 'left', baseline = 'bottom', dx = 4, dy = -4 } = {}) {
       ctx.save();
       ctx.font = font;

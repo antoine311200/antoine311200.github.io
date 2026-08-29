@@ -33,7 +33,12 @@ export class Engine {
     this.pointer = { x: 0, y: 0, active: false, down: false };
     this.visible = true;
 
+    // Rebuilt every frame by the model; drained by the React overlay, because
+    // KaTeX is HTML and canvas cannot draw it.
+    this.labels = [];
+
     this.onFps = options.onFps || null;
+    this.onLabels = options.onLabels || null;
     this.onStats = options.onStats || null;
     this.onTime = options.onTime || null;
 
@@ -265,9 +270,13 @@ export class Engine {
     }
     state.time = this.time;
 
+    this.labels.length = 0;
+    state.labels = this.labels;
+
     if (model.clear) model.clear(this.ctx, state, P, env);
     else this.ctx.clearRect(0, 0, w, h);
     model.draw(this.ctx, state, P, env);
+    if (this.onLabels) this.onLabels(this.labels, now);
 
     // Readouts are throttled — they are the only thing that reaches React.
     this._frames++;

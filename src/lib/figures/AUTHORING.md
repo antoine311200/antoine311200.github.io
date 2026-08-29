@@ -15,6 +15,7 @@ Your job is the maths.
 | --- | --- | --- |
 | **Simulation** | state that is *advanced*: agents, lattices, ODEs, Monte Carlo | `defineModel` |
 | **Plot** | a *drawing of a function*: y = f(x) animated by time | `definePlot` |
+| **3D** | anything spatial: spheres, manifolds, phase portraits | `defineModel` + `core/scene3d.js` (§7b) |
 
 If you can write the answer in closed form, use `definePlot` — you get axes,
 ticks, a legend and a hover readout for free, and the curve stays exact instead
@@ -275,6 +276,125 @@ interesting feature is narrower than that, say so: `fourier` sets
 quietly tells a lie.
 
 ---
+
+## 7b. Three dimensions
+
+`core/scene3d.js` gives a `defineModel` an orbit camera, perspective projection
+and a painter's algorithm — over the *same* 2D context. There is no WebGL and no
+extra dependency.
+
+```js
+import { createScene, makeCamera, orbitFromPointer } from '../core/scene3d';
+
+init() {
+  return { camera: makeCamera({ azimuth: 0.7, elevation: 0.3, distance: 3.6 }) };
+},
+
+step(state, params, dt) {
+  // Drag beats auto-rotation. Call this from step, not onPointer: the engine
+  // keeps pointer.down current every frame, so the release is seen.
+  if (!orbitFromPointer(state.camera, state.pointer)) {
+    state.camera.azimuth += params.spin * dt;
+  }
+  …
+},
+
+draw(ctx, state, params, env) {
+  const scene = createScene(ctx, env, state.camera);
+  scene.globe(1, { wire: true, opacity: 0.85 });
+  scene.circle([0, 1, 0], 1, { color: '#94a3b8' });        // equator
+  scene.path(trailPoints, { color: '#a78bfa' });           // sorted per segment
+  scene.polyline(trailPoints, { color: '#a78bfa' });       // one sorted item
+  scene.arrow([0, 0, 0], r, { color: '#fb923c' });
+  scene.point(p, { r: 3, color: '#fb923c' });
+  scene.text(p, '|0⟩');
+  scene.render();                                          // sorts and paints
+}
+```
+
+Nothing draws until `render()`: every primitive queues a call tagged with its
+view depth, and `render` sorts back-to-front. Two things follow.
+
+**Occlusion is a trick, and a good one.** `globe()` fills the sphere's
+silhouette at the depth of its *centre*. Anything behind the centre is queued
+with a larger depth, so it is painted first and covered; the front half is
+painted after. That is why a trajectory correctly disappears round the back.
+
+**Choose `path` or `polyline` deliberately.** `path` emits one sorted item per
+segment, so the line can genuinely pass behind other geometry — right for a
+Bloch trajectory. `polyline` emits a single item at the mean depth — right for
+hundreds of short trails, where per-segment sorting would swamp the frame. As a
+rule of thumb keep the total under a couple of thousand items.
+
+Vector helpers are exported too: `add`, `sub`, `scale`, `dot`, `cross`, `len`,
+`normalize`, `rotateAbout` (Rodrigues) and `tangent` (the component of a vector
+tangent to the unit sphere at a point). `sphere-flock` is built almost entirely
+out of the last two.
+
+**Coordinates.** The scene's vertical is its own *y*. Physics conventions rarely
+agree with that — the Bloch sphere wants *z* up — so convert once, in one place,
+rather than sprinkling swaps through `draw`:
+
+```js
+const toScene = r => [r[0], r[2], r[1]];
+```
+
+**When to reach for three.js instead.** Lit meshes, shadows, real surfaces,
+GPU-scale geometry. That would be a second renderer alongside this one, not a
+change to it — the model contract (a model sees only a 2D context) is what keeps
+models testable and deterministic, and it is worth keeping.
+
+## 7c. KaTeX inside a figure
+
+Canvas cannot draw KaTeX — it is HTML and web fonts, and rasterising it through
+an SVG `foreignObject` is unreliable (the KaTeX faces do not load inside a
+data-URL document, and Safari refuses outright). So maths is queued to an HTML
+overlay the shell paints on top of the stage: real fonts, MathML alongside for
+assistive tech, crisp at any pixel ratio.
+
+Every model gets a per-frame label sink at `state.labels`, cleared before each
+`draw`. The helpers push into it for you:
+
+```js
+plot.label(x, y, tex, opts)       // data coordinates
+plot.labelPx(px, py, tex, opts)   // canvas pixels — corner cards, HUDs
+scene.label(p3, tex, opts)        // a world point, faded with depth
+scene.labelPx(px, py, tex, opts)
+state.labels.push({ id, tex, x, y, anchor, color, size, chip, opacity })
+```
+
+`anchor` says which part of the label sits on the point: `center` (default),
+`top-left`, `bottom-right`, `left`, `right`, … `chip: true` draws a panel behind
+it, which is what makes a formula readable over a busy simulation.
+
+**Give every label a stable `id`.** Positions are written straight to the DOM
+every frame, keyed by id, so a label pinned to a moving point tracks it at 60fps
+without React in the loop. The *content* re-renders on a ~90 ms throttle, since
+a value ticking sixty times a second is unreadable anyway.
+
+### Live formulae
+
+The point of all this is that the formula on screen can be the one being
+computed. `definePlot` has an `equation` field for exactly that:
+
+```js
+equation: (p) => {
+  const z = p.zeta.toFixed(2);
+  const w = p.omega0.toFixed(2);
+  return `\\ddot{x} + 2(${z})(${w})\\,\\dot{x} + (${w})^{2}\\,x = 0`;
+},
+```
+
+Drag ζ and the equation re-typesets with it. `fourier` does the same with N in
+the summation limit; `bloch` substitutes ω, Γ₁ and Γ₂ into the master equation;
+`boids` shows the definition of the order parameter next to its value.
+
+A series with a `tex` field also gets a small label at the right-hand end of its
+curve, so a legend is not needed to tell curves apart — opt out with
+`seriesLabels: false`. `hoverTex: (x, values, params) => tex` controls the
+readout that follows the cursor.
+
+Keep it to a handful of labels per figure. They are DOM nodes, not draw calls.
 
 ## 8. Accessibility
 

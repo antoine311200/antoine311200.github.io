@@ -224,6 +224,19 @@ export default defineModel({
         ctx.fill();
       }
     }
+
+    if (state.labels && state.e0 !== null) {
+      const drift = Math.abs((state.energy - state.e0) / state.e0);
+      state.labels.push({
+        id: 'energy',
+        tex: `E = T + V = ${state.energy.toFixed(4)}`
+          + `\\quad \\frac{|E - E_0|}{|E_0|} = ${drift.toExponential(1)}`,
+        x: 12,
+        y: 12,
+        anchor: 'top-left',
+        chip: true,
+      });
+    }
   },
 
   stats(state, params) {
