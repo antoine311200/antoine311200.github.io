@@ -31,6 +31,7 @@
     "react": "^18.2.0",
     "react-device-detect": "^2.2.3",
     "react-dom": "^18.2.0",
+    "react-force-graph-2d": "^1.29.1",
     "react-graph-vis": "^1.0.7",
     "react-icons": "^4.10.1",
     "react-katex": "^3.0.1",
@@ -55,7 +56,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "ui:drive": "node scripts/ui-drive.mjs"
   },
   "eslintConfig": {
     "extends": [
@@ -78,6 +80,7 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.13",
     "gh-pages": "^6.0.0",
+    "playwright": "^1.62.1",
     "tailwindcss": "^3.3.2"
   }
 }

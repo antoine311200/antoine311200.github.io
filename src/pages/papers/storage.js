@@ -5,8 +5,10 @@
  * reset are a single operation. Writes are debounced by the provider, never here.
  */
 
+import { idbGet, idbSet, idbClear, idbAvailable, storageEstimate } from './idb';
+
 export const STORAGE_KEY = 'paper-radar:v1';
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const DEFAULT_SETTINGS = {
     maxResultsPerTopic: 60,
@@ -29,7 +31,7 @@ export const emptyStore = () => ({
     papers: {},
     states: {},
     authors: {},
-    collections: [],
+    folders: [],
     feedback: { terms: {} },
     history: [],
     lastVisit: null,
@@ -114,6 +116,19 @@ export function authorKey(name) {
         .toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
 }
 
+export function makeFolder(partial = {}) {
+    return {
+        id: `f_${Math.random().toString(36).slice(2, 10)}`,
+        name: 'New folder',
+        parentId: null,
+        paperIds: [],
+        description: '',
+        color: null,
+        createdAt: new Date().toISOString(),
+        ...partial,
+    };
+}
+
 function migrate(raw) {
     const store = { ...emptyStore(), ...raw };
     store.settings = { ...DEFAULT_SETTINGS, ...(raw.settings || {}) };
@@ -121,37 +136,123 @@ function migrate(raw) {
     store.papers = raw.papers || {};
     store.states = raw.states || {};
     store.authors = raw.authors || {};
-    store.collections = raw.collections || [];
+    // v1 kept a flat `collections` array; v2 turns them into a folder tree.
+    const legacy = Array.isArray(raw.collections) ? raw.collections : [];
+    store.folders = (raw.folders || legacy).map((f) => makeFolder(f));
     store.feedback = { terms: {}, ...(raw.feedback || {}) };
     store.history = raw.history || [];
     store.version = SCHEMA_VERSION;
+    delete store.collections;
     return store;
 }
 
-export function loadStore() {
+/** Folder ids from the root down to `id`, for breadcrumbs. */
+export function folderPath(folders, id) {
+    const byId = new Map(folders.map((f) => [f.id, f]));
+    const path = [];
+    let cursor = byId.get(id);
+    const guard = new Set();
+    while (cursor && !guard.has(cursor.id)) {
+        guard.add(cursor.id);
+        path.unshift(cursor);
+        cursor = cursor.parentId ? byId.get(cursor.parentId) : null;
+    }
+    return path;
+}
+
+/** `id` plus every folder nested beneath it (breadth-first, cycle-safe). */
+export function folderSubtree(folders, id) {
+    const childrenOf = new Map();
+    folders.forEach((f) => {
+        const key = f.parentId || '__root__';
+        if (!childrenOf.has(key)) childrenOf.set(key, []);
+        childrenOf.get(key).push(f.id);
+    });
+
+    const out = [];
+    const seen = new Set();
+    const queue = [id];
+    while (queue.length) {
+        const cur = queue.shift();
+        if (seen.has(cur)) continue;
+        seen.add(cur);
+        out.push(cur);
+        (childrenOf.get(cur) || []).forEach((c) => queue.push(c));
+    }
+    return out;
+}
+
+/** Papers in a folder, optionally including everything in its descendants. */
+export function papersInFolder(folders, id, { recursive = true } = {}) {
+    const ids = recursive ? folderSubtree(folders, id) : [id];
+    const set = new Set();
+    folders.forEach((f) => { if (ids.includes(f.id)) f.paperIds.forEach((p) => set.add(p)); });
+    return set;
+}
+
+/** Reparenting must not create a cycle. */
+export function canMoveFolder(folders, id, newParentId) {
+    if (id === newParentId) return false;
+    if (!newParentId) return true;
+    return !folderSubtree(folders, id).includes(newParentId);
+}
+
+/** Synchronous localStorage read — the v1 location, kept for one-way migration. */
+function loadLegacy() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return null;
-        return migrate(JSON.parse(raw));
-    } catch (err) {
-        console.error('[paper-radar] could not read store', err);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
         return null;
     }
 }
 
-export function saveStore(store) {
+/**
+ * Read the store, preferring IndexedDB and falling back to the old localStorage
+ * copy (which is then migrated forward on the next save).
+ */
+export async function loadStore() {
+    if (idbAvailable()) {
+        try {
+            const found = await idbGet();
+            if (found) return migrate(found);
+        } catch (err) {
+            console.warn('[paper-radar] IndexedDB read failed, falling back', err);
+        }
+    }
+    const legacy = loadLegacy();
+    return legacy ? migrate(legacy) : null;
+}
+
+export async function saveStore(store) {
+    if (idbAvailable()) {
+        try {
+            await idbSet(store);
+            // The v1 copy is now redundant; drop it so it cannot shadow newer data.
+            try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+            return { ok: true, backend: 'indexeddb' };
+        } catch (err) {
+            console.warn('[paper-radar] IndexedDB write failed, trying localStorage', err);
+        }
+    }
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-        return { ok: true };
+        return { ok: true, backend: 'localstorage' };
     } catch (err) {
-        // Almost always QuotaExceededError — the caller surfaces this to the user.
         return { ok: false, error: err.message || String(err) };
     }
+}
+
+export async function clearStore() {
+    if (idbAvailable()) { try { await idbClear(); } catch { /* ignore */ } }
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
 }
 
 export function storeBytes(store) {
     try { return new Blob([JSON.stringify(store)]).size; } catch { return 0; }
 }
+
+export { storageEstimate };
 
 /* ------------------------------------------------------------------ export */
 
@@ -201,10 +302,10 @@ export function mergeStores(current, incoming, mode = 'merge') {
     const topicNames = new Set(current.topics.map((t) => t.name.toLowerCase()));
     const topics = [...current.topics, ...inc.topics.filter((t) => !topicNames.has(t.name.toLowerCase()))];
 
-    const collectionNames = new Set(current.collections.map((c) => c.name.toLowerCase()));
-    const collections = [
-        ...current.collections,
-        ...inc.collections.filter((c) => !collectionNames.has(c.name.toLowerCase())),
+    const folderNames = new Set(current.folders.map((c) => c.name.toLowerCase()));
+    const folders = [
+        ...current.folders,
+        ...inc.folders.filter((c) => !folderNames.has(c.name.toLowerCase())),
     ];
 
     return {
@@ -212,7 +313,7 @@ export function mergeStores(current, incoming, mode = 'merge') {
         topics,
         papers,
         states,
-        collections,
+        folders,
         authors: { ...inc.authors, ...current.authors },
         feedback: { terms: { ...inc.feedback.terms, ...current.feedback.terms } },
         history: [...inc.history, ...current.history],

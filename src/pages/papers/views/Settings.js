@@ -1,16 +1,23 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { usePapers } from '../context';
-import { exportStore, download, prune as pruneStore, storeBytes } from '../storage';
+import { exportStore, download, prune as pruneStore, storeBytes, storageEstimate } from '../storage';
 import { STRATEGIES, getPreferredStrategy } from '../arxiv';
 import { toBibtexAll, toCsv } from '../bibtex';
 import { Button, Field, Input, Panel, Toggle, Modal, cx } from '../components/ui';
 
-const QUOTA = 5 * 1024 * 1024;   // the practical localStorage budget in most browsers
+
+const fmtBytes = (n) => {
+    if (!n && n !== 0) return '—';
+    if (n < 1024) return `${n} B`;
+    if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+    if (n < 1024 * 1024 * 1024) return `${(n / 1048576).toFixed(1)} MB`;
+    return `${(n / 1073741824).toFixed(2)} GB`;
+};
 
 export default function Settings() {
     const store = usePapers();
-    const { dispatch, settings, counts, paperList, states, notify, raw } = store;
+    const { dispatch, settings, counts, paperList, states, notify, raw, resetAll } = store;
     const fileRef = useRef(null);
     const [pending, setPending] = useState(null);      // parsed import awaiting a mode choice
     const [confirmReset, setConfirmReset] = useState(false);
@@ -42,14 +49,24 @@ export default function Settings() {
 
     const bytes = useMemo(() => storeBytes(raw), [raw]);
     const pruneable = useMemo(() => pruneStore(raw, { days: pruneDays }).removed, [raw, pruneDays]);
-    const usage = Math.min(100, (bytes / QUOTA) * 100);
+
+    // The real browser budget, not a guess. IndexedDB gets a share of free disk, so
+    // this is typically gigabytes rather than the ~5 MB localStorage used to allow.
+    const [estimate, setEstimate] = useState(null);
+    useEffect(() => { storageEstimate().then(setEstimate); }, [bytes]);
+
+    const usage = estimate ? Math.min(100, (estimate.usage / estimate.quota) * 100) : null;
+    const perPaper = counts.total ? bytes / counts.total : 0;
+    const headroom = estimate && perPaper
+        ? Math.floor((estimate.quota - estimate.usage) / perPaper)
+        : null;
 
     return (
-        <div className="mx-auto max-w-3xl space-y-4 px-5 py-6">
+        <div className="mx-auto max-w-3xl space-y-4 px-5 py-6 max-lg:pl-14">
             <header>
                 <h1 className="text-base font-semibold text-slate-100">Settings</h1>
                 <p className="text-[11px] text-slate-500">
-                    Everything lives in this browser&apos;s localStorage. Export regularly if it matters to you.
+                    Everything lives in this browser, in IndexedDB. Export regularly if it matters to you.
                 </p>
             </header>
 
@@ -57,20 +74,30 @@ export default function Settings() {
             <Panel title="Your data">
                 <div className="space-y-4">
                     <div>
-                        <div className="mb-1 flex items-baseline justify-between text-[11px]">
+                        <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2 text-[11px]">
                             <span className="text-slate-400">
-                                {counts.total.toLocaleString()} papers · {(bytes / 1024).toFixed(0)} KB stored
+                                {counts.total.toLocaleString()} papers · {fmtBytes(bytes)} in this library
                             </span>
-                            <span className={cx(usage > 80 ? 'text-amber-300' : 'text-slate-600')}>
-                                {usage.toFixed(1)}% of the ~5 MB browser budget
+                            <span className={cx(usage != null && usage > 80 ? 'text-amber-300' : 'text-slate-600')}>
+                                {estimate
+                                    ? `${fmtBytes(estimate.usage)} of ${fmtBytes(estimate.quota)} available to this site`
+                                    : 'Stored in IndexedDB'}
                             </span>
                         </div>
                         <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
                             <div
-                                className={cx('h-full rounded-full transition-all', usage > 80 ? 'bg-amber-400' : 'bg-orange-400')}
-                                style={{ width: `${Math.max(1, usage)}%` }}
+                                className={cx(
+                                    'h-full rounded-full transition-all',
+                                    usage != null && usage > 80 ? 'bg-amber-400' : 'bg-orange-400',
+                                )}
+                                style={{ width: `${Math.max(0.6, usage == null ? 0.6 : usage)}%` }}
                             />
                         </div>
+                        <p className="mt-1.5 text-[10.5px] text-slate-600">
+                            The library lives in IndexedDB, whose budget is a share of free disk — not the
+                            ~5 MB localStorage cap.
+                            {headroom > 0 && ` At the current average of ${fmtBytes(perPaper)} per paper there is room for roughly ${headroom.toLocaleString()} more.`}
+                        </p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
@@ -101,7 +128,7 @@ export default function Settings() {
 
                     <p className="text-[10.5px] leading-relaxed text-slate-600">
                         The JSON export is the complete store — papers, reading states, notes, tags, topics,
-                        collections, followed authors and what the ranker has learned. Import it on another
+                        folders, followed authors and what the ranker has learned. Import it on another
                         machine to carry your whole radar across.
                     </p>
                 </div>
@@ -306,7 +333,7 @@ export default function Settings() {
                     <Button onClick={() => setConfirmReset(false)}>Cancel</Button>
                     <Button
                         variant="danger"
-                        onClick={() => { dispatch({ type: 'RESET' }); setConfirmReset(false); notify('Library cleared'); }}
+                        onClick={() => { resetAll(); setConfirmReset(false); notify('Library cleared'); }}
                     >
                         Delete everything
                     </Button>

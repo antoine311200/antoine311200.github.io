@@ -11,7 +11,7 @@
  *   -survey                      exclude a term
  */
 
-import { authorKey } from './storage';
+import { authorKey, papersInFolder } from './storage';
 
 const TOKEN_RE = /(-?)(?:(\w+):)?(?:"([^"]*)"|(\S+))/g;
 
@@ -90,7 +90,7 @@ export const DEFAULT_FILTERS = {
     categories: [],
     tags: [],
     authorKey: null,
-    collectionId: null,
+    folderId: null,
     starredOnly: false,
     followedOnly: false,
     unreadOnly: false,
@@ -101,12 +101,10 @@ export const DEFAULT_FILTERS = {
     hideArchived: true,
 };
 
-export function applyFilters(paperList, states, filters, { collections = [], followedIds = new Set() } = {}) {
+export function applyFilters(paperList, states, filters, { folders = [], followedIds = new Set() } = {}) {
     const clauses = parseQuery(filters.query);
-    const collection = filters.collectionId
-        ? collections.find((c) => c.id === filters.collectionId)
-        : null;
-    const collectionSet = collection ? new Set(collection.paperIds) : null;
+    // A folder filter includes everything filed in its subfolders too.
+    const folderSet = filters.folderId ? papersInFolder(folders, filters.folderId) : null;
     const cutoff = filters.days ? Date.now() - filters.days * 864e5 : null;
 
     const out = paperList.filter((p) => {
@@ -119,7 +117,7 @@ export function applyFilters(paperList, states, filters, { collections = [], fol
         if (filters.starredOnly && !st.starred) return false;
         if (filters.unreadOnly && status !== 'unread') return false;
         if (filters.followedOnly && !followedIds.has(p.id)) return false;
-        if (collectionSet && !collectionSet.has(p.id)) return false;
+        if (folderSet && !folderSet.has(p.id)) return false;
         if (filters.topicIds.length && !(p.topicIds || []).some((t) => filters.topicIds.includes(t))) return false;
         if (filters.categories.length && !(p.categories || []).some((c) => filters.categories.includes(c))) return false;
         if (filters.tags.length && !(st.tags || []).some((t) => filters.tags.includes(t))) return false;
@@ -148,7 +146,34 @@ export function groupByDay(list) {
     });
     return Array.from(groups.entries())
         .sort((a, b) => b[0].localeCompare(a[0]))
-        .map(([day, papers]) => ({ day, papers }));
+        .map(([day, papers]) => ({ key: day, day, papers }));
+}
+
+/**
+ * Group by topic. A paper matching several topics appears under each of them —
+ * duplication is the point: you read a topic's slice, not a deduplicated pile.
+ */
+export function groupByTopic(list, topics) {
+    const byId = new Map(topics.map((t) => [t.id, t]));
+    const groups = new Map();
+    const loose = [];
+
+    list.forEach((p) => {
+        const ids = (p.topicIds || []).filter((id) => byId.has(id));
+        if (!ids.length) { loose.push(p); return; }
+        ids.forEach((id) => {
+            if (!groups.has(id)) groups.set(id, []);
+            groups.get(id).push(p);
+        });
+    });
+
+    // Keep the user's own topic order, so the sidebar and the digest agree.
+    const out = topics
+        .filter((t) => groups.has(t.id))
+        .map((t) => ({ key: t.id, topic: t, papers: groups.get(t.id) }));
+
+    if (loose.length) out.push({ key: '__none__', topic: null, papers: loose });
+    return out;
 }
 
 /** Facet counts for the sidebar, computed over the *unfiltered* library. */

@@ -50,7 +50,7 @@ export default function Digest({ onGo }) {
                         ? 'Nothing fetched yet'
                         : `Nothing new today · ${counts.unread} unread in the backlog`
             }
-            grouped
+            defaultGroupBy="topic"
             initialFilters={{ sort: 'relevance', days: 30 }}
             emptyState={empty}
             headerExtra={

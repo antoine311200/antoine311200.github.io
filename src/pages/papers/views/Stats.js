@@ -6,7 +6,7 @@ import { BarRow, Panel, Sparkline, StatTile, Chip, cx } from '../components/ui';
 
 /** Where your reading time is actually going, and what is heating up in your field. */
 export default function Stats({ onGo }) {
-    const { paperList, states, topics, counts, authorsIndex, history, feedback } = usePapers();
+    const { paperList, states, topics, counts, authorsIndex, history, feedback, settings } = usePapers();
 
     const daily = useMemo(() => {
         const days = [];
@@ -74,7 +74,7 @@ export default function Stats({ onGo }) {
     const maxCat = Math.max(1, ...byCategory.map(([, n]) => n));
 
     return (
-        <div className="mx-auto max-w-6xl space-y-4 px-5 py-6">
+        <div className="mx-auto max-w-6xl space-y-4 px-5 py-6 max-lg:pl-14">
             <header>
                 <h1 className="text-base font-semibold text-slate-100">Statistics</h1>
                 <p className="text-[11px] text-slate-500">Everything computed locally over your stored library.</p>
@@ -120,7 +120,13 @@ export default function Stats({ onGo }) {
                 <Panel title="Primary categories">
                     {byCategory.length ? byCategory.map(([c, n]) => (
                         <BarRow key={c} label={c} value={n} max={maxCat} color="#a78bfa" />
-                    )) : <p className="text-[11px] text-slate-600">Nothing fetched yet.</p>}
+                    )) : (
+                        <p className="text-[11px] leading-relaxed text-slate-600">
+                            {settings.source === 'arxiv'
+                                ? 'Nothing fetched yet.'
+                                : 'OpenAlex does not carry arXiv categories, so there is nothing to chart here. Switch the source to arXiv in Settings if you need this breakdown.'}
+                        </p>
+                    )}
                 </Panel>
             </div>
 

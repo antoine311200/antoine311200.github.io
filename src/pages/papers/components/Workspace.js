@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { usePapers } from '../context';
-import { applyFilters, groupByDay, facets, SORTS, DEFAULT_FILTERS } from '../filters';
+import { applyFilters, groupByDay, groupByTopic, facets, SORTS, DEFAULT_FILTERS } from '../filters';
 import { download } from '../storage';
 import { toBibtexAll, toCsv, toMarkdown } from '../bibtex';
 import PaperCard from './PaperCard';
@@ -20,13 +20,13 @@ export default function Workspace({
     title,
     subtitle,
     initialFilters,
-    grouped = false,
+    defaultGroupBy = 'topic',
     lockedFilters = NO_LOCK,
     emptyState,
     headerExtra,
 }) {
     const {
-        paperList, states, dispatch, topics, collections, followedIds, papers, settings,
+        paperList, states, dispatch, topics, folders, followedIds, papers, settings, notify,
     } = usePapers();
 
     const [filters, setFilters] = useState({ ...DEFAULT_FILTERS, ...initialFilters });
@@ -34,18 +34,24 @@ export default function Workspace({
     const [openId, setOpenId] = useState(null);
     const [cursor, setCursor] = useState(0);
     const [showFacets, setShowFacets] = useState(false);
+    const [groupBy, setGroupBy] = useState(defaultGroupBy);   // 'topic' | 'day' | 'none'
     const [exportOpen, setExportOpen] = useState(false);
+    const [folderOpen, setFolderOpen] = useState(false);
     const listRef = useRef(null);
     const searchRef = useRef(null);
 
     const effective = useMemo(() => ({ ...filters, ...lockedFilters }), [filters, lockedFilters]);
 
     const results = useMemo(
-        () => applyFilters(paperList, states, effective, { collections, followedIds }),
-        [paperList, states, effective, collections, followedIds],
+        () => applyFilters(paperList, states, effective, { folders, followedIds }),
+        [paperList, states, effective, folders, followedIds],
     );
 
-    const groups = useMemo(() => (grouped ? groupByDay(results) : null), [grouped, results]);
+    const groups = useMemo(() => {
+        if (groupBy === 'day') return groupByDay(results);
+        if (groupBy === 'topic') return groupByTopic(results, topics);
+        return null;
+    }, [groupBy, results, topics]);
 
     // The keyboard cursor walks the list in the order it is *rendered*. When grouped,
     // that is day by day, not the flat relevance order, so flatten the groups instead.
@@ -53,9 +59,11 @@ export default function Workspace({
         () => (groups ? groups.reduce((acc, g) => acc.concat(g.papers), []) : results),
         [groups, results],
     );
+    // Under topic grouping the same paper can appear in two groups, so a card's
+    // cursor index comes from its position in the render order, not from its id.
     const indexById = useMemo(() => {
         const m = new Map();
-        flat.forEach((p, i) => m.set(p.id, i));
+        flat.forEach((p, i) => { if (!m.has(p.id)) m.set(p.id, i); });
         return m;
     }, [flat]);
 
@@ -182,18 +190,20 @@ export default function Workspace({
     const activeFilterCount = [
         effective.topicIds.length, effective.categories.length, effective.tags.length,
         effective.statuses.length, effective.starredOnly ? 1 : 0, effective.followedOnly ? 1 : 0,
-        effective.unreadOnly ? 1 : 0, effective.days ? 1 : 0, effective.collectionId ? 1 : 0,
+        effective.unreadOnly ? 1 : 0, effective.folderId ? 1 : 0,
+        // A view's own default window is not a filter the user applied.
+        effective.days && effective.days !== (initialFilters || {}).days ? 1 : 0,
     ].reduce((a, b) => a + b, 0);
 
-    const renderCard = (p) => {
-        const idx = indexById.get(p.id);
+    const renderCard = (p, position) => {
+        const idx = position !== undefined ? position : indexById.get(p.id);
         return (
-        <div key={p.id} data-idx={idx}>
+        <div key={`${p.id}-${idx}`} data-idx={idx}>
             <PaperCard
                 paper={p}
                 focused={idx === cursor}
                 selected={selected.has(p.id)}
-                showDay={!grouped}
+                showDay={groupBy !== 'day'}
                 onSelectToggle={() => toggleSelect(p.id)}
                 onOpen={() => { setCursor(idx); setOpenId(openId === p.id ? null : p.id); }}
             />
@@ -205,7 +215,7 @@ export default function Workspace({
         <div className="flex h-full min-h-0">
             <div className="flex min-h-0 min-w-0 flex-1 flex-col">
                 {/* ------------------------------------------------------ toolbar */}
-                <header className="flex-none border-b border-slate-800 px-5 py-3">
+                <header className="flex-none border-b border-slate-800 py-3 pl-5 pr-5 max-lg:pl-14">
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="min-w-0">
                             <h1 className="text-base font-semibold text-slate-100">{title}</h1>
@@ -229,6 +239,16 @@ export default function Workspace({
                             className="rounded-lg border border-slate-700 bg-slate-950/60 px-2 py-1.5 text-[11px] text-slate-300 outline-none focus:border-orange-400/60"
                         >
                             {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                        </select>
+                        <select
+                            value={groupBy}
+                            onChange={(e) => setGroupBy(e.target.value)}
+                            title="Group papers by"
+                            className="rounded-lg border border-slate-700 bg-slate-950/60 px-2 py-1.5 text-[11px] text-slate-300 outline-none focus:border-orange-400/60"
+                        >
+                            <option value="topic">Group by topic</option>
+                            <option value="day">Group by day</option>
+                            <option value="none">No grouping</option>
                         </select>
                         <Button
                             variant={showFacets || activeFilterCount ? 'active' : 'ghost'}
@@ -291,13 +311,13 @@ export default function Workspace({
                                 </FacetRow>
                             )}
 
-                            {collections.length > 0 && (
-                                <FacetRow label="Collection">
-                                    {collections.map((c) => (
+                            {folders.length > 0 && (
+                                <FacetRow label="Folder">
+                                    {folders.map((c) => (
                                         <Chip
                                             key={c.id}
-                                            active={filters.collectionId === c.id}
-                                            onClick={() => patch({ collectionId: filters.collectionId === c.id ? null : c.id })}
+                                            active={filters.folderId === c.id}
+                                            onClick={() => patch({ folderId: filters.folderId === c.id ? null : c.id })}
                                         >
                                             {c.name} <span className="opacity-50">{c.paperIds.length}</span>
                                         </Chip>
@@ -324,6 +344,7 @@ export default function Workspace({
                         <Button size="sm" onClick={() => bulk({ starred: true })}>Star</Button>
                         <Button size="sm" onClick={() => bulk({ status: 'archived' })}>Archive</Button>
                         <Button size="sm" variant="danger" onClick={() => bulk({ status: 'dismissed' })}>Dismiss</Button>
+                        <Button size="sm" onClick={() => setFolderOpen(true)}>Add to folder…</Button>
                         <Button size="sm" onClick={() => setExportOpen(true)}>Export selection</Button>
                         <Button size="sm" variant="subtle" onClick={() => setSelected(new Set())}>Clear</Button>
                     </div>
@@ -337,43 +358,56 @@ export default function Workspace({
                                 Loosen the filters, or fetch your topics to bring in new work.
                             </Empty>
                         )
-                    ) : grouped ? (
+                    ) : groups ? (
                         <div className="space-y-6">
-                            {groups.map(({ day, papers: dayPapers }) => {
-                                const unread = dayPapers.filter((p) => !(states[p.id] && states[p.id].status !== 'unread')).length;
-                                return (
-                                    <section key={day}>
-                                        <div className="sticky top-0 z-10 -mx-1 mb-2 flex items-baseline gap-2 bg-slate-950/70 px-1 py-1.5 backdrop-blur-md">
-                                            <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
-                                                {relativeDay(day)}
-                                            </h2>
-                                            <span className="text-[10px] text-slate-600">
-                                                {dayPapers.length} paper{dayPapers.length === 1 ? '' : 's'}
-                                                {unread ? ` · ${unread} unread` : ''}
-                                            </span>
-                                            <div className="h-px flex-1 bg-slate-800" />
-                                            <button
-                                                type="button"
-                                                onClick={() => dispatch({
-                                                    type: 'PAPER_STATE_BULK',
-                                                    ids: dayPapers.map((p) => p.id),
-                                                    patch: { status: 'read' },
-                                                })}
-                                                className="text-[10px] text-slate-600 transition hover:text-orange-300"
-                                            >
-                                                mark day read
-                                            </button>
-                                        </div>
-                                        <div className={cx('space-y-2', settings.density === 'compact' && 'space-y-1')}>
-                                            {dayPapers.map((p) => renderCard(p))}
-                                        </div>
-                                    </section>
-                                );
-                            })}
+                            {(() => {
+                                let cursorAt = -1;
+                                return groups.map((group) => {
+                                    const unread = group.papers.filter(
+                                        (p) => !(states[p.id] && states[p.id].status !== 'unread'),
+                                    ).length;
+                                    return (
+                                        <section key={group.key}>
+                                            <div className="sticky top-0 z-10 -mx-1 mb-2 flex items-baseline gap-2 bg-slate-950/70 px-1 py-1.5 backdrop-blur-md">
+                                                {group.topic !== undefined && group.topic && (
+                                                    <span
+                                                        className="h-2 w-2 flex-none translate-y-[-1px] rounded-full"
+                                                        style={{ backgroundColor: group.topic.color }}
+                                                    />
+                                                )}
+                                                <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
+                                                    {groupBy === 'day'
+                                                        ? relativeDay(group.day)
+                                                        : (group.topic ? group.topic.name : 'No topic')}
+                                                </h2>
+                                                <span className="text-[10px] text-slate-600">
+                                                    {group.papers.length} paper{group.papers.length === 1 ? '' : 's'}
+                                                    {unread ? ` · ${unread} unread` : ''}
+                                                </span>
+                                                <div className="h-px flex-1 bg-slate-800" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => dispatch({
+                                                        type: 'PAPER_STATE_BULK',
+                                                        ids: group.papers.map((p) => p.id),
+                                                        patch: { status: 'read' },
+                                                    })}
+                                                    className="text-[10px] text-slate-600 transition hover:text-orange-300"
+                                                >
+                                                    mark all read
+                                                </button>
+                                            </div>
+                                            <div className={cx('space-y-2', settings.density === 'compact' && 'space-y-1')}>
+                                                {group.papers.map((p) => { cursorAt += 1; return renderCard(p, cursorAt); })}
+                                            </div>
+                                        </section>
+                                    );
+                                });
+                            })()}
                         </div>
                     ) : (
                         <div className={cx('space-y-2', settings.density === 'compact' && 'space-y-1')}>
-                            {flat.map((p) => renderCard(p))}
+                            {flat.map((p, i) => renderCard(p, i))}
                         </div>
                     )}
 
@@ -397,6 +431,26 @@ export default function Workspace({
                     <PaperDetail paper={openPaper} onClose={() => setOpenId(null)} onNavigate={navigate} />
                 </div>
             )}
+
+            <FolderPickerModal
+                open={folderOpen}
+                onClose={() => setFolderOpen(false)}
+                folders={folders}
+                count={selected.size}
+                onPick={(folderId) => {
+                    dispatch({ type: 'FOLDER_TOGGLE_PAPERS', id: folderId, paperIds: Array.from(selected) });
+                    const name = (folders.find((f) => f.id === folderId) || {}).name;
+                    notify(`Filed ${selected.size} paper${selected.size === 1 ? '' : 's'} in ${name}`);
+                    setFolderOpen(false);
+                    setSelected(new Set());
+                }}
+                onCreate={(name) => {
+                    dispatch({ type: 'FOLDER_ADD', name, paperIds: Array.from(selected) });
+                    notify(`Created ${name} with ${selected.size} paper${selected.size === 1 ? '' : 's'}`);
+                    setFolderOpen(false);
+                    setSelected(new Set());
+                }}
+            />
 
             <ExportModal
                 open={exportOpen}
@@ -435,6 +489,43 @@ function ExportModal({ open, onClose, papers, states, scope }) {
                 {actions.map(([label, fn]) => (
                     <Button key={label} size="lg" onClick={() => { fn(); onClose(); }}>{label}</Button>
                 ))}
+            </div>
+        </Modal>
+    );
+}
+
+
+function FolderPickerModal({ open, onClose, folders, count, onPick, onCreate }) {
+    const [name, setName] = useState('');
+    return (
+        <Modal open={open} onClose={onClose} title={`File ${count} paper${count === 1 ? '' : 's'}`}>
+            {folders.length > 0 && (
+                <div className="mb-4 max-h-64 space-y-1 overflow-y-auto">
+                    {folders.map((f) => (
+                        <button
+                            key={f.id}
+                            type="button"
+                            onClick={() => onPick(f.id)}
+                            className="flex w-full items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-left text-[12px] text-slate-300 transition hover:border-orange-400/40 hover:text-orange-200"
+                        >
+                            <span>📁</span>
+                            <span className="min-w-0 flex-1 truncate">{f.name}</span>
+                            <span className="font-mono text-[10px] text-slate-600">{f.paperIds.length}</span>
+                        </button>
+                    ))}
+                </div>
+            )}
+            <div className="flex gap-2">
+                <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) onCreate(name.trim()); }}
+                    placeholder="…or type a new folder name"
+                    className="flex-1 rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none focus:border-orange-400/60"
+                />
+                <Button variant="primary" disabled={!name.trim()} onClick={() => onCreate(name.trim())}>
+                    Create
+                </Button>
             </div>
         </Modal>
     );

@@ -46,7 +46,7 @@ export default function Authors({ onOpenAuthor }) {
     );
 
     return (
-        <div className="mx-auto max-w-6xl space-y-4 px-5 py-6">
+        <div className="mx-auto max-w-6xl space-y-4 px-5 py-6 max-lg:pl-14">
             <header className="flex flex-wrap items-center gap-3">
                 <div>
                     <h1 className="text-base font-semibold text-slate-100">Authors</h1>

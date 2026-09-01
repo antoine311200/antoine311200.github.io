@@ -14,7 +14,7 @@ backend and no account.
 |---|---|
 | The site is a static CRA app on GitHub Pages | No server. Everything runs client-side. |
 | arXiv's Atom API sends **no** CORS header at all | The default source is **OpenAlex**, which serves `Access-Control-Allow-Origin: *`, indexes arXiv, needs no key and no relay, and is current to the same day. The arXiv Atom API stays selectable behind a relay chain for anyone who can reach it. |
-| Data must survive reloads and be portable | `localStorage` under a single versioned key + full JSON **export/import** (merge or replace), BibTeX and CSV export. |
+| Data must survive reloads and be portable | **IndexedDB** under a single versioned key — localStorage's ~5 MB cap was a tenth spent per fetch — plus full JSON **export/import** (merge or replace), BibTeX, CSV and Markdown export. The v1 localStorage store migrates forward automatically. |
 | A daily tool must be fast | Fetching is incremental (per-topic watermarks), papers are deduped by arXiv id, and all search/scoring/graphs run over the in-memory store. |
 
 **Never re-fetch what you have seen.** Every topic stores a `lastFetch` timestamp and
@@ -73,14 +73,28 @@ Single `localStorage` key `paper-radar:v1`:
 - Every score is **explainable** — the card shows the matched terms and the reasons.
 - Recency decay so week-old items sink beneath fresh ones at equal relevance.
 
-### 3.4 Reading workflow
+### 3.4 Folders — the bibliography drawer
+
+A file explorer over the library: a nesting folder **tree** on the left, the selected
+folder's papers on the right.
+
+- Folders nest arbitrarily; a move that would create a cycle is refused.
+- **Drag papers** onto a folder, or file a multi-selection with *Add to folder…* from
+  any list; drag a folder onto another to reparent it.
+- Counts roll up through subfolders, and *Include subfolders* toggles whether a
+  folder shows its descendants' papers.
+- **Export the folder** as BibTeX, CSV or Markdown — this is what makes it a
+  bibliography for a chapter or a seminar rather than another tag.
+- Deleting a folder deletes its subfolders but never the papers themselves.
+
+### 3.5 Reading workflow
 - Statuses: **unread → queued → reading → read**, plus **archived** and **dismissed**.
 - Star, 0–5 rating, free tags, and a per-paper markdown **note**.
 - Reading queue with counts and a "next up" pick.
 - Bulk actions on multi-select: queue, archive, tag, star, export, add to collection.
 - **Collections** (reading lists) for a seminar, a survey, a chapter.
 
-### 3.5 Reading the paper
+### 3.6 Reading the paper
 - Inline **PDF viewer** in a side panel (arXiv PDF in an embedded frame), toggleable to
   full width, with a one-click "open in new tab".
 - Every outbound link a researcher wants, generated per paper:
@@ -88,7 +102,7 @@ Single `localStorage` key `paper-radar:v1`:
   Connected Papers · Papers with Code · DOI · Google Scholar lookup.
 - **BibTeX** generated locally, copy or download; also CSV/JSON for the whole library.
 
-### 3.6 Authors — the follow graph
+### 3.7 Authors — the follow graph
 - Every author seen becomes a node in the library with their paper count, first/last
   seen date, topics they publish in, and co-authors.
 - **Follow** an author: their new papers are boosted and collected in a Following feed.
@@ -98,27 +112,29 @@ Single `localStorage` key `paper-radar:v1`:
   Semantic Scholar, OpenAlex, DBLP, ORCID search.
 - Rising authors: who is appearing more often in your digests lately.
 
-### 3.7 Relations
-- **Co-authorship graph** (react-graph-vis) over the library or a filtered slice,
-  coloured by topic, sized by paper count, followed authors highlighted.
+### 3.8 Relations
+- **Co-authorship graph** (react-force-graph-2d, canvas, custom-painted to match the
+  site) over the library or a filtered slice, coloured by topic and sized by paper
+  count, with followed authors ringed. Lazy-loaded so the renderer stays out of the
+  main bundle.
 - **Similar papers**: TF-IDF cosine similarity over abstracts → "more like this" on
   every paper, and a similarity-linked paper graph.
 - **Topic overlap**: which topics keep returning the same papers (a hint to merge or
   tighten queries).
 
-### 3.8 Analytics
+### 3.9 Analytics
 - Papers per day sparkline, per-topic volume, category mix, top authors.
 - Reading stats: read vs. backlog, reading streak, mean time-to-read.
 - **Trending terms**: TF-IDF of the last two weeks against the library baseline —
   what is heating up in your field.
 
-### 3.9 Search & filtering
+### 3.10 Search & filtering
 - Instant full-text search over the whole local library (title, abstract, author,
   comment, note, tag) with field prefixes (`au:`, `ti:`, `cat:`, `tag:`).
 - Facets: topic, status, starred, tag, category, author, date range.
 - Sorts: relevance, newest, updated, title, citations (when enriched).
 
-### 3.10 Sources
+### 3.11 Sources
 
 Two interchangeable back-ends, chosen in Settings:
 
@@ -135,18 +151,18 @@ Verified against the live APIs: arXiv answers `200` with a valid Atom feed but n
 corsproxy returns `401`, allorigins `522`, and codetabs times out. OpenAlex returns
 `200` with `Access-Control-Allow-Origin: *`.
 
-### 3.11 Enrichment (optional, cached)
+### 3.12 Enrichment (optional, cached)
 - Semantic Scholar batch lookup adds **citation counts**, **TL;DR summaries** and
   stable author ids. Cached per paper, rate-limit aware, entirely opt-in.
 
-### 3.12 Portability & safety
+### 3.13 Portability & safety
 - **Export** the full store as JSON (timestamped filename); **import** with a choice of
   *merge* (keeps your states, adds new papers) or *replace*.
 - BibTeX / CSV export of the current selection or the whole library.
 - Storage meter with a prune tool (drop dismissed/old unread papers) so you never hit
   the ~5 MB quota silently.
 
-### 3.13 Keyboard-first
+### 3.14 Keyboard-first
 `j`/`k` move · `o` open · `Enter` detail · `s` star · `q` queue · `r` read ·
 `e` archive · `x` dismiss · `/` search · `g d` digest · `g l` library · `g a` authors ·
 `g g` graph · `g s` stats · `?` shortcut help.
@@ -160,6 +176,7 @@ src/pages/papers/
   index.js                app shell, tabs, keyboard router
   context.js              store provider (reducer + persistence)
   storage.js              load/save/migrate/export/import/prune
+  idb.js                  IndexedDB wrapper + real quota via the Storage API
   openalex.js             default source: CORS-native arXiv index, no relay needed
   arxiv.js                optional source: query builder, relay chain, Atom parser
   enrich.js               Semantic Scholar batch enrichment
@@ -167,9 +184,25 @@ src/pages/papers/
   filters.js              local query language, faceting, sorting, day grouping
   links.js                per-paper and per-author outbound link builders
   bibtex.js               BibTeX / CSV / Markdown serialisation
-  views/                  Digest, Library, Topics, Authors, Graph, Stats, Settings
+  views/                  Digest, Library, Folders, Topics, Authors, Graph, Stats, Settings
   components/             Workspace, PaperCard, PaperDetail, ui primitives
 ```
 
 The route is registered in `src/index.js` as `/paper-search` (hash router, so the
 live URL is `…/#/paper-search`).
+
+---
+
+## 5. Looking at it
+
+`scripts/ui-drive.mjs` drives the real app in Chromium via Playwright: it seeds
+IndexedDB with a realistic library, walks every screen, and writes screenshots to
+`/tmp/pr-shots` while reporting console errors.
+
+```
+npm start              # one terminal
+npm run ui:drive       # another
+```
+
+It is a look-at-it harness, not an assertion suite — the assertions live in
+`src/pages/papers/*.test.js`.

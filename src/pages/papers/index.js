@@ -1,17 +1,21 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { PaperProvider, usePapers } from './context';
-import { authorKey } from './storage';
+import { authorKey, papersInFolder } from './storage';
 import Digest from './views/Digest';
 import Library from './views/Library';
 import Topics from './views/Topics';
 import Authors from './views/Authors';
-import Graph from './views/Graph';
+import FoldersView from './views/Folders';
 import Stats from './views/Stats';
 import Settings from './views/Settings';
 import Workspace from './components/Workspace';
 import { Button, Modal, cx, PAGE_BACKGROUND } from './components/ui';
+
+// react-force-graph pulls in a canvas renderer and d3-force; code-split it so the
+// main bundle stays light and the graph only loads when Relations is opened.
+const Graph = lazy(() => import('./views/Graph'));
 
 /* ---------------------------------------------------------------- navigation */
 
@@ -21,6 +25,7 @@ const NAV = [
     { id: 'library', label: 'Library', key: 'l', badge: (c) => c.total || null, icon: '▤' },
     { id: 'starred', label: 'Starred', key: 'b', badge: (c) => c.starred || null, icon: '★' },
     { id: 'following', label: 'Following', key: 'f', badge: (c) => c.followed || null, icon: '◉' },
+    { id: 'folders', label: 'Folders', key: 'o', badge: (c) => c.filed || null, icon: '🗂' },
     { id: 'topics', label: 'Topics', key: 't', icon: '◇' },
     { id: 'authors', label: 'Authors', key: 'a', icon: '◎' },
     { id: 'graph', label: 'Relations', key: 'g', icon: '◍' },
@@ -41,7 +46,7 @@ const SHORTCUTS = [
     ]],
     ['Going places', [
         ['/', 'focus search'], ['g then d', 'digest'], ['g then l', 'library'], ['g then u', 'queue'],
-        ['g then a', 'authors'], ['g then g', 'relations'], ['g then s', 'statistics'],
+        ['g then a', 'authors'], ['g then o', 'folders'], ['g then g', 'relations'], ['g then s', 'statistics'],
         ['R', 'fetch all topics'], ['?', 'this help'],
     ]],
 ];
@@ -50,7 +55,7 @@ const SHORTCUTS = [
 
 function Shell() {
     const {
-        counts, topics, collections, dispatch, fetchTopics, fetchState, cancelFetch,
+        counts, topics, folders, dispatch, fetchTopics, fetchState, cancelFetch,
         error, setError, toast, settings, enrich, papers,
     } = usePapers();
 
@@ -59,6 +64,7 @@ function Shell() {
     const [help, setHelp] = useState(false);
     const [navOpen, setNavOpen] = useState(false);
     const [gPending, setGPending] = useState(false);
+    const [folderTarget, setFolderTarget] = useState(null);
 
     const go = useCallback((id) => {
         setAuthorFilter(null);
@@ -132,9 +138,18 @@ function Shell() {
             case 'library': return <Library preset="all" />;
             case 'starred': return <Library preset="starred" />;
             case 'following': return <Library preset="following" />;
+            case 'folders': return <FoldersView initialFolderId={folderTarget} />;
             case 'topics': return <Topics />;
             case 'authors': return <Authors onOpenAuthor={openAuthor} />;
-            case 'graph': return <Graph onOpenAuthor={openAuthor} />;
+            case 'graph': return (
+                <Suspense fallback={
+                    <div className="flex h-full items-center justify-center text-xs text-slate-500">
+                        Loading the network…
+                    </div>
+                }>
+                    <Graph onOpenAuthor={openAuthor} />
+                </Suspense>
+            );
             case 'stats': return <Stats onGo={go} />;
             case 'settings': return <Settings />;
             case 'author': return (
@@ -252,15 +267,16 @@ function Shell() {
 
                         <div className="mt-4 flex items-center justify-between px-2.5 pb-1.5">
                             <h2 className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-slate-600">
-                                Collections
+                                Folders
                             </h2>
                             <button
                                 type="button"
-                                title="New collection"
+                                title="New folder"
                                 onClick={() => {
                                     // eslint-disable-next-line no-alert
-                                    const name = window.prompt('Name this collection');
-                                    if (name) dispatch({ type: 'COLLECTION_ADD', name: name.trim() });
+                                    const name = window.prompt('Name this folder');
+                                    if (name && name.trim()) dispatch({ type: 'FOLDER_ADD', name: name.trim() });
+                                    go('folders');
                                 }}
                                 className="text-slate-600 transition hover:text-orange-300"
                             >
@@ -268,21 +284,24 @@ function Shell() {
                             </button>
                         </div>
                         <ul className="space-y-0.5 pb-4">
-                            {collections.map((c) => (
+                            {folders.filter((c) => !c.parentId).map((c) => (
                                 <li key={c.id}>
                                     <button
                                         type="button"
-                                        onClick={() => go('library')}
+                                        onClick={() => { setFolderTarget(c.id); setView('folders'); setNavOpen(false); }}
                                         className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1 text-left text-[11.5px] text-slate-500 transition hover:bg-white/5 hover:text-slate-300"
                                     >
+                                        <span className="flex-none text-[10px]">📁</span>
                                         <span className="truncate">{c.name}</span>
-                                        <span className="ml-auto font-mono text-[9.5px] text-slate-700">{c.paperIds.length}</span>
+                                        <span className="ml-auto font-mono text-[9.5px] text-slate-700">
+                                            {papersInFolder(folders, c.id).size}
+                                        </span>
                                     </button>
                                 </li>
                             ))}
-                            {!collections.length && (
+                            {!folders.length && (
                                 <li className="px-2.5 text-[10px] leading-relaxed text-slate-700">
-                                    Group papers for a seminar or a chapter.
+                                    Bibliography drawers for a chapter or a seminar.
                                 </li>
                             )}
                         </ul>

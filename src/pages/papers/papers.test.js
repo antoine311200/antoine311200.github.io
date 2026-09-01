@@ -2,7 +2,10 @@ import { buildQuery, parseFeed, splitArxivId } from './arxiv';
 import { scorePaper, learnFrom, buildIndex, similarTo, coauthorGraph, authorStats } from './scoring';
 import { parseQuery, applyFilters, groupByDay, DEFAULT_FILTERS } from './filters';
 import { toBibtex, citeKey, toCsv } from './bibtex';
-import { mergeStores, emptyStore, authorKey, prune, makeTopic } from './storage';
+import {
+    mergeStores, emptyStore, authorKey, prune, makeTopic, makeFolder,
+    folderPath, folderSubtree, papersInFolder, canMoveFolder,
+} from './storage';
 import { buildFilter, reconstructAbstract, arxivIdFromWork } from './openalex';
 
 const ATOM = `<?xml version="1.0" encoding="UTF-8"?>
@@ -290,5 +293,52 @@ describe('openalex', () => {
         const { filter, ignoredCategories } = buildFilter(makeTopic({ terms: [], categories: ['q-fin.MF'] }));
         expect(filter).toBeNull();
         expect(ignoredCategories).toEqual(['q-fin.MF']);
+    });
+});
+
+describe('folders', () => {
+    //  research/
+    //    ├── optimal-transport/
+    //    │     └── sinkhorn/
+    //    └── finance/
+    const folders = [
+        makeFolder({ id: 'f_root', name: 'research' }),
+        makeFolder({ id: 'f_ot', name: 'optimal-transport', parentId: 'f_root', paperIds: ['a'] }),
+        makeFolder({ id: 'f_sink', name: 'sinkhorn', parentId: 'f_ot', paperIds: ['b', 'c'] }),
+        makeFolder({ id: 'f_fin', name: 'finance', parentId: 'f_root', paperIds: ['d'] }),
+    ];
+
+    test('folderPath walks from the root down', () => {
+        expect(folderPath(folders, 'f_sink').map((f) => f.name))
+            .toEqual(['research', 'optimal-transport', 'sinkhorn']);
+    });
+
+    test('folderSubtree collects descendants', () => {
+        expect(folderSubtree(folders, 'f_ot').sort()).toEqual(['f_ot', 'f_sink']);
+        expect(folderSubtree(folders, 'f_sink')).toEqual(['f_sink']);
+    });
+
+    test('papersInFolder rolls up subfolders unless told otherwise', () => {
+        expect([...papersInFolder(folders, 'f_ot')].sort()).toEqual(['a', 'b', 'c']);
+        expect([...papersInFolder(folders, 'f_ot', { recursive: false })]).toEqual(['a']);
+        expect([...papersInFolder(folders, 'f_root')].sort()).toEqual(['a', 'b', 'c', 'd']);
+    });
+
+    test('a folder cannot be moved inside its own subtree', () => {
+        expect(canMoveFolder(folders, 'f_ot', 'f_sink')).toBe(false);   // would cycle
+        expect(canMoveFolder(folders, 'f_ot', 'f_ot')).toBe(false);
+        expect(canMoveFolder(folders, 'f_ot', 'f_fin')).toBe(true);
+        expect(canMoveFolder(folders, 'f_ot', null)).toBe(true);        // to the root
+    });
+
+    test('v1 collections migrate into root-level folders', () => {
+        const v1 = { ...emptyStore(), collections: [{ id: 'c1', name: 'Seminar', paperIds: ['x'] }] };
+        delete v1.folders;
+        const merged = mergeStores(emptyStore(), v1, 'replace');
+        expect(merged.folders).toHaveLength(1);
+        expect(merged.folders[0].name).toBe('Seminar');
+        expect(merged.folders[0].parentId).toBeNull();
+        expect(merged.folders[0].paperIds).toEqual(['x']);
+        expect(merged.collections).toBeUndefined();
     });
 });

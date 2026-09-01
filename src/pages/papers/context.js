@@ -11,8 +11,9 @@ import React, {
 } from 'react';
 
 import {
-    loadStore, saveStore, emptyStore, makeTopic, emptyState, authorKey,
+    loadStore, saveStore, clearStore, emptyStore, makeTopic, makeFolder, emptyState, authorKey,
     STARTER_TOPICS, mergeStores, prune as pruneStore, DEFAULT_SETTINGS,
+    folderSubtree, canMoveFolder,
 } from './storage';
 import { searchTopic as searchArxiv, setPreferredStrategy } from './arxiv';
 import { searchTopic as searchOpenAlex } from './openalex';
@@ -167,37 +168,70 @@ function reducer(state, action) {
 
         /* ---------------------------------------------------------- collections */
 
-        case 'COLLECTION_ADD':
+        case 'FOLDER_ADD':
             return {
                 ...state,
-                collections: [...state.collections, {
-                    id: `c_${Math.random().toString(36).slice(2, 10)}`,
+                folders: [...state.folders, makeFolder({
                     name: action.name,
-                    description: '',
+                    parentId: action.parentId || null,
                     paperIds: action.paperIds || [],
-                    createdAt: new Date().toISOString(),
-                }],
+                })],
             };
 
-        case 'COLLECTION_UPDATE':
+        case 'FOLDER_UPDATE':
             return {
                 ...state,
-                collections: state.collections.map((c) => (c.id === action.id ? { ...c, ...action.patch } : c)),
+                folders: state.folders.map((c) => (c.id === action.id ? { ...c, ...action.patch } : c)),
             };
 
-        case 'COLLECTION_REMOVE':
-            return { ...state, collections: state.collections.filter((c) => c.id !== action.id) };
+        /** Deleting a folder deletes its descendants; papers themselves are untouched. */
+        case 'FOLDER_REMOVE': {
+            const doomed = new Set(folderSubtree(state.folders, action.id));
+            return { ...state, folders: state.folders.filter((c) => !doomed.has(c.id)) };
+        }
 
-        case 'COLLECTION_TOGGLE_PAPERS':
+        case 'FOLDER_MOVE':
+            if (!canMoveFolder(state.folders, action.id, action.parentId)) return state;
             return {
                 ...state,
-                collections: state.collections.map((c) => {
+                folders: state.folders.map((c) => (
+                    c.id === action.id ? { ...c, parentId: action.parentId || null } : c
+                )),
+            };
+
+        case 'FOLDER_TOGGLE_PAPERS':
+            return {
+                ...state,
+                folders: state.folders.map((c) => {
                     if (c.id !== action.id) return c;
                     const set = new Set(c.paperIds);
                     const allIn = action.paperIds.every((p) => set.has(p));
                     action.paperIds.forEach((p) => (allIn ? set.delete(p) : set.add(p)));
                     return { ...c, paperIds: Array.from(set) };
                 }),
+            };
+
+        /** Move papers into a folder, removing them from any other folder first. */
+        case 'FOLDER_MOVE_PAPERS': {
+            const moving = new Set(action.paperIds);
+            return {
+                ...state,
+                folders: state.folders.map((c) => {
+                    const without = c.paperIds.filter((p) => !moving.has(p));
+                    if (c.id !== action.id) return without.length === c.paperIds.length ? c : { ...c, paperIds: without };
+                    return { ...c, paperIds: Array.from(new Set([...without, ...action.paperIds])) };
+                }),
+            };
+        }
+
+        case 'FOLDER_REMOVE_PAPERS':
+            return {
+                ...state,
+                folders: state.folders.map((c) => (
+                    c.id === action.id
+                        ? { ...c, paperIds: c.paperIds.filter((p) => !action.paperIds.includes(p)) }
+                        : c
+                )),
             };
 
         /* ------------------------------------------------------------ wholesale */
@@ -232,16 +266,30 @@ function reducer(state, action) {
     }
 }
 
-function bootstrap() {
-    const saved = loadStore();
-    if (saved) return saved;
+function freshStore() {
     const fresh = emptyStore();
     fresh.topics = STARTER_TOPICS.map((t) => makeTopic(t));
     return fresh;
 }
 
 export function PaperProvider({ children }) {
-    const [state, dispatch] = useReducer(reducer, undefined, bootstrap);
+    // IndexedDB reads are async, so the store hydrates one tick after mount. Until it
+    // lands we hold an empty store and render a placeholder rather than a wrong one —
+    // saving before hydration would otherwise clobber the real library with defaults.
+    const [state, dispatch] = useReducer(reducer, undefined, emptyStore);
+    const [hydrated, setHydrated] = useState(false);
+
+    useEffect(() => {
+        let alive = true;
+        loadStore()
+            .then((saved) => {
+                if (!alive) return;
+                dispatch({ type: 'HYDRATE', store: saved || freshStore() });
+                setHydrated(true);
+            })
+            .catch(() => { if (alive) { dispatch({ type: 'HYDRATE', store: freshStore() }); setHydrated(true); } });
+        return () => { alive = false; };
+    }, []);
 
     // Fetch progress / errors live outside the persisted store.
     const [fetchState, setFetchState] = useState({ running: false, topic: null, done: 0, total: 0, log: [] });
@@ -255,15 +303,17 @@ export function PaperProvider({ children }) {
 
     // Debounced persistence — a burst of keyboard triage writes once.
     useEffect(() => {
+        if (!hydrated) return undefined;
         clearTimeout(saveTimer.current);
         saveTimer.current = setTimeout(() => {
-            const res = saveStore(state);
-            if (!res.ok) {
-                setError(`Could not save to localStorage (${res.error}). Export your data, then prune the library in Settings.`);
-            }
+            saveStore(state).then((res) => {
+                if (!res.ok) {
+                    setError(`Could not save your library (${res.error}). Export it from Settings before adding more.`);
+                }
+            });
         }, 400);
         return () => clearTimeout(saveTimer.current);
-    }, [state]);
+    }, [hydrated, state]);
 
     // Record this visit once, so "new since last visit" has something to compare to.
     useEffect(() => {
@@ -422,15 +472,23 @@ export function PaperProvider({ children }) {
             today: todayCount,
             yesterday: yesterdayCount,
             followed: followedIds.size,
+            filed: new Set(state.folders.flatMap((f) => f.paperIds)).size,
             authors: authorsIndex.length,
             following: authorsIndex.filter((a) => a.followed).length,
         };
-    }, [paperList, state.states, followedIds, authorsIndex]);
+    }, [paperList, state.states, state.folders, followedIds, authorsIndex]);
+
+    const resetAll = useCallback(async () => {
+        await clearStore();
+        dispatch({ type: 'RESET' });
+    }, []);
 
     const value = useMemo(() => ({
         ...state,
         raw: state,
+        hydrated,
         dispatch,
+        resetAll,
         paperList,
         index,
         authorsIndex,
@@ -449,8 +507,8 @@ export function PaperProvider({ children }) {
         topicById: (id) => state.topics.find((t) => t.id === id),
         defaults: DEFAULT_SETTINGS,
     }), [
-        state, paperList, index, authorsIndex, followedIds, counts,
-        fetchState, fetchTopics, cancelFetch, enrich, error, toast, notify,
+        state, hydrated, paperList, index, authorsIndex, followedIds, counts,
+        fetchState, fetchTopics, cancelFetch, enrich, error, toast, notify, resetAll,
     ]);
 
     return <PaperContext.Provider value={value}>{children}</PaperContext.Provider>;

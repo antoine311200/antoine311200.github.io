@@ -15,7 +15,7 @@ const STATUSES = ['unread', 'queued', 'reading', 'read', 'archived', 'dismissed'
  */
 export default function PaperDetail({ paper, onClose, onNavigate }) {
     const {
-        dispatch, stateOf, topics, authors, index, papers, settings, collections, notify,
+        dispatch, stateOf, topics, authors, index, papers, settings, folders, notify,
     } = usePapers();
     const [tab, setTab] = useState('overview');
     const [pdfOpen, setPdfOpen] = useState(settings.pdfInline);
@@ -213,13 +213,15 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
                         <section>
                             <SectionTitle>Metadata</SectionTitle>
                             <dl className="grid grid-cols-[6.5rem_1fr] gap-x-3 gap-y-1 text-[11.5px]">
-                                <Meta label="Categories">
-                                    <span className="flex flex-wrap gap-1">
-                                        {(paper.categories || []).map((c) => (
-                                            <Chip key={c} active={c === paper.primary}>{c}</Chip>
-                                        ))}
-                                    </span>
-                                </Meta>
+                                {(paper.categories || []).length > 0 && (
+                                    <Meta label="Categories">
+                                        <span className="flex flex-wrap gap-1">
+                                            {paper.categories.map((c) => (
+                                                <Chip key={c} active={c === paper.primary}>{c}</Chip>
+                                            ))}
+                                        </span>
+                                    </Meta>
+                                )}
                                 <Meta label="Topics">
                                     <span className="flex flex-wrap gap-1">
                                         {topicChips.length
@@ -294,11 +296,11 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
                                 className="w-full resize-y rounded-lg border border-slate-700 bg-slate-950/60 p-3 font-mono text-[12px] leading-relaxed text-slate-200 placeholder:text-slate-600 outline-none focus:border-orange-400/60"
                             />
                         </div>
-                        {collections.length > 0 && (
+                        {folders.length > 0 && (
                             <div>
-                                <SectionTitle>Collections</SectionTitle>
+                                <SectionTitle>Folders</SectionTitle>
                                 <div className="flex flex-wrap gap-1.5">
-                                    {collections.map((c) => {
+                                    {folders.map((c) => {
                                         const inIt = c.paperIds.includes(paper.id);
                                         return (
                                             <Button
@@ -306,7 +308,7 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
                                                 size="sm"
                                                 variant={inIt ? 'active' : 'ghost'}
                                                 onClick={() => {
-                                                    dispatch({ type: 'COLLECTION_TOGGLE_PAPERS', id: c.id, paperIds: [paper.id] });
+                                                    dispatch({ type: 'FOLDER_TOGGLE_PAPERS', id: c.id, paperIds: [paper.id] });
                                                     notify(inIt ? `Removed from ${c.name}` : `Added to ${c.name}`);
                                                 }}
                                             >
