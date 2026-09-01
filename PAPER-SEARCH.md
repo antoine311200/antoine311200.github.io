@@ -204,5 +204,16 @@ npm start              # one terminal
 npm run ui:drive       # another
 ```
 
-It is a look-at-it harness, not an assertion suite — the assertions live in
-`src/pages/papers/*.test.js`.
+It is a look-at-it harness. The assertions live in two places:
+
+| | |
+|---|---|
+| `src/pages/papers/*.test.js` | Jest — pure logic and component rendering (35 tests) |
+| `e2e/paper-search.spec.js` | Playwright — real browser flows (17 tests), `npm run e2e` |
+
+The end-to-end suite drives Chromium against the dev server with the OpenAlex API
+stubbed, so it can assert on things unit tests cannot reach: that a second fetch of
+the same works stores nothing new and leaves `firstSeen` untouched, that a paper in
+two topics is stored once but listed under both, that folders and reading state
+survive a reload because they came back out of IndexedDB, and that a v1 localStorage
+store migrates into IndexedDB and its `collections` become root folders.

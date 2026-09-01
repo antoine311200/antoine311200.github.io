@@ -375,7 +375,10 @@ export default function Workspace({
                                                         style={{ backgroundColor: group.topic.color }}
                                                     />
                                                 )}
-                                                <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
+                                                <h2
+                                                    data-testid="group-heading"
+                                                    className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300"
+                                                >
                                                     {groupBy === 'day'
                                                         ? relativeDay(group.day)
                                                         : (group.topic ? group.topic.name : 'No topic')}

@@ -76,6 +76,7 @@ export default function Topics() {
                 {topics.map((topic) => (
                     <article
                         key={topic.id}
+                        data-testid={`topic-card-${topic.id}`}
                         className={cx(
                             'rounded-xl border bg-slate-900/40 p-4 transition',
                             topic.enabled ? 'border-slate-800' : 'border-slate-800/60 opacity-55',
@@ -187,7 +188,11 @@ function TopicEditor({ topic, onClose, onSave, source }) {
     const [copied, copy] = useCopy();
 
     React.useEffect(() => setDraft(topic), [topic]);
-    if (!draft) return null;
+
+    // Closing the editor sets `topic` to null, but the effect that clears `draft` only
+    // runs after this render — so guarding on `draft` alone would still read `topic`
+    // and throw. Both have to be checked.
+    if (!topic || !draft) return null;
 
     const set = (patch) => setDraft((d) => ({ ...d, ...patch }));
     const usingOpenAlex = source !== 'arxiv';

@@ -57,7 +57,8 @@
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "ui:drive": "node scripts/ui-drive.mjs"
+    "ui:drive": "node scripts/ui-drive.mjs",
+    "e2e": "playwright test"
   },
   "eslintConfig": {
     "extends": [
@@ -78,6 +79,7 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/typography": "^0.5.13",
     "gh-pages": "^6.0.0",
     "playwright": "^1.62.1",
