@@ -13,7 +13,7 @@ backend and no account.
 | Constraint | Consequence |
 |---|---|
 | The site is a static CRA app on GitHub Pages | No server. Everything runs client-side. |
-| arXiv's Atom API does not reliably send CORS headers | A fetch **strategy chain**: direct → public CORS relays, with the winning strategy remembered in settings. |
+| arXiv's Atom API sends **no** CORS header at all | The default source is **OpenAlex**, which serves `Access-Control-Allow-Origin: *`, indexes arXiv, needs no key and no relay, and is current to the same day. The arXiv Atom API stays selectable behind a relay chain for anyone who can reach it. |
 | Data must survive reloads and be portable | `localStorage` under a single versioned key + full JSON **export/import** (merge or replace), BibTeX and CSV export. |
 | A daily tool must be fast | Fetching is incremental (per-topic watermarks), papers are deduped by arXiv id, and all search/scoring/graphs run over the in-memory store. |
 
@@ -118,18 +118,35 @@ Single `localStorage` key `paper-radar:v1`:
 - Facets: topic, status, starred, tag, category, author, date range.
 - Sorts: relevance, newest, updated, title, citations (when enriched).
 
-### 3.10 Enrichment (optional, cached)
+### 3.10 Sources
+
+Two interchangeable back-ends, chosen in Settings:
+
+| | **OpenAlex** (default) | **arXiv Atom** |
+|---|---|---|
+| Reachable from a browser | yes, directly | only via a public relay |
+| Keywords, exclusions, authors, dates | yes | yes |
+| arXiv **categories** | **not supported** — reported as ignored, never dropped silently | yes |
+| arXiv version tracking | no | yes |
+| Citation counts | included free | needs enrichment |
+
+Verified against the live APIs: arXiv answers `200` with a valid Atom feed but no
+`Access-Control-Allow-Origin`, so a browser can never read it; of the free relays,
+corsproxy returns `401`, allorigins `522`, and codetabs times out. OpenAlex returns
+`200` with `Access-Control-Allow-Origin: *`.
+
+### 3.11 Enrichment (optional, cached)
 - Semantic Scholar batch lookup adds **citation counts**, **TL;DR summaries** and
   stable author ids. Cached per paper, rate-limit aware, entirely opt-in.
 
-### 3.11 Portability & safety
+### 3.12 Portability & safety
 - **Export** the full store as JSON (timestamped filename); **import** with a choice of
   *merge* (keeps your states, adds new papers) or *replace*.
 - BibTeX / CSV export of the current selection or the whole library.
 - Storage meter with a prune tool (drop dismissed/old unread papers) so you never hit
   the ~5 MB quota silently.
 
-### 3.12 Keyboard-first
+### 3.13 Keyboard-first
 `j`/`k` move · `o` open · `Enter` detail · `s` star · `q` queue · `r` read ·
 `e` archive · `x` dismiss · `/` search · `g d` digest · `g l` library · `g a` authors ·
 `g g` graph · `g s` stats · `?` shortcut help.
@@ -143,7 +160,8 @@ src/pages/papers/
   index.js                app shell, tabs, keyboard router
   context.js              store provider (reducer + persistence)
   storage.js              load/save/migrate/export/import/prune
-  arxiv.js                query builder, fetch strategy chain, Atom parser
+  openalex.js             default source: CORS-native arXiv index, no relay needed
+  arxiv.js                optional source: query builder, relay chain, Atom parser
   enrich.js               Semantic Scholar batch enrichment
   scoring.js              relevance, TF-IDF, similarity, trends, co-author graph
   filters.js              local query language, faceting, sorting, day grouping

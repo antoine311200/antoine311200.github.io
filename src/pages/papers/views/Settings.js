@@ -132,6 +132,39 @@ export default function Settings() {
                     </div>
 
                     <Field
+                        label="Source"
+                        hint={
+                            settings.source === 'arxiv'
+                                ? 'arXiv is authoritative and carries categories and versions, but it sends no CORS headers, so it only works through a public relay — and those are frequently down.'
+                                : 'OpenAlex indexes arXiv, is reachable straight from the browser with no relay, and adds citation counts. It cannot filter by arXiv category.'
+                        }
+                    >
+                        <select
+                            value={settings.source}
+                            onChange={(e) => set({ source: e.target.value })}
+                            className="w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-orange-400/60"
+                        >
+                            <option value="openalex">OpenAlex — works without a relay (recommended)</option>
+                            <option value="arxiv">arXiv Atom API — needs a working relay</option>
+                        </select>
+                    </Field>
+
+                    {settings.source === 'openalex' && (
+                        <Field
+                            label="OpenAlex contact e-mail (optional)"
+                            hint="Supplying an address puts your requests in OpenAlex's faster “polite pool”. Left empty by default — it is sent to OpenAlex with every query."
+                        >
+                            <Input
+                                type="email"
+                                value={settings.openAlexMailto}
+                                onChange={(e) => set({ openAlexMailto: e.target.value.trim() })}
+                                placeholder="you@example.com"
+                            />
+                        </Field>
+                    )}
+
+                    {settings.source === 'arxiv' && (
+                    <Field
                         label="Network route"
                         hint={
                             'arXiv does not send CORS headers to browsers, so a relay is usually needed. '
@@ -147,6 +180,7 @@ export default function Settings() {
                             {STRATEGIES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
                         </select>
                     </Field>
+                    )}
 
                     <Toggle
                         checked={settings.autoFetchOnOpen}

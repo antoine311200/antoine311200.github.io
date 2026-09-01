@@ -14,7 +14,8 @@ import {
     loadStore, saveStore, emptyStore, makeTopic, emptyState, authorKey,
     STARTER_TOPICS, mergeStores, prune as pruneStore, DEFAULT_SETTINGS,
 } from './storage';
-import { searchTopic, setPreferredStrategy } from './arxiv';
+import { searchTopic as searchArxiv, setPreferredStrategy } from './arxiv';
+import { searchTopic as searchOpenAlex } from './openalex';
 import { rescoreAll, learnFrom, buildIndex, authorStats } from './scoring';
 import { enrichPapers } from './enrich';
 
@@ -290,6 +291,7 @@ export function PaperProvider({ children }) {
         setError(null);
         setFetchState({ running: true, topic: targets[0].name, done: 0, total: targets.length, log: [] });
 
+        const useOpenAlex = state.settings.source !== 'arxiv';
         const log = [];
         // `state.papers` is a stale closure across the loop, so track what we have
         // seen ourselves — otherwise topic 2 would re-count topic 1's arrivals as new.
@@ -299,11 +301,19 @@ export function PaperProvider({ children }) {
             const topic = targets[i];
             setFetchState((f) => ({ ...f, topic: topic.name, done: i }));
             try {
-                const { entries, total, strategy } = await searchTopic(topic, {
-                    max: topic.maxResults || state.settings.maxResultsPerTopic,
-                    strategy: state.settings.proxy,
-                    signal: abortRef.current.signal,
-                });
+                const max = topic.maxResults || state.settings.maxResultsPerTopic;
+                const { entries, total, strategy, ignoredCategories } = useOpenAlex
+                    ? await searchOpenAlex(topic, {
+                        max,
+                        sinceDays: state.settings.lookbackDays,
+                        mailto: state.settings.openAlexMailto,
+                        signal: abortRef.current.signal,
+                    })
+                    : await searchArxiv(topic, {
+                        max,
+                        strategy: state.settings.proxy,
+                        signal: abortRef.current.signal,
+                    });
                 const known = entries.filter((e) => seen.has(e.id)).length;
                 entries.forEach((e) => seen.add(e.id));
                 dispatch({ type: 'INGEST', entries, topicId: topic.id });
@@ -314,21 +324,26 @@ export function PaperProvider({ children }) {
                     fresh: entries.length - known,
                     total,
                     strategy,
+                    ignoredCategories,
                 });
             } catch (err) {
                 if (err.name === 'AbortError') { log.push({ topic: topic.name, ok: false, message: 'cancelled' }); break; }
                 log.push({ topic: topic.name, ok: false, message: err.message });
             }
             setFetchState((f) => ({ ...f, log: [...log] }));
-            // arXiv asks for ~3s between programmatic calls; be polite.
-            if (i < targets.length - 1) await new Promise((r) => setTimeout(r, 3000));
+            // arXiv asks for ~3s between programmatic calls; OpenAlex does not.
+            if (i < targets.length - 1) await new Promise((r) => setTimeout(r, useOpenAlex ? 350 : 3000));
         }
 
         const fresh = log.reduce((n, l) => n + (l.fresh || 0), 0);
         const failed = log.filter((l) => !l.ok);
         setFetchState({ running: false, topic: null, done: targets.length, total: targets.length, log });
         if (failed.length === targets.length) {
-            setError(`Every topic failed. ${failed[0].message}`);
+            const hint = useOpenAlex
+                ? 'Check your connection, or switch the source in Settings.'
+                : 'arXiv sends no CORS headers to browsers and the public relays are unreliable — '
+                  + 'switch the source back to OpenAlex in Settings.';
+            setError(`Every topic failed. ${failed[0].message}. ${hint}`);
         } else {
             notify(fresh ? `${fresh} new paper${fresh === 1 ? '' : 's'}` : 'No new papers — you are up to date');
         }

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 
 import { usePapers } from '../context';
 import { buildQuery, CATEGORIES, searchRaw } from '../arxiv';
+import { buildFilter, searchTopic as previewOpenAlex } from '../openalex';
 import { makeTopic, STARTER_TOPICS } from '../storage';
 import {
     Button, Chip, Empty, Field, Input, Modal, Panel, TokenInput, cx, shortDate, useCopy,
@@ -152,6 +153,11 @@ export default function Topics() {
                                     {l.ok
                                         ? `${l.fresh} new of ${l.fetched} returned${l.total ? ` (${l.total} match in total)` : ''} · via ${l.strategy}`
                                         : l.message}
+                                    {l.ok && l.ignoredCategories && l.ignoredCategories.length > 0 && (
+                                        <span className="text-amber-400/80">
+                                            {' '}· categories ignored ({l.ignoredCategories.join(', ')})
+                                        </span>
+                                    )}
                                 </span>
                             </li>
                         ))}
@@ -160,6 +166,7 @@ export default function Topics() {
             )}
 
             <TopicEditor
+                source={settings.source}
                 topic={editing}
                 onClose={() => setEditing(null)}
                 onSave={(t) => {
@@ -175,7 +182,7 @@ export default function Topics() {
 
 /* ---------------------------------------------------------------- the editor */
 
-function TopicEditor({ topic, onClose, onSave }) {
+function TopicEditor({ topic, onClose, onSave, source }) {
     const [draft, setDraft] = useState(topic);
     const [copied, copy] = useCopy();
 
@@ -183,7 +190,8 @@ function TopicEditor({ topic, onClose, onSave }) {
     if (!draft) return null;
 
     const set = (patch) => setDraft((d) => ({ ...d, ...patch }));
-    const query = buildQuery(draft);
+    const usingOpenAlex = source !== 'arxiv';
+    const query = usingOpenAlex ? buildFilter(draft).filter : buildQuery(draft);
 
     return (
         <Modal open onClose={onClose} title={topic.name === 'New topic' ? 'New topic' : `Edit “${topic.name}”`} width="max-w-2xl">
@@ -227,7 +235,12 @@ function TopicEditor({ topic, onClose, onSave }) {
                     <TokenInput value={draft.exclude} onChange={(exclude) => set({ exclude })} placeholder="survey, review…" />
                 </Field>
 
-                <Field label="Categories" hint="Restrict to these arXiv categories. Leave empty to search everywhere.">
+                <Field
+                    label="Categories"
+                    hint={usingOpenAlex
+                        ? 'Not applied by the OpenAlex source — it does not carry arXiv categories. Kept so they work if you switch back to the arXiv source.'
+                        : 'Restrict to these arXiv categories. Leave empty to search everywhere.'}
+                >
                     <TokenInput value={draft.categories} onChange={(categories) => set({ categories })} placeholder="cs.LG, quant-ph…" />
                     <div className="mt-2 flex max-h-24 flex-wrap gap-1 overflow-y-auto">
                         {CATEGORIES.map(([code, label]) => (
@@ -276,7 +289,9 @@ function TopicEditor({ topic, onClose, onSave }) {
                 </div>
 
                 <div>
-                    <span className="mb-1 block text-[11px] font-medium text-slate-400">Generated arXiv query</span>
+                    <span className="mb-1 block text-[11px] font-medium text-slate-400">
+                        Generated {usingOpenAlex ? 'OpenAlex filter' : 'arXiv query'}
+                    </span>
                     <pre className="max-h-24 overflow-auto rounded-lg border border-slate-700 bg-slate-950/60 p-2.5 font-mono text-[10.5px] leading-relaxed text-slate-400">
                         {query || 'Add a keyword, category or author to build a query.'}
                     </pre>
@@ -315,17 +330,25 @@ function PreviewModal({ topic, onClose, settings }) {
         let cancelled = false;
         const controller = new AbortController();
         setState({ loading: true, entries: [], error: null, total: null });
-        searchRaw(buildQuery(topic), { max: 15, strategy: settings.proxy, signal: controller.signal })
+        const run = settings.source !== 'arxiv'
+            ? previewOpenAlex(topic, {
+                max: 15,
+                sinceDays: settings.lookbackDays,
+                mailto: settings.openAlexMailto,
+                signal: controller.signal,
+            })
+            : searchRaw(buildQuery(topic), { max: 15, strategy: settings.proxy, signal: controller.signal });
+        run
             .then(({ entries, total }) => { if (!cancelled) setState({ loading: false, entries, error: null, total }); })
             .catch((err) => { if (!cancelled) setState({ loading: false, entries: [], error: err.message, total: null }); });
         return () => { cancelled = true; controller.abort(); };
-    }, [topic, settings.proxy]);
+    }, [topic, settings.proxy, settings.source, settings.lookbackDays, settings.openAlexMailto]);
 
     if (!topic) return null;
     return (
         <Modal open onClose={onClose} title={`Preview — ${topic.name}`} width="max-w-2xl">
             <p className="mb-3 text-[11px] text-slate-500">
-                A dry run. Nothing here is saved to your library — it just shows what this query returns right now.
+                A dry run against the active source. Nothing here is saved to your library — it just shows what this query returns right now.
             </p>
             {state.loading && <p className="py-8 text-center text-xs text-slate-500">Querying arXiv…</p>}
             {state.error && <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">{state.error}</p>}
@@ -344,7 +367,7 @@ function PreviewModal({ topic, onClose, settings }) {
                             {e.title}
                         </a>
                         <p className="mt-0.5 truncate text-[10px] text-slate-500">
-                            {e.authors.slice(0, 4).map((a) => a.name).join(', ')} · {e.primary} · {shortDate(e.published)}
+                            {e.authors.slice(0, 4).map((a) => a.name).join(', ')}{e.primary ? ` · ${e.primary}` : ''} · {shortDate(e.published)}
                         </p>
                     </li>
                 ))}

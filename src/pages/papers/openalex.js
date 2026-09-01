@@ -1,0 +1,151 @@
+/**
+ * OpenAlex source for arXiv preprints.
+ *
+ * arXiv's own Atom API sends no `Access-Control-Allow-Origin` header, so a browser
+ * on a static site can never call it directly, and the free CORS relays it used to
+ * be routed through are unreliable (401s, timeouts, Cloudflare 522s).
+ *
+ * OpenAlex serves `Access-Control-Allow-Origin: *`, needs no key, indexes arXiv as a
+ * source, and is current to the same day — so it works from the browser with no
+ * relay at all. It also hands us citation counts for free.
+ *
+ * The one thing it cannot do is filter by arXiv category (cs.LG, q-fin.MF, …); it
+ * does not carry them. Category constraints are reported back to the caller as
+ * ignored rather than silently dropped.
+ */
+
+/** OpenAlex's source record for "arXiv (Cornell University)". */
+const ARXIV_SOURCE = 's4306400194';
+const API = 'https://api.openalex.org/works';
+
+const FIELDS = [
+    'id', 'doi', 'title', 'publication_date', 'abstract_inverted_index',
+    'authorships', 'cited_by_count', 'primary_location', 'type',
+].join(',');
+
+/** OpenAlex stores abstracts as {word: [positions]}; put them back in order. */
+export function reconstructAbstract(index) {
+    if (!index) return '';
+    const words = [];
+    Object.entries(index).forEach(([word, positions]) => {
+        (positions || []).forEach((p) => { words[p] = word; });
+    });
+    return words.join(' ').replace(/\s+/g, ' ').trim();
+}
+
+/** "https://doi.org/10.48550/arxiv.2608.28262" -> "2608.28262" */
+export function arxivIdFromWork(work) {
+    const doi = String(work.doi || '');
+    const m = doi.match(/10\.48550\/arxiv\.(.+)$/i);
+    if (m) return m[1].replace(/v\d+$/i, '');
+
+    const landing = (work.primary_location && work.primary_location.landing_page_url) || '';
+    const abs = landing.match(/arxiv\.org\/abs\/(.+?)(?:v\d+)?$/i);
+    if (abs) return abs[1];
+    return null;
+}
+
+const phrase = (s) => `"${String(s).replace(/"/g, ' ').trim()}"`;
+
+/**
+ * Build the OpenAlex `filter` expression for a topic.
+ * @returns {{ filter: string|null, ignoredCategories: string[] }}
+ */
+export function buildFilter(topic, { sinceDays = 30 } = {}) {
+    const clauses = [`primary_location.source.id:${ARXIV_SOURCE}`];
+
+    const terms = (topic.terms || []).map((t) => t.trim()).filter(Boolean);
+    const excludes = (topic.exclude || []).map((t) => t.trim()).filter(Boolean);
+    if (terms.length) {
+        let search = terms.map(phrase).join(' OR ');
+        excludes.forEach((e) => { search += ` NOT ${phrase(e)}`; });
+        clauses.push(`title_and_abstract.search:${search}`);
+    }
+
+    const authors = (topic.authors || []).map((a) => a.trim()).filter(Boolean);
+    if (authors.length) clauses.push(`raw_author_name.search:${authors.map(phrase).join(' OR ')}`);
+
+    if (!terms.length && !authors.length) {
+        return { filter: null, ignoredCategories: topic.categories || [] };
+    }
+
+    if (sinceDays) {
+        const from = new Date(Date.now() - sinceDays * 864e5).toISOString().slice(0, 10);
+        clauses.push(`from_publication_date:${from}`);
+    }
+
+    return { filter: clauses.join(','), ignoredCategories: topic.categories || [] };
+}
+
+/** Map an OpenAlex work onto the same entry shape the arXiv parser produces. */
+function toEntry(work) {
+    const id = arxivIdFromWork(work);
+    if (!id) return null;
+
+    const authors = (work.authorships || []).map((a) => ({
+        name: (a.author && a.author.display_name) || '',
+        affiliation: (a.institutions && a.institutions[0] && a.institutions[0].display_name) || null,
+    })).filter((a) => a.name);
+
+    const date = work.publication_date ? `${work.publication_date}T00:00:00Z` : null;
+
+    return {
+        id,
+        version: 1,                       // OpenAlex does not track arXiv versions
+        title: String(work.title || '').replace(/\s+/g, ' ').trim(),
+        summary: reconstructAbstract(work.abstract_inverted_index),
+        authors,
+        categories: [],                   // not carried by OpenAlex
+        primary: null,
+        published: date,
+        updated: date,
+        comment: null,
+        journalRef: null,
+        doi: work.doi || null,
+        pdfUrl: `https://arxiv.org/pdf/${id}`,
+        citations: work.cited_by_count ?? null,
+        source: 'openalex',
+    };
+}
+
+/**
+ * Run one topic against OpenAlex.
+ * @returns {Promise<{entries, total, query, strategy, ignoredCategories}>}
+ */
+export async function searchTopic(topic, { max = 60, sinceDays = 30, signal, mailto } = {}) {
+    const { filter, ignoredCategories } = buildFilter(topic, { sinceDays });
+    if (!filter) {
+        throw new Error(
+            `"${topic.name}" needs at least one keyword or author — OpenAlex cannot search by arXiv category alone.`,
+        );
+    }
+
+    const params = new URLSearchParams({
+        filter,
+        sort: 'publication_date:desc',
+        'per-page': String(Math.min(max, 200)),
+        select: FIELDS,
+    });
+    // OpenAlex's "polite pool" is faster, but it means handing them an address, so it
+    // is opt-in from Settings and never filled in automatically.
+    if (mailto) params.set('mailto', mailto);
+
+    const res = await fetch(`${API}?${params.toString()}`, { signal });
+    if (res.status === 429) throw new Error('OpenAlex is rate-limiting — wait a minute and retry');
+    if (!res.ok) throw new Error(`OpenAlex returned HTTP ${res.status}`);
+
+    const json = await res.json();
+    const entries = (json.results || []).map(toEntry).filter(Boolean);
+    return {
+        entries,
+        total: json.meta ? json.meta.count : null,
+        query: filter,
+        strategy: 'openalex',
+        ignoredCategories,
+    };
+}
+
+/** Free-form probe used by the topic preview. */
+export async function searchRaw(topic, opts) {
+    return searchTopic(topic, opts);
+}

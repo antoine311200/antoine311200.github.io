@@ -3,6 +3,7 @@ import { scorePaper, learnFrom, buildIndex, similarTo, coauthorGraph, authorStat
 import { parseQuery, applyFilters, groupByDay, DEFAULT_FILTERS } from './filters';
 import { toBibtex, citeKey, toCsv } from './bibtex';
 import { mergeStores, emptyStore, authorKey, prune, makeTopic } from './storage';
+import { buildFilter, reconstructAbstract, arxivIdFromWork } from './openalex';
 
 const ATOM = `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:arxiv="http://arxiv.org/schemas/atom"
@@ -248,5 +249,46 @@ describe('storage', () => {
         const { store: pruned, removed } = prune(store, { days: 90 });
         expect(removed).toBe(1);
         expect(Object.keys(pruned.papers).sort()).toEqual(['fresh', 'kept']);
+    });
+});
+
+describe('openalex', () => {
+    test('reconstructs an abstract from the inverted index', () => {
+        const idx = { We: [0], propose: [1], a: [2], method: [3], 'here.': [4] };
+        expect(reconstructAbstract(idx)).toBe('We propose a method here.');
+        expect(reconstructAbstract(null)).toBe('');
+    });
+
+    test('recovers the arXiv id from the DOI or the landing page', () => {
+        expect(arxivIdFromWork({ doi: 'https://doi.org/10.48550/arxiv.2608.28262' })).toBe('2608.28262');
+        expect(arxivIdFromWork({ doi: 'https://doi.org/10.48550/arXiv.2501.01234v2' })).toBe('2501.01234');
+        expect(arxivIdFromWork({
+            doi: null,
+            primary_location: { landing_page_url: 'https://arxiv.org/abs/2401.05555' },
+        })).toBe('2401.05555');
+        // A non-arXiv work has no id we can key on and must be skipped.
+        expect(arxivIdFromWork({ doi: 'https://doi.org/10.1000/other' })).toBeNull();
+    });
+
+    test('builds a filter scoped to arXiv with OR-ed phrases and exclusions', () => {
+        const { filter, ignoredCategories } = buildFilter(makeTopic({
+            terms: ['optimal transport', 'wasserstein'],
+            exclude: ['survey'],
+            categories: ['math.OC'],
+        }), { sinceDays: 30 });
+
+        expect(filter).toContain('primary_location.source.id:s4306400194');
+        expect(filter).toContain('title_and_abstract.search:"optimal transport" OR "wasserstein"');
+        expect(filter).toContain('NOT "survey"');
+        expect(filter).toMatch(/from_publication_date:\d{4}-\d{2}-\d{2}/);
+        // Categories cannot be expressed against OpenAlex, so they are reported, not dropped silently.
+        expect(filter).not.toContain('math.OC');
+        expect(ignoredCategories).toEqual(['math.OC']);
+    });
+
+    test('a category-only topic yields no filter, so the caller can explain why', () => {
+        const { filter, ignoredCategories } = buildFilter(makeTopic({ terms: [], categories: ['q-fin.MF'] }));
+        expect(filter).toBeNull();
+        expect(ignoredCategories).toEqual(['q-fin.MF']);
     });
 });

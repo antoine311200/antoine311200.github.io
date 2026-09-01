@@ -72,6 +72,8 @@ export default function PaperCard({ paper, selected, focused, onOpen, onSelectTo
     const authorLine = (paper.authors || []).slice(0, 6);
     const overflow = (paper.authors || []).length - authorLine.length;
     const enriched = paper.enriched && !paper.enriched.miss ? paper.enriched : null;
+    // OpenAlex supplies citations at ingest; Semantic Scholar supplies them on enrichment.
+    const citations = (enriched && enriched.citations != null) ? enriched.citations : paper.citations;
 
     return (
         <article
@@ -138,9 +140,7 @@ export default function PaperCard({ paper, selected, focused, onOpen, onSelectTo
                         {paper.primary && <Chip title="Primary arXiv category">{paper.primary}</Chip>}
                         {topicChips.map((t) => <Chip key={t.id} color={t.color}>{t.name}</Chip>)}
                         {paper.version > 1 && <Chip title="Revised on arXiv">v{paper.version}</Chip>}
-                        {enriched && enriched.citations > 0 && (
-                            <Chip title="Semantic Scholar citations">{enriched.citations} cites</Chip>
-                        )}
+                        {citations > 0 && <Chip title="Citation count">{citations} cites</Chip>}
                         {paper.journalRef && <Chip title={paper.journalRef}>published</Chip>}
                         {st.tags.map((tag) => (
                             <Chip key={tag} className="!border-violet-400/30 !bg-violet-500/10 !text-violet-300">#{tag}</Chip>

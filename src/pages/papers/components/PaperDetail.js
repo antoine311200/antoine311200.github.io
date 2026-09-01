@@ -27,6 +27,7 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
     const similar = useMemo(() => similarTo(index, paper.id, papers, 8), [index, paper.id, papers]);
     const links = paperLinks(paper);
     const enriched = paper.enriched && !paper.enriched.miss ? paper.enriched : null;
+    const citations = (enriched && enriched.citations != null) ? enriched.citations : paper.citations;
 
     const topicChips = (paper.topicIds || []).map((id) => topics.find((t) => t.id === id)).filter(Boolean);
 
@@ -119,19 +120,19 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
             <div className="min-h-0 flex-1 overflow-y-auto">
                 {tab === 'overview' && (
                     <div className="space-y-5 px-4 py-4">
-                        {enriched && (
+                        {(enriched || citations != null) && (
                             <div className="flex flex-wrap gap-3 rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-[11px]">
-                                {enriched.citations != null && (
+                                {citations != null && (
                                     <span className="text-slate-400">
-                                        <b className="text-slate-100">{enriched.citations}</b> citations
+                                        <b className="text-slate-100">{citations}</b> citations
                                     </span>
                                 )}
-                                {enriched.influential > 0 && (
+                                {enriched && enriched.influential > 0 && (
                                     <span className="text-slate-400">
                                         <b className="text-slate-100">{enriched.influential}</b> influential
                                     </span>
                                 )}
-                                {enriched.venue && <span className="text-slate-400">{enriched.venue}</span>}
+                                {enriched && enriched.venue && <span className="text-slate-400">{enriched.venue}</span>}
                             </div>
                         )}
 

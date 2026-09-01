@@ -11,7 +11,9 @@ export const SCHEMA_VERSION = 1;
 export const DEFAULT_SETTINGS = {
     maxResultsPerTopic: 60,
     lookbackDays: 7,          // how far back a first fetch reaches
-    proxy: 'auto',            // 'auto' | strategy id | 'direct'
+    source: 'openalex',       // 'openalex' | 'arxiv' — see openalex.js for why
+    openAlexMailto: '',       // optional: OpenAlex "polite pool", never auto-filled
+    proxy: 'auto',            // arXiv source only: 'auto' | strategy id | 'direct'
     autoFetchOnOpen: true,
     enrich: false,            // Semantic Scholar lookups
     pdfInline: true,
