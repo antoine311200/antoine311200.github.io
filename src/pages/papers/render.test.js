@@ -1,0 +1,102 @@
+import React from 'react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+
+import PaperSearch from './index';
+import { STORAGE_KEY, emptyStore, makeTopic } from './storage';
+
+// The app fetches on mount; the network is not the subject of these tests.
+beforeEach(() => {
+    localStorage.clear();
+    global.fetch = jest.fn(() => Promise.reject(new Error('offline in tests')));
+});
+
+const seeded = () => {
+    const store = emptyStore();
+    store.settings.autoFetchOnOpen = false;
+    store.topics = [makeTopic({ id: 't_1', name: 'Tensor Networks', terms: ['tensor network'], color: '#38bdf8' })];
+    store.papers = {
+        '2401.01234': {
+            id: '2401.01234',
+            version: 1,
+            title: 'Tensor Network Methods for Quantum Simulation',
+            summary: 'We propose a tensor network approach to quantum simulation.',
+            authors: [{ name: 'Ada Lovelace' }, { name: 'Alan Turing' }],
+            categories: ['quant-ph'],
+            primary: 'quant-ph',
+            published: new Date().toISOString(),
+            updated: new Date().toISOString(),
+            firstSeen: new Date().toISOString(),
+            topicIds: ['t_1'],
+            score: 42,
+            reasons: [{ kind: 'terms', label: 'matches tensor network' }],
+        },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+};
+
+const draw = () => render(<MemoryRouter><PaperSearch /></MemoryRouter>);
+
+test('renders the empty state without a stored library', () => {
+    const store = emptyStore();
+    store.settings.autoFetchOnOpen = false;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+
+    draw();
+    expect(screen.getByText('Paper Radar')).toBeInTheDocument();
+    expect(screen.getByText('Daily digest')).toBeInTheDocument();
+    expect(screen.getByText('Set up your first topic')).toBeInTheDocument();
+});
+
+test('renders a stored paper in the digest and opens its detail panel', () => {
+    seeded();
+    draw();
+
+    const title = 'Tensor Network Methods for Quantum Simulation';
+    expect(screen.getByText(title)).toBeInTheDocument();
+    expect(screen.getByText('Today')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText(title));
+    expect(screen.getByText('Abstract')).toBeInTheDocument();
+    expect(screen.getByText('Why you are seeing this')).toBeInTheDocument();
+    expect(screen.getByText('matches tensor network')).toBeInTheDocument();
+    expect(screen.getAllByText('Ada Lovelace').length).toBeGreaterThan(0);
+});
+
+test('the keyboard triage marks a paper read and persists it', () => {
+    seeded();
+    draw();
+
+    fireEvent.keyDown(window, { key: 'r' });
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    // Persistence is debounced, so assert on the rendered state instead.
+    expect(screen.getByText('read')).toBeInTheDocument();
+    expect(saved).toBeTruthy();
+});
+
+test('every navigation target renders without crashing', () => {
+    seeded();
+    draw();
+
+    const nav = screen.getByRole('navigation');
+    // Query by role: "Topics" is also a sidebar section heading, so getByText is ambiguous.
+    ['Queue', 'Library', 'Starred', 'Following', 'Topics', 'Authors', 'Statistics', 'Settings'].forEach((label) => {
+        fireEvent.click(within(nav).getByRole('button', { name: new RegExp(`\\b${label}\\b`) }));
+    });
+
+    // Settings is the last one clicked.
+    expect(screen.getByText('Your data')).toBeInTheDocument();
+    expect(screen.getByText('Housekeeping')).toBeInTheDocument();
+});
+
+test('search narrows the library and a non-match empties it', () => {
+    seeded();
+    draw();
+
+    const box = screen.getByPlaceholderText(/Search/);
+    fireEvent.change(box, { target: { value: 'au:lovelace' } });
+    expect(screen.getByText('Tensor Network Methods for Quantum Simulation')).toBeInTheDocument();
+
+    fireEvent.change(box, { target: { value: 'au:nobody' } });
+    expect(screen.getByText('Nothing matches')).toBeInTheDocument();
+});

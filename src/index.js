@@ -6,6 +6,7 @@ import { Routes, Route, HashRouter } from 'react-router-dom';
 import App from './App';
 import Blog from './pages/blog';
 import Paper from './pages/paper';
+import PaperSearch from './pages/papers';
 import Project from './pages/project';
 import Publication from './pages/publication';
 import Resume from './pages/resume';
@@ -42,6 +43,7 @@ root.render(
         <Route path="/projects" element={<Project />} />
         <Route path="/publications" element={<Publication />} />
         <Route path="/papers" element={<Paper />} />
+        <Route path="/paper-search" element={<PaperSearch />} />
         <Route path="/blog" element={<Blog dataArticles={dataArticles} />} />
         <Route
           path="/blog/:title"
