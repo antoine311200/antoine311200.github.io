@@ -36,22 +36,42 @@ export const emptyStore = () => ({
 /** Topics offered on a fresh install so the app is useful on first click. */
 export const STARTER_TOPICS = [
     {
-        name: 'Tensor Networks',
+        name: 'Optimal Transport',
         color: '#38bdf8',
-        terms: ['tensor network', 'matrix product state', 'tensor train'],
-        categories: ['quant-ph', 'cs.LG'],
+        terms: [
+            'optimal transport', 'wasserstein', 'sinkhorn',
+            'schrodinger bridge', 'gromov-wasserstein', 'entropic regularization',
+        ],
+        categories: ['math.OC', 'math.PR', 'stat.ML', 'cs.LG'],
     },
     {
-        name: 'Efficient LLMs',
+        name: 'Diffusion & Generative Models',
         color: '#a78bfa',
-        terms: ['low-rank adaptation', 'quantization', 'model compression', 'distillation'],
-        categories: ['cs.LG', 'cs.CL'],
+        terms: [
+            'diffusion model', 'score-based generative', 'denoising diffusion',
+            'flow matching', 'stochastic interpolant', 'score matching',
+        ],
+        categories: ['cs.LG', 'stat.ML'],
     },
     {
-        name: 'Quantum Machine Learning',
+        name: 'Stochastic Analysis & SDEs',
         color: '#34d399',
-        terms: ['quantum machine learning', 'variational quantum', 'quantum kernel'],
-        categories: ['quant-ph'],
+        terms: [
+            'stochastic differential equation', 'neural sde', 'rough path',
+            'signature kernel', 'mckean-vlasov', 'backward stochastic differential',
+            'stochastic control',
+        ],
+        categories: ['math.PR', 'math.OC', 'stat.ML', 'cs.LG'],
+    },
+    {
+        name: 'Mathematical Finance',
+        color: '#fbbf24',
+        terms: [
+            'option pricing', 'stochastic volatility', 'rough volatility',
+            'deep hedging', 'limit order book', 'market making',
+            'portfolio optimization', 'calibration',
+        ],
+        categories: ['q-fin.MF', 'q-fin.PR', 'q-fin.CP', 'q-fin.TR', 'q-fin.RM', 'q-fin.PM'],
     },
 ];
 
