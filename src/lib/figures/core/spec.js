@@ -20,7 +20,7 @@
 
 const PROP_KEYS = new Set([
   'model', 'height', 'aspect', 'caption', 'controls',
-  'stats', 'speeds', 'autoplay', 'className',
+  'stats', 'speeds', 'meta', 'autoplay', 'zoom', 'className',
 ]);
 
 const OVERRIDE_PREFIX = /^(param|params|override|overrides)\./;

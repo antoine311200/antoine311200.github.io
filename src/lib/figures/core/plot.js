@@ -36,10 +36,73 @@ function formatTick(v, step) {
   return s.replace(/\.?0+$/, m => (m.includes('.') ? '' : m));
 }
 
+/** `{ width, height }` (an env) or `{ x, y, w, h }` (a rect) → a rect. */
+function toRect(region) {
+  if (!region) return { x: 0, y: 0, w: 0, h: 0 };
+  if (region.w !== undefined && region.h !== undefined) return region;
+  return { x: 0, y: 0, w: region.width, h: region.height };
+}
+
+function splitInto(rect, node, out) {
+  if (node.id) out[node.id] = rect;
+
+  const kids = node.children;
+  if (!kids || !kids.length) return;
+
+  const column = node.dir === 'column';
+  const gap = node.gap == null ? 8 : node.gap;
+  const weights = kids.map(k => (k.flex == null ? 1 : k.flex));
+  const total = weights.reduce((a, b) => a + b, 0) || 1;
+  const avail = (column ? rect.h : rect.w) - gap * (kids.length - 1);
+
+  let pos = column ? rect.y : rect.x;
+  kids.forEach((kid, i) => {
+    const size = (avail * weights[i]) / total;
+    splitInto(
+      column
+        ? { x: rect.x, y: pos, w: rect.w, h: size }
+        : { x: pos, y: rect.y, w: size, h: rect.h },
+      kid,
+      out
+    );
+    pos += size + gap;
+  });
+}
+
 /**
- * Split the canvas into a grid of sub-regions, for figures that want more than
+ * Nested panel layout — rows and columns to any depth.
+ *
+ * `panelRects` below covers the uniform-grid case; this covers everything else.
+ * A node is `{ dir: 'row' | 'column', gap, children: [...] }`, a child may
+ * carry `flex` and an `id`, and any child may itself have children:
+ *
+ *   const L = layout(env, {
+ *     dir: 'row', gap: 10,
+ *     children: [
+ *       { id: 'sim', flex: 1.2 },                       // full height, left
+ *       { dir: 'column', flex: 1, gap: 8, children: [
+ *         { id: 'sim2', flex: 1 },                      // right, top
+ *         { dir: 'row', flex: 1, gap: 8, children: [
+ *           { id: 'left' }, { id: 'right' },            // right, bottom pair
+ *         ] },
+ *       ] },
+ *     ],
+ *   });
+ *   // L.sim, L.sim2, L.left, L.right — each a { x, y, w, h } in CSS pixels
+ *
+ * The first argument is an env or any rect, so a layout can be nested inside a
+ * region computed by an outer one.
+ */
+export function layout(region, spec) {
+  const out = {};
+  splitInto(toRect(region), spec, out);
+  return out;
+}
+
+/**
+ * Split a region into a grid of sub-regions, for figures that want more than
  * one plot — a signal and its spectrum, a phase portrait and a time series, a
- * lattice above its order parameter.
+ * lattice above its order parameter. Takes an env or any rect.
  *
  *   const [top, bottom] = panelRects(env, { rows: 2, ratios: [2, 1] });
  *   const p1 = createPlot(ctx, env, { rect: top, xDomain, yDomain });
@@ -47,7 +110,8 @@ function formatTick(v, step) {
  * A rect is plain `{ x, y, w, h }` in CSS pixels, so a panel can also be
  * painted into directly — it does not have to become a plot.
  */
-export function panelRects(env, opts = {}) {
+export function panelRects(region, opts = {}) {
+  const env = toRect(region);
   const rows = opts.rows || 1;
   const cols = opts.cols || 1;
   const gap = opts.gap == null ? 6 : opts.gap;
@@ -60,14 +124,14 @@ export function panelRects(env, opts = {}) {
 
   const totalR = ratios.reduce((a, b) => a + b, 0);
   const totalC = colRatios.reduce((a, b) => a + b, 0);
-  const usableH = env.height - gap * (rows - 1);
-  const usableW = env.width - gap * (cols - 1);
+  const usableH = env.h - gap * (rows - 1);
+  const usableW = env.w - gap * (cols - 1);
 
   const out = [];
-  let y = 0;
+  let y = env.y;
   for (let r = 0; r < rows; r++) {
     const h = (usableH * ratios[r]) / totalR;
-    let x = 0;
+    let x = env.x;
     for (let c = 0; c < cols; c++) {
       const w = (usableW * colRatios[c]) / totalC;
       out.push({ x, y, w, h });

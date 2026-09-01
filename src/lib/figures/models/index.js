@@ -13,6 +13,7 @@ import clt from './clt';
 import phase from './phase';
 import spectrum from './spectrum';
 import ising from './ising';
+import epidemic from './epidemic';
 
 /**
  * Every model that ships with the library, registered by id so figures can be
@@ -33,11 +34,12 @@ export const models = registerModels([
   phase,
   spectrum,
   ising,
+  epidemic,
 ]);
 
 export {
   boids, life, pendulum, harmonic, fourier,
   bloch, sphereflock, descent, lorenz, clt,
-  phase, spectrum, ising,
+  phase, spectrum, ising, epidemic,
 };
 export default models;

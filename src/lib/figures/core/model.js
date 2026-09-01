@@ -12,6 +12,8 @@ import { withTraces } from './traces';
  *   defineModel({
  *     id, name, description,
  *     rate,                                   // simulation steps per second (default 60)
+ *     zoom,                                   // true | { min, max, pan, wheel } — reader may zoom in
+ *     static: true,                           // nothing evolves: hides the transport controls
  *     params:  [ ...specs ],                  // see core/params.js
  *     presets: [{ name, values }],
  *     actions: [{ id, label, run(state, params, rng, env) }],

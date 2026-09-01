@@ -125,10 +125,15 @@ export function PresetBar({ model, onPreset, onAction, onResetParams, canReset }
   );
 }
 
-export function ParamPanel({ model, params, onChange }) {
+/**
+ * `specs` narrows the panel to a chosen subset of the model's parameters —
+ * how an article exposes one knob and leaves the rest fixed — and `flat`
+ * drops the group headings, which only get in the way at that size.
+ */
+export function ParamPanel({ model, specs, flat, params, onChange }) {
   // A spec may declare `visible: (params) => bool`, so a model can hide the
   // knobs that do not apply to the currently selected variant.
-  const shown = model.params.filter(
+  const shown = (specs || model.params).filter(
     s => (typeof s.visible === 'function' ? s.visible(params) : true)
   );
   const groups = groupSpecs(shown);
@@ -140,7 +145,7 @@ export function ParamPanel({ model, params, onChange }) {
         const toggles = group.specs.filter(s => s.type === 'toggle');
         return (
           <div className="figx__group" key={group.name}>
-            {groups.length > 1 && <p className="figx__group-title">{group.name}</p>}
+            {groups.length > 1 && !flat && <p className="figx__group-title">{group.name}</p>}
             {ranges.length > 0 && (
               <div className="figx__grid">
                 {ranges.map(spec => (

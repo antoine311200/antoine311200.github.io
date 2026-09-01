@@ -25,14 +25,17 @@ export { default as TexLabel, RichText } from './react/TexLabel';
 export { defineModel } from './core/model';
 export { definePlot } from './core/definePlot';
 export { default as Engine } from './core/engine';
-export { createPlot, panelRects, autoRange, niceTicks } from './core/plot';
+export { createPlot, layout, panelRects, autoRange, niceTicks } from './core/plot';
 export { withTraces } from './core/traces';
 export {
   createScene, makeCamera, orbitFromPointer,
   add, sub, scale, dot, cross, len, normalize, rotateAbout, tangent,
 } from './core/scene3d';
 export { makeRng, nextSeed, between, gaussian, intBetween } from './core/rng';
-export { registerModel, registerModels, getModel, listModels, hasModel } from './core/registry';
+export {
+  registerModel, registerModels, registerModelContext,
+  getModel, listModels, hasModel,
+} from './core/registry';
 export { defaultsOf, groupSpecs, formatValue } from './core/params';
 export { parseFigureSpec } from './core/spec';
 
@@ -40,5 +43,5 @@ export { parseFigureSpec } from './core/spec';
 export {
   models, boids, life, pendulum, harmonic, fourier,
   bloch, sphereflock, descent, lorenz, clt,
-  phase, spectrum, ising,
+  phase, spectrum, ising, epidemic,
 } from './models';

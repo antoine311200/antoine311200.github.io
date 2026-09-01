@@ -18,7 +18,7 @@ const SEP = String.fromCharCode(1);
  * parameters reshape the simulation live instead of restarting it.
  */
 export function useFigure(model, options = {}) {
-  const { overrides, autoplay = true, speed: initialSpeed = 1 } = options;
+  const { overrides, autoplay = true, speed: initialSpeed = 1, zoom } = options;
   const overridesKey = JSON.stringify(overrides || {});
 
   const defaults = useMemo(
@@ -39,6 +39,7 @@ export function useFigure(model, options = {}) {
   const [time, setTime] = useState(0);
   const [stats, setStats] = useState([]);
   const [labels, setLabels] = useState([]);
+  const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
 
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
@@ -72,10 +73,12 @@ export function useFigure(model, options = {}) {
       params: defaults,
       autoplay: autoplay && !prefersReduced,
       speed: initialSpeed,
+      zoom,
       onFps: setFps,
       onTime: setTime,
       onStats: setStats,
       onLabels,
+      onView: setView,
     });
     engineRef.current = engine;
     engine.start();
@@ -92,6 +95,7 @@ export function useFigure(model, options = {}) {
     labelEls.current.clear();
     labelSig.current = '';
     setLabels([]);
+    setView({ scale: 1, x: 0, y: 0 });
   }, [model]);
 
   useEffect(() => { engineRef.current && engineRef.current.setParams(params); }, [params]);
@@ -130,6 +134,15 @@ export function useFigure(model, options = {}) {
     engineRef.current && engineRef.current.runAction(id);
   }, []);
 
+  const zoomBy = useCallback((factor) => {
+    engineRef.current && engineRef.current.zoomBy(factor);
+  }, []);
+
+  const resetView = useCallback(() => {
+    engineRef.current && engineRef.current.resetView();
+    setView({ scale: 1, x: 0, y: 0 });
+  }, []);
+
   const isDefault = useMemo(
     () => Object.keys(defaults).every(k => defaults[k] === params[k]),
     [defaults, params]
@@ -141,6 +154,8 @@ export function useFigure(model, options = {}) {
     running, setRunning, toggle: () => setRunning(r => !r),
     speed, setSpeed: setSpeedState,
     stepOnce, reset, shuffle, runAction,
+    view, zoomBy, resetView,
+    canZoom: !!(zoom === undefined ? model.zoom : zoom),
     fps, time, stats,
     labels,
     // The Map itself, not the ref: LabelLayer registers nodes on it directly.

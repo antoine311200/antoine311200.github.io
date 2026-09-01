@@ -27,11 +27,11 @@ models/   the figures themselves
 figures.css
 ```
 
-Thirteen models ship with it:
+Fourteen models ship with it:
 
 | | |
 | --- | --- |
-| 2D simulation | `boids`, `game-of-life`, `ising` |
+| 2D simulation | `boids`, `game-of-life`, `ising`, `epidemic` |
 | ODE / chaos | `double-pendulum`, `phase-portrait`, `lorenz` |
 | plots | `harmonic-oscillator`, `fourier-series`, `spectrum` |
 | 3D | `bloch-sphere`, `sphere-flock`, `lorenz` |
@@ -128,9 +128,22 @@ and shrinks its population in place rather than restarting.
 
 ## Toolbar and keyboard
 
-Play/pause, single-step, restart (same seed), reseed, fullscreen, and playback
-speed from 0.25× to 4×. With the figure focused: `Space` play/pause, `→` step,
-`R` restart, `S` reseed, `F` fullscreen.
+Play/pause, single-step, restart (same seed), reseed, zoom, fullscreen, and
+playback speed from 0.25× to 4×. With the figure focused: `Space` play/pause,
+`→` step, `R` restart, `S` reseed, `F` fullscreen, `+` / `-` zoom, `0` reset
+the view.
+
+A model declaring `static: true` has no transport controls at all — there is
+nothing to advance.
+
+## Zoom
+
+`zoom: true` on a model (or a `zoom` prop) lets the reader magnify it: toolbar
+buttons, trackpad or touch pinch, double-click, `+`/`-`, and drag to pan.
+`{ min, max, pan, wheel }` tunes it; the scale is clamped to `[min, max]` and
+the pan is clamped so the drawing always covers the frame. A plain wheel still
+scrolls the page. Models need no changes — the engine scales the rendering and
+maps pointer positions and KaTeX labels through the same transform.
 
 ## `<Figure>` props
 
@@ -141,9 +154,11 @@ speed from 0.25× to 4×. With the figure focused: `Space` play/pause, `→` ste
 | `height` | `400` | stage height in px |
 | `aspect` | — | e.g. `16/9`, instead of `height` |
 | `caption` | — | string or node |
-| `controls` | `true` | show the parameter panel |
+| `controls` | `true` | `true`, `false`, or a list of parameter keys to expose |
 | `stats` | `true` | show the readout bar |
 | `speeds` | `true` | show 0.25×–4× |
+| `meta` | `true` | show the `t = …` / fps readouts |
+| `zoom` | model's own | `true`, `false`, or `{ min, max, pan, wheel }` |
 | `autoplay` | `true` | ignored when the OS asks for reduced motion |
 
 ## Theming
@@ -180,7 +195,9 @@ param.cohesion: 1.35
 | `model` | **required** — a registered model id |
 | `height` `aspect` | stage size |
 | `caption` | plain text; `$…$` renders as maths |
-| `controls` `stats` `speeds` `autoplay` | booleans, all default `true` |
+| `controls` | `true`, `false`, or a comma-separated list of parameter keys |
+| `stats` `speeds` `meta` `autoplay` | booleans, all default `true` |
+| `zoom` | `true`, `false`, or a JSON object |
 | `param.<key>` | starting value for one parameter |
 
 A whole-block JSON object works too. A code fence was chosen over raw HTML or a
@@ -195,3 +212,14 @@ ids that exist, so a typo is obvious rather than silent.
    [AUTHORING.md](./AUTHORING.md).
 2. Add it to the array in `models/index.js`.
 3. `<Figure model="<id>" />`, or a ```figure block in an article.
+
+A model written for one article does not belong here. Put it in
+`src/figures/<article-slug>/` instead, where it is registered automatically:
+
+```js
+import { registerModelContext } from '../lib/figures';
+registerModelContext(require.context('./', true, /^\.\/[^/]+\/[^/]*\.js$/));
+```
+
+`registerModelContext` takes anything shaped like a webpack context, so the
+library itself stays bundler-agnostic.

@@ -1,7 +1,13 @@
 # Writing a figure
 
-A figure is **one file** in `models/`, **one line** in `models/index.js`, and
-then either a `<Figure>` in JSX or a ` ```figure ` block in an article.
+A figure is **one file**, registered by id, and then either a `<Figure>` in JSX
+or a ` ```figure ` block in an article. Where the file goes depends on who it
+is for:
+
+| the model is… | put it in | registration |
+| --- | --- | --- |
+| general (boids, Ising, a pendulum) | `lib/figures/models/` | add one line to `models/index.js` |
+| written for one article | `src/figures/<article-slug>/` | automatic — see §9 |
 
 Everything else — the canvas, the loop, the controls, play/pause/step/reset,
 the readouts, off-screen pausing, accessibility — already exists and is shared.
@@ -413,9 +419,33 @@ when you want two panels side by side rather than one strip underneath.
 
 ## 7b2. Several panels in one figure
 
-`panelRects` splits the canvas into a grid, and `createPlot` accepts a `rect` to
-confine itself to one of them. Two views of the same computation belong in one
-figure far more often than in two.
+There are two helpers. `panelRects` covers uniform grids; `layout` covers
+everything else, by splitting rows and columns to any depth:
+
+```js
+import { createPlot, layout } from '../core/plot';
+
+const L = layout(env, {
+  dir: 'row', gap: 10,
+  children: [
+    { id: 'sim', flex: 1.15 },                        // left, full height
+    { dir: 'column', flex: 1, gap: 8, children: [
+      { id: 'sim2', flex: 1.15 },                     // right, top
+      { dir: 'row', flex: 1, gap: 8, children: [
+        { id: 'curve' }, { id: 'plane' },             // right, bottom pair
+      ] },
+    ] },
+  ],
+});
+// L.sim, L.sim2, L.curve, L.plane — each { x, y, w, h } in CSS pixels
+```
+
+A node is `{ dir, gap, children }`; a child may carry `flex` (default 1) and an
+`id`, and may itself have children. Both helpers accept an env **or any rect**,
+so a grid can be nested inside a region a layout produced, and vice versa.
+`epidemic` is the four-panel example above — a shape no grid can express.
+
+`createPlot` then accepts a `rect` to confine itself to one region:
 
 ```js
 import { createPlot, panelRects } from '../core/plot';
@@ -494,6 +524,39 @@ readout that follows the cursor.
 
 Keep it to a handful of labels per figure. They are DOM nodes, not draw calls.
 
+---
+
+## 7d. Zoom
+
+A dense figure can be made magnifiable with one field:
+
+```js
+zoom: true,                       // 1× … 4×, drag to pan
+zoom: { max: 6 },                 // deeper
+zoom: { max: 3, pan: false },     // zoom only
+zoom: { max: 5, wheel: false },   // buttons and pinch only
+```
+
+The engine scales the *drawing*, not the model: `draw` still receives the full
+`env.width`/`env.height` and knows nothing about it. Everything follows —
+canvas strokes stay crisp because they are re-rendered at the new scale each
+frame, and KaTeX labels are repositioned by the same transform.
+
+The reader zooms with the toolbar buttons, a trackpad pinch (which arrives as
+ctrl+wheel), a touch pinch, a double-click, or `+` / `-` / `0` when the frame
+has focus. A plain wheel is deliberately *not* taken: it belongs to the page.
+
+The limits are enforced, not suggested. The scale is clamped to `[min, max]`,
+where `min` is never below 1, and the pan is clamped so the drawing always
+covers the frame — a reader cannot get lost in empty space, and `0` (or the
+`1.8× · reset` button that appears while zoomed) returns to the top.
+
+If the model handles `onPointer`, dragging still belongs to the model; hold
+shift to pan instead. Pointer coordinates are mapped back through the view
+before they reach the model, so a click lands where the reader thinks it did.
+
+---
+
 ## 8. Accessibility
 
 `description` becomes the canvas `aria-label`. Write what someone would *see*,
@@ -516,6 +579,8 @@ The figure frame is focusable, and when it has focus (not one of its controls):
 | `R` | restart, same seed |
 | `S` | reseed |
 | `F` | fullscreen |
+| `+` / `-` | zoom in / out (if the model allows zoom) |
+| `0` | reset the view |
 
 Fullscreen needs nothing from a model: the canvas resizes through the engine's
 `ResizeObserver` and the KaTeX overlay repositions on the next frame. It is
@@ -547,11 +612,65 @@ param.cohesion: 1.35
 ````
 
 Keys: `model` (required), `height`, `aspect`, `caption`, `controls`, `stats`,
-`speeds`, `autoplay`, and `param.<key>` for starting parameter values.
-`$…$` in the caption renders as maths. Because the block is a normal code
-fence, GitHub and Obsidian show it as readable config rather than broken markup.
+`speeds`, `meta`, `autoplay`, `zoom`, and `param.<key>` for starting parameter
+values. `$…$` in the caption renders as maths. Because the block is a normal
+code fence, GitHub and Obsidian show it as readable config rather than broken
+markup.
 
 `<Figure>` props are the same names, plus `overrides` as an object.
+
+### Showing less
+
+A sandbox page wants every knob; an article usually wants one. Four keys turn a
+laboratory into an illustration:
+
+```figure
+model: sc-paths
+controls: coupling      # only this parameter; the rest keep their values
+stats: false            # no readout strip
+meta: false             # no t = … / fps
+speeds: false           # no ×0.5 ×1 ×2 row
+param.potential: doublewell
+```
+
+`controls` takes `true`, `false`, or a list of parameter keys
+(`controls: coupling, potential`). With a list the preset row disappears too —
+a figure cut down to one knob should not offer to change everything else. In
+JSX it is `controls={['coupling']}`.
+
+Everything not exposed is still a real parameter: `param.<key>` fixes its value
+per figure, so the same model can appear five times in an article showing five
+different things. That is the intended way to write article figures — one model,
+many blocks — rather than five near-identical models.
+
+A model that has nothing to advance (a plot of two fixed densities, say)
+declares `static: true`; the play, step, restart and reseed buttons and the
+"Paused" badge then disappear, since none of them mean anything.
+
+### Models that belong to an article
+
+Article models live outside the library, in a folder named after the article:
+
+```
+src/figures/stochastic-coupling/paths.js     →  model id "sc-paths"
+```
+
+Every `.js` file in a subfolder of `src/figures/` is picked up automatically and
+its default export registered by id — there is no list to update. `src/figures/index.js`
+does it in one line, and any other folder can do the same:
+
+```js
+import { registerModelContext } from '../lib/figures';
+registerModelContext(require.context('./', true, /^\.\/[^/]+\/[^/]*\.js$/));
+```
+
+`registerModelContext` accepts anything shaped like a webpack context (a
+callable with `keys()`), takes each module's default export, and skips modules
+that do not export a model — so helpers can sit in the same folder.
+
+Prefix ids to keep them recognisable in an error message (`sc-` for this
+article). The library's own models stay in `lib/figures/models/`, which is the
+line between "generally useful" and "written for one page".
 
 ---
 
@@ -565,4 +684,6 @@ fence, GitHub and Obsidian show it as readable config rather than broken markup.
 - [ ] scratch objects hoisted; colours batched
 - [ ] two or three `presets` that show genuinely different behaviour
 - [ ] `stats` says something the picture alone does not
-- [ ] added to `models/index.js`
+- [ ] a dense figure sets `zoom`, a still one sets `static`
+- [ ] a library model is added to `models/index.js`; an article model only has
+      to be saved under `src/figures/<article-slug>/`

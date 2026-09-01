@@ -10,14 +10,19 @@ import 'katex/dist/katex.min.css';
 import Template from './template';
 import Callout from './callout';
 import { parseFrontMatter, slugify, readingTime } from '../utils/articleUtils';
+import remarkDisplayMath from '../utils/remarkDisplayMath';
 // Importing the barrel also registers the models that ship with the library,
 // which is what lets a ```figure block refer to one by id.
 import { FigureBlock } from '../lib/figures';
+// …and this registers the models written for particular articles.
+import '../figures';
 
 // ─── Typography constants ──────────────────────────────────────────────────────
 
-// EB Garamond is loaded via Google Fonts in public/index.html
-const ARTICLE_FONT = '"EB Garamond", "Palatino Linotype", Georgia, serif';
+// Article body and headings: the reader's own interface font, so the prose
+// matches the rest of the site and needs no webfont to arrive first. Maths
+// stays in KaTeX's own faces, which is the contrast we want.
+const ARTICLE_FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
 const SANS_FONT    = 'system-ui, -apple-system, sans-serif';
 
 // ─── Stable plugin arrays ─────────────────────────────────────────────────────
@@ -25,7 +30,10 @@ const SANS_FONT    = 'system-ui, -apple-system, sans-serif';
 // If defined inline as JSX props (e.g. remarkPlugins={[remarkGfm, remarkMath]}),
 // a new array is created each render, ReactMarkdown sees a prop change, and
 // re-runs the full markdown pipeline (KaTeX + syntax highlighting) every time.
-const REMARK_PLUGINS = [remarkGfm, remarkMath];
+// remarkDisplayMath runs after remarkMath and turns a paragraph that is
+// nothing but a `$$…$$` formula into a real display equation — centred, at
+// display size — which is what an author writing `$$` means.
+const REMARK_PLUGINS = [remarkGfm, remarkMath, remarkDisplayMath];
 const REHYPE_PLUGINS = [rehypeKatex];
 
 // ─── Table of Contents ────────────────────────────────────────────────────────
@@ -145,8 +153,8 @@ function CalloutBlockquote({ node, children, body }) {
     <Callout type={type} title={title} collapsible={collapsible}>
       {innerMarkdown ? (
         <ReactMarkdown
-          remarkPlugins={[remarkGfm, remarkMath]}
-          rehypePlugins={[rehypeKatex]}
+          remarkPlugins={REMARK_PLUGINS}
+          rehypePlugins={REHYPE_PLUGINS}
           components={{
             p: ({ children: c }) => (
               <p className="mb-2 last:mb-0 text-slate-200" style={{ fontFamily: ARTICLE_FONT, fontSize: 'clamp(14px, 1.8vw, 16px)' }}>{c}</p>

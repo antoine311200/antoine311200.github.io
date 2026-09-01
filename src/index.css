@@ -204,6 +204,24 @@ code {
 
 .katex { font-size: 1em !important; }
 
+/* Display equations are centred by KaTeX itself, but a long one is wider than
+   the column and KaTeX keeps it on one line — let it scroll rather than push
+   the page sideways. */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0;
+  /* A display equation is a sibling of the paragraphs, not a child, so it
+     inherits from the article container rather than from `p.text-slate-200`
+     and comes out dark against a dark page. Say the colour once, here. */
+  color: #e2e8f0;
+}
+
+/* Display maths sits a fifth larger than the prose, the way KaTeX intends it
+   to. `!important` and the extra specificity are needed only because the rule
+   above flattens every .katex to 1em. */
+.katex-display > .katex { font-size: 1.2em !important; }
+
 .markdown > * {
   all: revert;
 }
