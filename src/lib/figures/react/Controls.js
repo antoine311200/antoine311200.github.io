@@ -1,5 +1,6 @@
 import React from 'react';
 import TexLabel from './TexLabel';
+import Select from './Select';
 import { formatValue, groupSpecs } from '../core/params';
 
 /* ── primitives ────────────────────────────────────────────────────────────── */
@@ -68,34 +69,26 @@ function Toggle({ spec, value, onChange }) {
   );
 }
 
-function Select({ spec, value, onChange }) {
+function Choice({ spec, value, onChange }) {
   return (
-    <label className="figx__control">
+    <div className="figx__control">
       <span className="figx__control-head">
         <TexLabel className="figx__label" tex={spec.tex} label={spec.label} />
       </span>
-      <select
-        className="figx__select"
+      <Select
         value={value}
-        aria-label={spec.label}
-        title={spec.hint || spec.label}
-        onChange={e => {
-          const raw = e.target.value;
-          const opt = (spec.options || []).find(o => String(o.value) === raw);
-          onChange(spec.key, opt ? opt.value : raw);
-        }}
-      >
-        {(spec.options || []).map(o => (
-          <option key={String(o.value)} value={String(o.value)}>{o.label}</option>
-        ))}
-      </select>
-    </label>
+        options={spec.options || []}
+        label={spec.label}
+        hint={spec.hint}
+        onChange={v => onChange(spec.key, v)}
+      />
+    </div>
   );
 }
 
 function Control(props) {
   if (props.spec.type === 'toggle') return <Toggle {...props} />;
-  if (props.spec.type === 'select') return <Select {...props} />;
+  if (props.spec.type === 'select') return <Choice {...props} />;
   return <Range {...props} />;
 }
 
@@ -132,8 +125,18 @@ export function PresetBar({ model, onPreset, onAction, onResetParams, canReset }
   );
 }
 
-export function ParamPanel({ model, params, onChange }) {
-  const groups = groupSpecs(model.params);
+/**
+ * `specs` narrows the panel to a chosen subset of the model's parameters —
+ * how an article exposes one knob and leaves the rest fixed — and `flat`
+ * drops the group headings, which only get in the way at that size.
+ */
+export function ParamPanel({ model, specs, flat, params, onChange }) {
+  // A spec may declare `visible: (params) => bool`, so a model can hide the
+  // knobs that do not apply to the currently selected variant.
+  const shown = (specs || model.params).filter(
+    s => (typeof s.visible === 'function' ? s.visible(params) : true)
+  );
+  const groups = groupSpecs(shown);
 
   return (
     <>
@@ -142,7 +145,7 @@ export function ParamPanel({ model, params, onChange }) {
         const toggles = group.specs.filter(s => s.type === 'toggle');
         return (
           <div className="figx__group" key={group.name}>
-            {groups.length > 1 && <p className="figx__group-title">{group.name}</p>}
+            {groups.length > 1 && !flat && <p className="figx__group-title">{group.name}</p>}
             {ranges.length > 0 && (
               <div className="figx__grid">
                 {ranges.map(spec => (

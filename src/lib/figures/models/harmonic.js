@@ -95,9 +95,18 @@ export default definePlot({
 
   autoRange: { symmetric: true, ease: 0.08 },
 
+  // The equation of motion with the sliders' own numbers in it, so the formula
+  // on screen is always the one being integrated.
+  equation: (p) => {
+    const z = p.zeta.toFixed(2);
+    const w = p.omega0.toFixed(2);
+    return `\\ddot{x} + 2(${z})(${w})\\,\\dot{x} + (${w})^{2}\\,x = 0`;
+  },
+
   series: [
     {
-      id: 'envelope+', label: 'Envelope', color: '#64748b', dash: [4, 4], width: 1,
+      id: 'envelope+', label: 'Envelope', tex: '\\pm A e^{-\\zeta\\omega_0 t}',
+      color: '#64748b', dash: [4, 4], width: 1,
       visible: p => p.envelope && underdamped(p),
       fn: (tau, p) => (tau < 0 ? NaN : envelopeAmplitude(p) * Math.exp(-p.zeta * p.omega0 * tau)),
     },
@@ -107,15 +116,21 @@ export default definePlot({
       fn: (tau, p) => (tau < 0 ? NaN : -envelopeAmplitude(p) * Math.exp(-p.zeta * p.omega0 * tau)),
     },
     {
-      id: 'v', label: 'v(t) / ω₀', color: '#38bdf8', dash: [6, 3], width: 1.4,
+      id: 'v', label: 'v(t) / ω₀', tex: '\\dot{x}/\\omega_0',
+      color: '#38bdf8', dash: [6, 3], width: 1.4,
       visible: p => p.velocity,
       fn: (tau, p) => velocity(tau, p) / p.omega0,
     },
     {
-      id: 'x', label: 'x(t)', color: '#fb923c', width: 2,
+      id: 'x', label: 'x(t)', tex: 'x(t)', color: '#fb923c', width: 2,
       fn: (tau, p) => displacement(tau, p),
     },
   ],
+
+  hoverTex: (x, values) => {
+    const hit = values.find(v => v.id === 'x');
+    return hit ? `x(${x.toFixed(2)}) = ${hit.y.toFixed(3)}` : `t = ${x.toFixed(2)}`;
+  },
 
   /** Mark the leading edge so "now" is obvious while the window scrolls. */
   decorate(plot, p, t) {

@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../core/engine';
 import { defaultsOf } from '../core/params';
+import { positionLabel } from './LabelLayer';
+
+// Label *content* re-renders at this cadence; positions update every frame.
+const LABEL_MS = 90;
+
+// Separator for the label signature; must not occur in an id or a TeX string.
+const SEP = String.fromCharCode(1);
 
 /**
  * React binding for the engine.
@@ -11,7 +18,7 @@ import { defaultsOf } from '../core/params';
  * parameters reshape the simulation live instead of restarting it.
  */
 export function useFigure(model, options = {}) {
-  const { overrides, autoplay = true, speed: initialSpeed = 1 } = options;
+  const { overrides, autoplay = true, speed: initialSpeed = 1, zoom } = options;
   const overridesKey = JSON.stringify(overrides || {});
 
   const defaults = useMemo(
@@ -31,9 +38,31 @@ export function useFigure(model, options = {}) {
   const [fps, setFps] = useState(0);
   const [time, setTime] = useState(0);
   const [stats, setStats] = useState([]);
+  const [labels, setLabels] = useState([]);
+  const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
 
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
+  const labelEls = useRef(new Map());
+  const labelSig = useRef('');
+  const labelAt = useRef(0);
+
+  // Called by the engine every frame. Positions are written straight to the
+  // DOM; only a changed *set of strings* is worth a React render.
+  const onLabels = useCallback((live, now) => {
+    for (let i = 0; i < live.length; i++) {
+      const el = labelEls.current.get(live[i].id);
+      if (el) positionLabel(el, live[i]);
+    }
+    if (now - labelAt.current < LABEL_MS) return;
+    labelAt.current = now;
+
+    let sig = '';
+    for (let i = 0; i < live.length; i++) sig += live[i].id + SEP + live[i].tex + SEP;
+    if (sig === labelSig.current) return;
+    labelSig.current = sig;
+    setLabels(live.map(l => ({ ...l })));
+  }, []);
 
   // One engine per (canvas, model). Params/speed/running are pushed in below.
   useEffect(() => {
@@ -44,9 +73,12 @@ export function useFigure(model, options = {}) {
       params: defaults,
       autoplay: autoplay && !prefersReduced,
       speed: initialSpeed,
+      zoom,
       onFps: setFps,
       onTime: setTime,
       onStats: setStats,
+      onLabels,
+      onView: setView,
     });
     engineRef.current = engine;
     engine.start();
@@ -57,6 +89,14 @@ export function useFigure(model, options = {}) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model, defaults, prefersReduced]);
+
+  // A model swap or reset leaves stale nodes registered under old ids.
+  useEffect(() => {
+    labelEls.current.clear();
+    labelSig.current = '';
+    setLabels([]);
+    setView({ scale: 1, x: 0, y: 0 });
+  }, [model]);
 
   useEffect(() => { engineRef.current && engineRef.current.setParams(params); }, [params]);
   useEffect(() => { engineRef.current && engineRef.current.setRunning(running); }, [running]);
@@ -94,6 +134,15 @@ export function useFigure(model, options = {}) {
     engineRef.current && engineRef.current.runAction(id);
   }, []);
 
+  const zoomBy = useCallback((factor) => {
+    engineRef.current && engineRef.current.zoomBy(factor);
+  }, []);
+
+  const resetView = useCallback(() => {
+    engineRef.current && engineRef.current.resetView();
+    setView({ scale: 1, x: 0, y: 0 });
+  }, []);
+
   const isDefault = useMemo(
     () => Object.keys(defaults).every(k => defaults[k] === params[k]),
     [defaults, params]
@@ -105,7 +154,13 @@ export function useFigure(model, options = {}) {
     running, setRunning, toggle: () => setRunning(r => !r),
     speed, setSpeed: setSpeedState,
     stepOnce, reset, shuffle, runAction,
+    view, zoomBy, resetView,
+    canZoom: !!(zoom === undefined ? model.zoom : zoom),
     fps, time, stats,
+    labels,
+    // The Map itself, not the ref: LabelLayer registers nodes on it directly.
+    // Identity is stable because it is only ever .clear()ed, never reassigned.
+    labelRegistry: labelEls.current,
     engineRef,
   };
 }

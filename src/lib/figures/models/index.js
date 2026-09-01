@@ -5,6 +5,15 @@ import life from './life';
 import pendulum from './pendulum';
 import harmonic from './harmonic';
 import fourier from './fourier';
+import bloch from './bloch';
+import sphereflock from './sphereflock';
+import descent from './descent';
+import lorenz from './lorenz';
+import clt from './clt';
+import phase from './phase';
+import spectrum from './spectrum';
+import ising from './ising';
+import epidemic from './epidemic';
 
 /**
  * Every model that ships with the library, registered by id so figures can be
@@ -17,7 +26,20 @@ export const models = registerModels([
   pendulum,
   harmonic,
   fourier,
+  bloch,
+  sphereflock,
+  descent,
+  lorenz,
+  clt,
+  phase,
+  spectrum,
+  ising,
+  epidemic,
 ]);
 
-export { boids, life, pendulum, harmonic, fourier };
+export {
+  boids, life, pendulum, harmonic, fourier,
+  bloch, sphereflock, descent, lorenz, clt,
+  phase, spectrum, ising, epidemic,
+};
 export default models;

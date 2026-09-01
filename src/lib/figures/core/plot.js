@@ -36,16 +36,127 @@ function formatTick(v, step) {
   return s.replace(/\.?0+$/, m => (m.includes('.') ? '' : m));
 }
 
+/** `{ width, height }` (an env) or `{ x, y, w, h }` (a rect) → a rect. */
+function toRect(region) {
+  if (!region) return { x: 0, y: 0, w: 0, h: 0 };
+  if (region.w !== undefined && region.h !== undefined) return region;
+  return { x: 0, y: 0, w: region.width, h: region.height };
+}
+
+function splitInto(rect, node, out) {
+  if (node.id) out[node.id] = rect;
+
+  const kids = node.children;
+  if (!kids || !kids.length) return;
+
+  const column = node.dir === 'column';
+  const gap = node.gap == null ? 8 : node.gap;
+  const weights = kids.map(k => (k.flex == null ? 1 : k.flex));
+  const total = weights.reduce((a, b) => a + b, 0) || 1;
+  const avail = (column ? rect.h : rect.w) - gap * (kids.length - 1);
+
+  let pos = column ? rect.y : rect.x;
+  kids.forEach((kid, i) => {
+    const size = (avail * weights[i]) / total;
+    splitInto(
+      column
+        ? { x: rect.x, y: pos, w: rect.w, h: size }
+        : { x: pos, y: rect.y, w: size, h: rect.h },
+      kid,
+      out
+    );
+    pos += size + gap;
+  });
+}
+
+/**
+ * Nested panel layout — rows and columns to any depth.
+ *
+ * `panelRects` below covers the uniform-grid case; this covers everything else.
+ * A node is `{ dir: 'row' | 'column', gap, children: [...] }`, a child may
+ * carry `flex` and an `id`, and any child may itself have children:
+ *
+ *   const L = layout(env, {
+ *     dir: 'row', gap: 10,
+ *     children: [
+ *       { id: 'sim', flex: 1.2 },                       // full height, left
+ *       { dir: 'column', flex: 1, gap: 8, children: [
+ *         { id: 'sim2', flex: 1 },                      // right, top
+ *         { dir: 'row', flex: 1, gap: 8, children: [
+ *           { id: 'left' }, { id: 'right' },            // right, bottom pair
+ *         ] },
+ *       ] },
+ *     ],
+ *   });
+ *   // L.sim, L.sim2, L.left, L.right — each a { x, y, w, h } in CSS pixels
+ *
+ * The first argument is an env or any rect, so a layout can be nested inside a
+ * region computed by an outer one.
+ */
+export function layout(region, spec) {
+  const out = {};
+  splitInto(toRect(region), spec, out);
+  return out;
+}
+
+/**
+ * Split a region into a grid of sub-regions, for figures that want more than
+ * one plot — a signal and its spectrum, a phase portrait and a time series, a
+ * lattice above its order parameter. Takes an env or any rect.
+ *
+ *   const [top, bottom] = panelRects(env, { rows: 2, ratios: [2, 1] });
+ *   const p1 = createPlot(ctx, env, { rect: top, xDomain, yDomain });
+ *
+ * A rect is plain `{ x, y, w, h }` in CSS pixels, so a panel can also be
+ * painted into directly — it does not have to become a plot.
+ */
+export function panelRects(region, opts = {}) {
+  const env = toRect(region);
+  const rows = opts.rows || 1;
+  const cols = opts.cols || 1;
+  const gap = opts.gap == null ? 6 : opts.gap;
+  const ratios = opts.ratios && opts.ratios.length === rows
+    ? opts.ratios
+    : new Array(rows).fill(1);
+  const colRatios = opts.colRatios && opts.colRatios.length === cols
+    ? opts.colRatios
+    : new Array(cols).fill(1);
+
+  const totalR = ratios.reduce((a, b) => a + b, 0);
+  const totalC = colRatios.reduce((a, b) => a + b, 0);
+  const usableH = env.h - gap * (rows - 1);
+  const usableW = env.w - gap * (cols - 1);
+
+  const out = [];
+  let y = env.y;
+  for (let r = 0; r < rows; r++) {
+    const h = (usableH * ratios[r]) / totalR;
+    let x = env.x;
+    for (let c = 0; c < cols; c++) {
+      const w = (usableW * colRatios[c]) / totalC;
+      out.push({ x, y, w, h });
+      x += w + gap;
+    }
+    y += h + gap;
+  }
+  return out;
+}
+
 export function createPlot(ctx, env, opts = {}) {
   const theme = env.theme || {};
+  const labels = opts.labels || null;
   const pad = { ...DEFAULT_PADDING, ...(opts.padding || {}) };
   const [xa, xb] = opts.xDomain;
   const [ya, yb] = opts.yDomain;
 
-  const left = pad.left;
-  const right = env.width - pad.right;
-  const top = pad.top;
-  const bottom = env.height - pad.bottom;
+  // A plot normally owns the whole canvas, but `rect` confines it to a
+  // sub-region so several plots can share one figure. See `panelRects`.
+  const region = opts.rect || { x: 0, y: 0, w: env.width, h: env.height };
+
+  const left = region.x + pad.left;
+  const right = region.x + region.w - pad.right;
+  const top = region.y + pad.top;
+  const bottom = region.y + region.h - pad.bottom;
   const innerW = Math.max(1, right - left);
   const innerH = Math.max(1, bottom - top);
 
@@ -120,11 +231,11 @@ export function createPlot(ctx, env, opts = {}) {
       if (xLabel) {
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
-        ctx.fillText(xLabel, right, env.height - 2);
+        ctx.fillText(xLabel, right, region.y + region.h - 2);
       }
       if (yLabel) {
         ctx.save();
-        ctx.translate(11, top);
+        ctx.translate(region.x + 11, top);
         ctx.rotate(-Math.PI / 2);
         ctx.textAlign = 'right';
         ctx.textBaseline = 'top';
@@ -217,7 +328,43 @@ export function createPlot(ctx, env, opts = {}) {
       ctx.restore();
     },
 
-    /** Small text tag anchored in data coordinates. */
+    /**
+     * A KaTeX label anchored in data coordinates.
+     *
+     * Canvas cannot draw KaTeX, so this queues the label for the HTML overlay
+     * the figure shell paints on top of the stage — real KaTeX fonts, real
+     * MathML for assistive tech, crisp at any pixel ratio.
+     */
+    label(x, y, tex, o = {}) {
+      if (!labels || !tex) return;
+      labels.push({
+        id: o.id || `plot-${labels.length}`,
+        tex,
+        x: xToPx(x) + (o.dx || 0),
+        y: yToPx(y) + (o.dy || 0),
+        anchor: o.anchor || 'center',
+        color: o.color,
+        size: o.size,
+        chip: o.chip === true,
+      });
+    },
+
+    /** The same, positioned in canvas pixels — for corner cards and HUDs. */
+    labelPx(x, y, tex, o = {}) {
+      if (!labels || !tex) return;
+      labels.push({
+        id: o.id || `hud-${labels.length}`,
+        tex,
+        x: x + (o.dx || 0),
+        y: y + (o.dy || 0),
+        anchor: o.anchor || 'top-left',
+        color: o.color,
+        size: o.size,
+        chip: o.chip !== false,
+      });
+    },
+
+    /** Small canvas text tag anchored in data coordinates. */
     tag(x, y, text, { color = '#94a3b8', align = 'left', baseline = 'bottom', dx = 4, dy = -4 } = {}) {
       ctx.save();
       ctx.font = font;

@@ -1,4 +1,5 @@
 import { normalizeSpecs } from './params';
+import { withTraces } from './traces';
 
 /**
  * The model contract.
@@ -11,6 +12,8 @@ import { normalizeSpecs } from './params';
  *   defineModel({
  *     id, name, description,
  *     rate,                                   // simulation steps per second (default 60)
+ *     zoom,                                   // true | { min, max, pan, wheel } — reader may zoom in
+ *     static: true,                           // nothing evolves: hides the transport controls
  *     params:  [ ...specs ],                  // see core/params.js
  *     presets: [{ name, values }],
  *     actions: [{ id, label, run(state, params, rng, env) }],
@@ -40,6 +43,8 @@ export function defineModel(def) {
       throw new Error(`defineModel("${def.id || def.name || '?'}"): missing required ${fn}()`);
     }
   }
+  const src = def.traces && def.traces.length ? withTraces(def) : def;
+
   return {
     id: def.id || def.name,
     name: def.name || def.id,
@@ -47,7 +52,7 @@ export function defineModel(def) {
     rate: def.rate || 60,
     presets: def.presets || [],
     actions: def.actions || [],
-    ...def,
+    ...src,
     params: normalizeSpecs(def.params || []),
   };
 }

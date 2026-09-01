@@ -30,7 +30,7 @@
   --figx-radius-sm: 6px;
   --figx-font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
   --figx-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --figx-font-caption: "EB Garamond", "Palatino Linotype", Georgia, serif;
+  --figx-font-caption: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   margin: 2.5rem 0;
   font-family: var(--figx-font-ui);
@@ -45,6 +45,27 @@
   border-radius: var(--figx-radius);
   background: var(--figx-panel);
   overflow: hidden;
+}
+
+.figx__frame:focus-visible {
+  outline: 2px solid var(--figx-accent-soft);
+  outline-offset: 2px;
+}
+
+/* In fullscreen the stage takes whatever is left after the chrome. */
+.figx__frame:fullscreen,
+.figx__frame:-webkit-full-screen {
+  display: flex;
+  flex-direction: column;
+  border: 0;
+  border-radius: 0;
+  background: var(--figx-bg);
+}
+.figx__frame:fullscreen .figx__stage,
+.figx__frame:-webkit-full-screen .figx__stage {
+  flex: 1 1 auto;
+  height: auto !important;
+  aspect-ratio: auto !important;
 }
 
 /* ── toolbar ─────────────────────────────────────────────────────────────── */
@@ -143,7 +164,8 @@
 
 /* ── stage ───────────────────────────────────────────────────────────────── */
 
-.figx__stage { position: relative; background: var(--figx-bg); }
+/* overflow: a zoomed figure pushes KaTeX labels past the edges. */
+.figx__stage { position: relative; overflow: hidden; background: var(--figx-bg); }
 .figx__canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 
 .figx__paused {
@@ -164,6 +186,32 @@
   border-radius: 999px;
   padding: 4px 12px;
 }
+
+/* ── KaTeX overlay ───────────────────────────────────────────────────────── */
+
+.figx__texlayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.figx__tex {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  line-height: 1;
+  font-size: 13px;
+  color: var(--figx-fg);
+  will-change: transform;
+}
+.figx__tex--chip {
+  background: rgba(2, 6, 23, 0.7);
+  border: 1px solid var(--figx-border);
+  border-radius: var(--figx-radius-sm);
+  padding: 4px 8px;
+}
+.figx__tex .katex { font-size: 1em; }
 
 /* ── stats ───────────────────────────────────────────────────────────────── */
 
@@ -350,20 +398,94 @@
 }
 .figx__toggle[aria-pressed="true"] .figx__dot { background: var(--figx-accent); }
 
-.figx__select {
+/* listbox — replaces the native select, whose popup the OS themes itself */
+.figx__combo { display: block; position: relative; }
+
+.figx__combo-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 100%;
   font-family: inherit;
   font-size: 11px;
+  text-align: left;
   color: var(--figx-fg);
   background: rgba(2, 6, 23, 0.5);
   border: 1px solid var(--figx-border);
   border-radius: var(--figx-radius-sm);
   padding: 5px 7px;
   cursor: pointer;
+  transition: border-color .15s, background-color .15s;
 }
-.figx__select:focus-visible { outline: 2px solid var(--figx-accent-soft); outline-offset: 1px; }
+.figx__combo-btn:hover { border-color: var(--figx-border-strong); }
+.figx__combo-btn[aria-expanded="true"] {
+  border-color: rgba(251, 146, 60, 0.5);
+  background: rgba(2, 6, 23, 0.75);
+}
+.figx__combo-btn:focus-visible { outline: 2px solid var(--figx-accent-soft); outline-offset: 1px; }
+
+.figx__combo-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.figx__combo-caret { width: 9px; height: 6px; flex: none; color: var(--figx-faint); }
+.figx__combo-btn[aria-expanded="true"] .figx__combo-caret { color: var(--figx-accent-fg); }
+
+.figx__combo-list {
+  position: fixed;
+  z-index: 60;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  overflow-y: auto;
+  background: #0d1425;
+  border: 1px solid var(--figx-border-strong);
+  border-radius: var(--figx-radius-sm);
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.65);
+}
+.figx__combo-list:focus { outline: none; }
+
+.figx__combo-opt {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--figx-muted);
+  padding: 5px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.figx__combo-opt--active { background: rgba(148, 163, 184, 0.12); color: var(--figx-fg); }
+.figx__combo-opt--selected { color: var(--figx-accent-fg); }
+.figx__combo-tick { width: 8px; flex: none; text-align: center; }
 
 .figx__toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ── authoring error ─────────────────────────────────────────────────────── */
+
+.figx__error {
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(127, 29, 29, 0.16);
+  border-radius: var(--figx-radius);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #fecaca;
+}
+.figx__error strong { color: #fca5a5; font-weight: 600; }
+.figx__error ul { margin: 6px 0 0; padding-left: 18px; }
+.figx__error p { margin: 8px 0 0; color: var(--figx-muted); }
+.figx__error code {
+  font-family: var(--figx-font-mono);
+  font-size: 0.92em;
+  color: var(--figx-accent-fg);
+}
 
 /* visually hidden, but still read out */
 .figx__sr {

@@ -25,6 +25,7 @@ import IshedApp from './pages/ished/ished';
 import EditorApp from './pages/editor/editor';
 import TonePracticeApp from './pages/toner/toner';
 import MandallApp from './pages/mandall/mandall';
+import TestFigure from './pages/testfigure';
 
 import { parseFrontMatter } from './utils/articleUtils';
 
@@ -104,6 +105,7 @@ function renderApp(allArticles) {
         <Route path="/editor" element={<EditorApp />} />
         <Route path="/toner" element={<TonePracticeApp />} />
         <Route path="/mandall" element={<MandallApp />} />
+        <Route path="/test_figure" element={<TestFigure />} />
       </Routes>
     </HashRouter>
   );

@@ -18,7 +18,7 @@ const WAVES = {
     /** (4/π) Σ_{k odd} sin(kx)/k */
     term: (u, k) => (k % 2 === 1 ? (4 / Math.PI) * Math.sin(k * u) / k : 0),
     uses: k => k % 2 === 1,
-    tex: '\\frac{4}{\\pi}\\sum_{k\\ \\mathrm{odd}}\\frac{\\sin kx}{k}',
+    tex: N => `\\frac{4}{\\pi}\\sum_{k\\ \\mathrm{odd}}^{${N}}\\frac{\\sin kx}{k}`,
     discontinuous: true,
   },
   saw: {
@@ -30,7 +30,7 @@ const WAVES = {
     /** (2/π) Σ_k (−1)^{k+1} sin(kx)/k */
     term: (u, k) => (2 / Math.PI) * (k % 2 === 1 ? 1 : -1) * Math.sin(k * u) / k,
     uses: () => true,
-    tex: '\\frac{2}{\\pi}\\sum_k \\frac{(-1)^{k+1}}{k}\\sin kx',
+    tex: N => `\\frac{2}{\\pi}\\sum_{k=1}^{${N}}\\frac{(-1)^{k+1}}{k}\\sin kx`,
     discontinuous: true,
   },
   triangle: {
@@ -43,7 +43,7 @@ const WAVES = {
       return (8 / (Math.PI * Math.PI)) * (m % 2 === 0 ? 1 : -1) * Math.sin(k * u) / (k * k);
     },
     uses: k => k % 2 === 1,
-    tex: '\\frac{8}{\\pi^2}\\sum_{k\\ \\mathrm{odd}}\\frac{(-1)^{(k-1)/2}}{k^2}\\sin kx',
+    tex: N => `\\frac{8}{\\pi^{2}}\\sum_{k\\ \\mathrm{odd}}^{${N}}\\frac{(-1)^{(k-1)/2}}{k^{2}}\\sin kx`,
     discontinuous: false,
   },
 };
@@ -95,14 +95,22 @@ export default definePlot({
   xDomain: [-Math.PI, 3 * Math.PI],
   yDomain: [-1.45, 1.45],
 
+  // The partial sum actually being drawn, N substituted live.
+  equation: (p) => {
+    const wave = WAVES[p.wave] || WAVES.square;
+    return `S_{${p.terms}}(x) = ${wave.tex(p.terms)}`;
+  },
+
   series: [
     {
-      id: 'target', label: 'Target', color: '#64748b', dash: [5, 4], width: 1.3,
+      id: 'target', label: 'Target', tex: 'f(x)',
+      color: '#64748b', dash: [5, 4], width: 1.3,
       visible: p => p.showTarget,
       fn: (x, p, t) => (WAVES[p.wave] || WAVES.square).target(x - p.travel * t),
     },
     {
-      id: 'error', label: 'Error ×3', color: '#f87171', width: 1.1,
+      id: 'error', label: 'Error ×3', tex: '3(S_N - f)',
+      color: '#f87171', width: 1.1,
       visible: p => p.showError,
       fn: (x, p, t) => {
         const u = x - p.travel * t;
@@ -111,11 +119,17 @@ export default definePlot({
       },
     },
     {
-      id: 'sum', label: 'Partial sum', color: '#fb923c', width: 2,
+      id: 'sum', label: 'Partial sum', tex: 'S_N(x)',
+      color: '#fb923c', width: 2,
       fn: (x, p, t) => partialSum(x - p.travel * t, p),
       samples: 1400,     // Gibbs is a narrow spike; undersampling hides it
     },
   ],
+
+  hoverTex: (x, values) => {
+    const hit = values.find(v => v.id === 'sum');
+    return hit ? `S_N(${x.toFixed(2)}) = ${hit.y.toFixed(3)}` : `x = ${x.toFixed(2)}`;
+  },
 
   /** The individual harmonics, faintly, beneath the sum. */
   decorate(plot, p, t) {

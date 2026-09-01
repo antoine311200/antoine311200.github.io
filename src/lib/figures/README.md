@@ -9,6 +9,9 @@ import { Figure, boids } from '../lib/figures';
 <Figure model={boids} height={440} caption="Reynolds flocking on a torus." />
 ```
 
+**Writing a figure: see [AUTHORING.md](./AUTHORING.md).** This file is the
+overview and reference.
+
 ## Why it is split this way
 
 The shell — canvas sizing, the animation loop, play/pause/step/reset, the
@@ -17,11 +20,22 @@ then a *model*: plain data and plain functions with no React in them. Adding a
 figure costs one small file and one registry line, not a component.
 
 ```
-core/     engine, model & plot contracts, params, registry, seeded rng
-react/    Figure, useFigure, controls  — the only files that import React
+core/     engine, model & plot contracts, params, registry, seeded rng,
+          plot.js (2D axes), scene3d.js (orbit camera + painter's algorithm)
+react/    Figure, FigureBlock, useFigure, controls — the only files with React
 models/   the figures themselves
 figures.css
 ```
+
+Fourteen models ship with it:
+
+| | |
+| --- | --- |
+| 2D simulation | `boids`, `game-of-life`, `ising`, `epidemic` |
+| ODE / chaos | `double-pendulum`, `phase-portrait`, `lorenz` |
+| plots | `harmonic-oscillator`, `fourier-series`, `spectrum` |
+| 3D | `bloch-sphere`, `sphere-flock`, `lorenz` |
+| statistics & ML | `central-limit`, `gradient-descent` |
 
 ## Two kinds of figure
 
@@ -79,6 +93,10 @@ Axes, ticks, the legend, and the hover readout (a vertical cut through every
 series) come for free. `core/plot.js` is also usable directly from a
 `defineModel` if a figure needs axes *and* a simulation.
 
+**3D** is a third option, not a third contract: a `defineModel` imports
+`createScene` from `core/scene3d.js` and draws into the same 2D context. See
+[AUTHORING.md](./AUTHORING.md) — there is no WebGL and no extra dependency.
+
 ## Rules for a model
 
 - **No React, no DOM** beyond the 2D context handed to `draw`.
@@ -108,6 +126,25 @@ Everything else is live: dragging a slider reshapes the running simulation.
 Prefer absorbing a change in `sync` over marking it `reinit` — `boids` grows
 and shrinks its population in place rather than restarting.
 
+## Toolbar and keyboard
+
+Play/pause, single-step, restart (same seed), reseed, zoom, fullscreen, and
+playback speed from 0.25× to 4×. With the figure focused: `Space` play/pause,
+`→` step, `R` restart, `S` reseed, `F` fullscreen, `+` / `-` zoom, `0` reset
+the view.
+
+A model declaring `static: true` has no transport controls at all — there is
+nothing to advance.
+
+## Zoom
+
+`zoom: true` on a model (or a `zoom` prop) lets the reader magnify it: toolbar
+buttons, trackpad or touch pinch, double-click, `+`/`-`, and drag to pan.
+`{ min, max, pan, wheel }` tunes it; the scale is clamped to `[min, max]` and
+the pan is clamped so the drawing always covers the frame. A plain wheel still
+scrolls the page. Models need no changes — the engine scales the rendering and
+maps pointer positions and KaTeX labels through the same transform.
+
 ## `<Figure>` props
 
 | prop | default | |
@@ -117,9 +154,11 @@ and shrinks its population in place rather than restarting.
 | `height` | `400` | stage height in px |
 | `aspect` | — | e.g. `16/9`, instead of `height` |
 | `caption` | — | string or node |
-| `controls` | `true` | show the parameter panel |
+| `controls` | `true` | `true`, `false`, or a list of parameter keys to expose |
 | `stats` | `true` | show the readout bar |
 | `speeds` | `true` | show 0.25×–4× |
+| `meta` | `true` | show the `t = …` / fps readouts |
+| `zoom` | model's own | `true`, `false`, or `{ min, max, pan, wheel }` |
 | `autoplay` | `true` | ignored when the OS asks for reduced motion |
 
 ## Theming
@@ -135,8 +174,52 @@ Canvas drawing cannot read CSS variables, so the engine resolves the palette
 once and passes it to models as `env.theme` (`bg`, `fg`, `muted`, `faint`,
 `track`, `grid`, `accent`). Plots use it automatically.
 
+## In a markdown article
+
+Articles embed figures as a fenced `figure` block, handled by
+`components/MarkdownRenderer.js`:
+
+````markdown
+```figure
+model: boids
+height: 430
+caption: Reynolds flocking on a torus. Order $\varphi$ measures alignment.
+controls: false
+param.count: 420
+param.cohesion: 1.35
+```
+````
+
+| key | |
+| --- | --- |
+| `model` | **required** — a registered model id |
+| `height` `aspect` | stage size |
+| `caption` | plain text; `$…$` renders as maths |
+| `controls` | `true`, `false`, or a comma-separated list of parameter keys |
+| `stats` `speeds` `meta` `autoplay` | booleans, all default `true` |
+| `zoom` | `true`, `false`, or a JSON object |
+| `param.<key>` | starting value for one parameter |
+
+A whole-block JSON object works too. A code fence was chosen over raw HTML or a
+remark directive because it needs no extra plugin and degrades gracefully:
+GitHub and Obsidian show it as a readable config block rather than as broken
+markup. A block naming an unknown model renders an error in place listing the
+ids that exist, so a typo is obvious rather than silent.
+
 ## Adding a model
 
-1. Write `models/<name>.js` with `defineModel` or `definePlot`.
+1. Write `models/<name>.js` with `defineModel` or `definePlot` — see
+   [AUTHORING.md](./AUTHORING.md).
 2. Add it to the array in `models/index.js`.
-3. `<Figure model="<id>" />`.
+3. `<Figure model="<id>" />`, or a ```figure block in an article.
+
+A model written for one article does not belong here. Put it in
+`src/figures/<article-slug>/` instead, where it is registered automatically:
+
+```js
+import { registerModelContext } from '../lib/figures';
+registerModelContext(require.context('./', true, /^\.\/[^/]+\/[^/]*\.js$/));
+```
+
+`registerModelContext` takes anything shaped like a webpack context, so the
+library itself stays bundler-agnostic.

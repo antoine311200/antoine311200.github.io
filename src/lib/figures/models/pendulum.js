@@ -102,6 +102,14 @@ export default defineModel({
     { name: 'Damped',      values: { damping: 0.12, copies: 4, theta1: 150, theta2: 160 } },
   ],
 
+  // Exponential divergence is the claim; a log-scale trace is the evidence.
+  traces: [
+    { id: 'sep', label: 'tip separation', tex: '\\|\\Delta\\|', color: '#fb923c',
+      visible: p => p.copies > 1,
+      value: state => (state.divergence > 0 ? state.divergence : NaN) },
+  ],
+  traceOptions: { height: 0.24, window: 900, log: true, yLabel: 'log₁₀' },
+
   init(params) {
     const bodies = [];
     for (let i = 0; i < params.copies; i++) {
@@ -223,6 +231,19 @@ export default defineModel({
         ctx.arc(x2, y2, 2.6 + params.m2 * 0.7, 0, Math.PI * 2);
         ctx.fill();
       }
+    }
+
+    if (state.labels && state.e0 !== null) {
+      const drift = Math.abs((state.energy - state.e0) / state.e0);
+      state.labels.push({
+        id: 'energy',
+        tex: `E = T + V = ${state.energy.toFixed(4)}`
+          + `\\quad \\frac{|E - E_0|}{|E_0|} = ${drift.toExponential(1)}`,
+        x: 12,
+        y: 12,
+        anchor: 'top-left',
+        chip: true,
+      });
     }
   },
 
