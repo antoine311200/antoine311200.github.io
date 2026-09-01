@@ -1,3 +1,4 @@
+import React from 'react';
 import { Paragraph, Remark, Image } from '../../components/helper';
 // import ReactMarkdown from 'react-markdown';
 

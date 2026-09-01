@@ -1,0 +1,26 @@
+[
+    {
+        "name": "history",
+        "color": "#581c87"
+    },
+    {
+        "name": "science",
+        "color": "#facc15"
+    },
+    {
+        "name": "math",
+        "color": "#f43f5e"
+    },
+    {
+        "name": "language",
+        "color": "#9333ea"
+    },
+    {
+        "name": "art",
+        "color": "#1e293b"
+    },
+    {
+        "name": "music",
+        "color": "#14b8a6"
+    }
+]
