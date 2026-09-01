@@ -11,7 +11,7 @@ import Graph from './views/Graph';
 import Stats from './views/Stats';
 import Settings from './views/Settings';
 import Workspace from './components/Workspace';
-import { Button, Modal, cx } from './components/ui';
+import { Button, Modal, cx, PAGE_BACKGROUND } from './components/ui';
 
 /* ---------------------------------------------------------------- navigation */
 
@@ -152,18 +152,18 @@ function Shell() {
     };
 
     return (
-        <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-300">
+        <div className="flex h-screen w-screen overflow-hidden text-slate-300" style={PAGE_BACKGROUND}>
             {/* ------------------------------------------------------ sidebar */}
             <nav className={cx(
-                'z-30 flex w-56 flex-none flex-col border-r border-white/[0.07] bg-slate-950',
+                'z-30 flex w-56 flex-none flex-col border-r border-slate-800 bg-slate-950/60 backdrop-blur-sm',
                 'max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:shadow-2xl max-lg:transition-transform',
                 !navOpen && 'max-lg:-translate-x-full',
             )}>
                 <div className="flex items-center gap-2 px-4 py-4">
-                    <span className="text-lg leading-none text-sky-400">◈</span>
+                    <span className="text-lg leading-none text-orange-400">◈</span>
                     <div className="min-w-0">
                         <h1 className="truncate text-sm font-semibold text-slate-100">Paper Radar</h1>
-                        <Link to="/" className="text-[10px] text-slate-600 transition hover:text-sky-400">
+                        <Link to="/" className="text-[10px] text-slate-500 transition hover:text-orange-300">
                             ← antoine debouchage
                         </Link>
                     </div>
@@ -180,9 +180,9 @@ function Shell() {
                     </Button>
                     {fetchState.running && (
                         <div className="mt-2">
-                            <div className="h-0.5 overflow-hidden rounded-full bg-white/10">
+                            <div className="h-0.5 overflow-hidden rounded-full bg-slate-800">
                                 <div
-                                    className="h-full bg-sky-400 transition-all duration-500"
+                                    className="h-full bg-orange-400 transition-all duration-500"
                                     style={{ width: `${((fetchState.done + 0.5) / Math.max(1, fetchState.total)) * 100}%` }}
                                 />
                             </div>
@@ -205,18 +205,18 @@ function Shell() {
                                     className={cx(
                                         'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition',
                                         active
-                                            ? 'bg-sky-500/[0.12] text-sky-200'
-                                            : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200',
+                                            ? 'bg-orange-400/[0.12] text-orange-200'
+                                            : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
                                     )}
                                 >
-                                    <span className={cx('w-3.5 text-center text-[11px]', active ? 'text-sky-400' : 'text-slate-600')}>
+                                    <span className={cx('w-3.5 text-center text-[11px]', active ? 'text-orange-300' : 'text-slate-600')}>
                                         {item.icon}
                                     </span>
                                     <span className="flex-1 truncate">{item.label}</span>
                                     {badge != null && (
                                         <span className={cx(
                                             'rounded px-1 font-mono text-[9.5px] tabular-nums',
-                                            active ? 'bg-sky-400/20 text-sky-200' : 'bg-white/[0.06] text-slate-500',
+                                            active ? 'bg-orange-400/20 text-orange-100' : 'bg-slate-800 text-slate-500',
                                         )}>
                                             {badge > 999 ? `${(badge / 1000).toFixed(1)}k` : badge}
                                         </span>
@@ -238,7 +238,7 @@ function Shell() {
                                     <button
                                         type="button"
                                         onClick={() => go('topics')}
-                                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1 text-left text-[11.5px] text-slate-500 transition hover:bg-white/[0.04] hover:text-slate-300"
+                                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1 text-left text-[11.5px] text-slate-500 transition hover:bg-white/5 hover:text-slate-300"
                                     >
                                         <span
                                             className={cx('h-1.5 w-1.5 flex-none rounded-full', !t.enabled && 'opacity-30')}
@@ -262,7 +262,7 @@ function Shell() {
                                     const name = window.prompt('Name this collection');
                                     if (name) dispatch({ type: 'COLLECTION_ADD', name: name.trim() });
                                 }}
-                                className="text-slate-600 transition hover:text-sky-400"
+                                className="text-slate-600 transition hover:text-orange-300"
                             >
                                 +
                             </button>
@@ -273,7 +273,7 @@ function Shell() {
                                     <button
                                         type="button"
                                         onClick={() => go('library')}
-                                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1 text-left text-[11.5px] text-slate-500 transition hover:bg-white/[0.04] hover:text-slate-300"
+                                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1 text-left text-[11.5px] text-slate-500 transition hover:bg-white/5 hover:text-slate-300"
                                     >
                                         <span className="truncate">{c.name}</span>
                                         <span className="ml-auto font-mono text-[9.5px] text-slate-700">{c.paperIds.length}</span>
@@ -289,11 +289,11 @@ function Shell() {
                     </div>
                 )}
 
-                <div className="mt-auto border-t border-white/[0.07] px-3 py-2.5">
+                <div className="mt-auto border-t border-slate-800 px-3 py-2.5">
                     <button
                         type="button"
                         onClick={() => setHelp(true)}
-                        className="text-[10.5px] text-slate-600 transition hover:text-sky-400"
+                        className="text-[10.5px] text-slate-600 transition hover:text-orange-300"
                     >
                         ? keyboard shortcuts
                     </button>
@@ -309,7 +309,7 @@ function Shell() {
                 <button
                     type="button"
                     onClick={() => setNavOpen(true)}
-                    className="absolute left-3 top-3 z-10 rounded-lg border border-white/10 bg-slate-900/90 px-2 py-1 text-xs text-slate-300 lg:hidden"
+                    className="absolute left-3 top-3 z-10 rounded-lg border border-slate-700 bg-slate-900/90 px-2 py-1 text-xs text-slate-300 backdrop-blur lg:hidden"
                 >
                     ☰
                 </button>
@@ -331,7 +331,7 @@ function Shell() {
             </main>
 
             {toast && (
-                <div className="pointer-events-none fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-lg border border-white/10 bg-slate-900/95 px-4 py-2 text-xs text-slate-200 shadow-xl shadow-black/40">
+                <div className="pointer-events-none fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full border border-slate-700 bg-slate-900/95 px-4 py-2 text-xs text-slate-200 shadow-xl shadow-black/40 backdrop-blur">
                     {toast.message}
                 </div>
             )}
@@ -344,7 +344,7 @@ function Shell() {
                             <dl className="space-y-1.5">
                                 {rows.map(([keys, what]) => (
                                     <div key={keys} className="flex items-baseline gap-2">
-                                        <dt className="flex-none rounded border border-white/10 bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-slate-300">
+                                        <dt className="flex-none rounded border border-slate-700 bg-slate-800/60 px-1.5 py-0.5 font-mono text-[10px] text-slate-300">
                                             {keys}
                                         </dt>
                                         <dd className="text-[11px] text-slate-500">{what}</dd>

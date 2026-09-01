@@ -23,7 +23,7 @@ const BASE_OPTIONS = {
         color: { border: 'rgba(255,255,255,0.25)' },
     },
     edges: {
-        color: { color: 'rgba(148,163,184,0.22)', highlight: '#38bdf8' },
+        color: { color: 'rgba(148,163,184,0.22)', highlight: '#fb923c' },
         smooth: { type: 'continuous' },
         width: 0.6,
     },
@@ -80,7 +80,7 @@ export default function Graph({ onOpenAuthor }) {
             return {
                 nodes: coauthors.nodes.map((n) => {
                     const topic = topics.find((t) => n.topics.includes(t.id));
-                    const color = n.followed ? '#38bdf8' : (topic ? topic.color : '#64748b');
+                    const color = n.followed ? '#fb923c' : (topic ? topic.color : '#64748b');
                     return {
                         id: n.key,
                         label: n.papers >= 3 || n.followed ? n.name : '',
@@ -88,7 +88,7 @@ export default function Graph({ onOpenAuthor }) {
                         value: n.papers,
                         color: {
                             background: n.followed ? color : `${color}66`,
-                            border: n.followed ? '#e0f2fe' : `${color}aa`,
+                            border: n.followed ? '#ffedd5' : `${color}aa`,
                             highlight: { background: color, border: '#fff' },
                         },
                         borderWidth: n.followed ? 2.5 : 1,
@@ -129,7 +129,7 @@ export default function Graph({ onOpenAuthor }) {
 
     return (
         <div className="flex h-full min-h-0 flex-col">
-            <header className="flex flex-none flex-wrap items-center gap-2 border-b border-white/[0.07] px-5 py-3">
+            <header className="flex flex-none flex-wrap items-center gap-2 border-b border-slate-800 px-5 py-3">
                 <div>
                     <h1 className="text-base font-semibold text-slate-100">Relations</h1>
                     <p className="text-[11px] text-slate-500">
@@ -148,7 +148,7 @@ export default function Graph({ onOpenAuthor }) {
                 <select
                     value={scope}
                     onChange={(e) => setScope(e.target.value)}
-                    className="rounded-lg border border-white/10 bg-slate-950/60 px-2 py-1.5 text-[11px] text-slate-300 outline-none focus:border-sky-400/50"
+                    className="rounded-lg border border-slate-700 bg-slate-950/60 px-2 py-1.5 text-[11px] text-slate-300 outline-none focus:border-orange-400/50"
                 >
                     <option value="all">Whole library</option>
                     <option value="followed">Followed authors only</option>
@@ -164,7 +164,7 @@ export default function Graph({ onOpenAuthor }) {
                             max="6"
                             value={minPapers}
                             onChange={(e) => setMinPapers(Number(e.target.value))}
-                            className="w-20 accent-sky-400"
+                            className="w-20 accent-orange-400"
                         />
                         <span className="w-3 font-mono">{minPapers}</span>
                     </label>
@@ -193,7 +193,7 @@ export default function Graph({ onOpenAuthor }) {
                 <div className="pointer-events-none absolute left-4 top-4 flex flex-wrap gap-1.5">
                     {mode === 'coauthors'
                         ? <>
-                            <Chip className="!bg-sky-500/20 !text-sky-200 !border-sky-400/40">followed</Chip>
+                            <Chip className="!bg-orange-400/20 !text-orange-200 !border-orange-400/40">followed</Chip>
                             {topics.slice(0, 5).map((t) => <Chip key={t.id} color={t.color}>{t.name}</Chip>)}
                         </>
                         : <>
@@ -207,7 +207,7 @@ export default function Graph({ onOpenAuthor }) {
                         <Panel bodyClass="p-3">
                             {pickedAuthor && (
                                 <>
-                                    <h3 className={cx('text-sm font-semibold', pickedAuthor.followed ? 'text-sky-300' : 'text-slate-100')}>
+                                    <h3 className={cx('text-sm font-semibold', pickedAuthor.followed ? 'text-orange-300' : 'text-slate-100')}>
                                         {pickedAuthor.name}
                                     </h3>
                                     <p className="mt-0.5 text-[11px] text-slate-500">

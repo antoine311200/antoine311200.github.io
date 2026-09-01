@@ -65,9 +65,9 @@ export default function Settings() {
                                 {usage.toFixed(1)}% of the ~5 MB browser budget
                             </span>
                         </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+                        <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
                             <div
-                                className={cx('h-full rounded-full transition-all', usage > 80 ? 'bg-amber-400' : 'bg-sky-400')}
+                                className={cx('h-full rounded-full transition-all', usage > 80 ? 'bg-amber-400' : 'bg-orange-400')}
                                 style={{ width: `${Math.max(1, usage)}%` }}
                             />
                         </div>
@@ -141,7 +141,7 @@ export default function Settings() {
                         <select
                             value={settings.proxy}
                             onChange={(e) => set({ proxy: e.target.value })}
-                            className="w-full rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-400/50"
+                            className="w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-orange-400/50"
                         >
                             <option value="auto">Auto — try every route</option>
                             {STRATEGIES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
@@ -207,7 +207,7 @@ export default function Settings() {
                         </Button>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 border-t border-white/[0.07] pt-3">
+                    <div className="flex flex-wrap gap-2 border-t border-slate-800 pt-3">
                         <Button
                             variant="danger"
                             onClick={() => {

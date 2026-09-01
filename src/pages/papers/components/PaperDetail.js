@@ -31,9 +31,9 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
     const topicChips = (paper.topicIds || []).map((id) => topics.find((t) => t.id === id)).filter(Boolean);
 
     return (
-        <aside className="flex h-full min-h-0 flex-col border-l border-white/[0.07] bg-slate-950/60">
+        <aside className="flex h-full min-h-0 flex-col border-l border-slate-800 bg-slate-950/70 backdrop-blur-sm">
             {/* ------------------------------------------------------------ header */}
-            <header className="flex items-start gap-2 border-b border-white/[0.07] px-4 py-3">
+            <header className="flex items-start gap-2 border-b border-slate-800 px-4 py-3">
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                         <ScoreBadge score={paper.score || 0} reasons={paper.reasons} />
@@ -56,11 +56,11 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
             </header>
 
             {/* --------------------------------------------------------- quick bar */}
-            <div className="flex flex-wrap items-center gap-1.5 border-b border-white/[0.07] px-4 py-2">
+            <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-800 px-4 py-2">
                 <select
                     value={st.status}
                     onChange={(e) => patch({ status: e.target.value })}
-                    className="rounded-lg border border-white/10 bg-slate-950/60 px-2 py-1 text-[11px] capitalize text-slate-200 outline-none focus:border-sky-400/50"
+                    className="rounded-lg border border-slate-700 bg-slate-950/60 px-2 py-1 text-[11px] capitalize text-slate-200 outline-none focus:border-orange-400/60"
                 >
                     {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -96,7 +96,7 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
             </div>
 
             {/* ------------------------------------------------------------- tabs */}
-            <nav className="flex gap-1 border-b border-white/[0.07] px-3 pt-2">
+            <nav className="flex gap-1 border-b border-slate-800 px-3 pt-2">
                 {[
                     ['overview', 'Overview'],
                     ['notes', st.note ? 'Notes •' : 'Notes'],
@@ -108,7 +108,7 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
                         onClick={() => setTab(id)}
                         className={cx(
                             'rounded-t-lg px-3 py-1.5 text-[11px] font-medium transition',
-                            tab === id ? 'bg-white/[0.06] text-sky-200' : 'text-slate-500 hover:text-slate-300',
+                            tab === id ? 'bg-slate-800/60 text-orange-200' : 'text-slate-500 hover:text-slate-300',
                         )}
                     >
                         {label}
@@ -120,7 +120,7 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
                 {tab === 'overview' && (
                     <div className="space-y-5 px-4 py-4">
                         {enriched && (
-                            <div className="flex flex-wrap gap-3 rounded-lg border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-[11px]">
+                            <div className="flex flex-wrap gap-3 rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-[11px]">
                                 {enriched.citations != null && (
                                     <span className="text-slate-400">
                                         <b className="text-slate-100">{enriched.citations}</b> citations
@@ -157,19 +157,19 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
                                     const rec = authors[key];
                                     const followed = !!(rec && rec.followedAt);
                                     return (
-                                        <div key={key} className="group flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-white/[0.03]">
+                                        <div key={key} className="group flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-white/5">
                                             <button
                                                 type="button"
                                                 onClick={() => dispatch({ type: 'AUTHOR_TOGGLE', name: a.name })}
                                                 title={followed ? 'Unfollow' : 'Follow — boosts their future papers'}
                                                 className={cx(
                                                     'flex-none rounded px-1 text-xs transition',
-                                                    followed ? 'text-sky-300' : 'text-slate-700 hover:text-slate-400',
+                                                    followed ? 'text-orange-300' : 'text-slate-700 hover:text-slate-400',
                                                 )}
                                             >
                                                 {followed ? '●' : '○'}
                                             </button>
-                                            <span className={cx('min-w-0 flex-1 truncate text-[12px]', followed ? 'text-sky-200' : 'text-slate-300')}>
+                                            <span className={cx('min-w-0 flex-1 truncate text-[12px]', followed ? 'text-orange-200' : 'text-slate-300')}>
                                                 {a.name}
                                                 {a.affiliation && <span className="ml-1 text-[10px] text-slate-600">{a.affiliation}</span>}
                                             </span>
@@ -180,7 +180,7 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
                                                         href={l.href}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        className="rounded border border-white/10 px-1.5 py-0.5 text-[9px] text-slate-400 hover:border-sky-400/40 hover:text-sky-300"
+                                                        className="rounded-full border border-slate-700 px-1.5 py-0.5 text-[9px] text-slate-400 transition hover:border-orange-400/50 hover:text-orange-300"
                                                     >
                                                         {l.key === 'scholar' ? 'Scholar' : l.key === 'arxiv' ? 'arXiv' : 'S2'}
                                                     </a>
@@ -198,7 +198,7 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
                                 <ul className="space-y-1">
                                     {paper.reasons.map((r, i) => (
                                         <li key={i} className="flex gap-2 text-[11.5px] text-slate-400">
-                                            <span className="text-sky-500">·</span>{r.label}
+                                            <span className="text-orange-400">·</span>{r.label}
                                         </li>
                                     ))}
                                 </ul>
@@ -246,8 +246,8 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
                                         className={cx(
                                             'rounded-lg border px-2 py-1 text-[11px] transition',
                                             l.primary
-                                                ? 'border-sky-400/40 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20'
-                                                : 'border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-slate-200',
+                                                ? 'border-orange-400/40 bg-orange-400/10 text-orange-200 hover:bg-orange-400/20'
+                                                : 'border-slate-700 bg-slate-800/40 text-slate-400 hover:border-slate-600 hover:text-slate-200',
                                         )}
                                     >
                                         {l.label}
@@ -290,7 +290,7 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
                                 onChange={(e) => patch({ note: e.target.value })}
                                 rows={14}
                                 placeholder={'What is the claim? What is the trick? Why does it matter for you?\n\nMarkdown welcome — it is kept verbatim on export.'}
-                                className="w-full resize-y rounded-lg border border-white/10 bg-slate-950/60 p-3 font-mono text-[12px] leading-relaxed text-slate-200 placeholder:text-slate-600 outline-none focus:border-sky-400/50"
+                                className="w-full resize-y rounded-lg border border-slate-700 bg-slate-950/60 p-3 font-mono text-[12px] leading-relaxed text-slate-200 placeholder:text-slate-600 outline-none focus:border-orange-400/60"
                             />
                         </div>
                         {collections.length > 0 && (
@@ -326,10 +326,10 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
                                 key={other.id}
                                 type="button"
                                 onClick={() => onNavigate && onNavigate(0, other.id)}
-                                className="block w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-left transition hover:border-white/15 hover:bg-white/[0.05]"
+                                className="block w-full rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-left transition hover:border-slate-700 hover:bg-white/5"
                             >
                                 <div className="flex items-start gap-2">
-                                    <span className="mt-0.5 flex-none rounded bg-white/[0.06] px-1 font-mono text-[10px] text-slate-400">
+                                    <span className="mt-0.5 flex-none rounded-full bg-slate-800 px-1.5 font-mono text-[10px] text-slate-400">
                                         {(similarity * 100).toFixed(0)}%
                                     </span>
                                     <span className="min-w-0 flex-1">
@@ -351,22 +351,22 @@ export default function PaperDetail({ paper, onClose, onNavigate }) {
 
             {/* -------------------------------------------------------------- PDF */}
             {pdfOpen && (
-                <div className="h-[45%] flex-none border-t border-white/[0.07]">
-                    <div className="flex items-center justify-between border-b border-white/[0.07] px-3 py-1.5">
+                <div className="h-[45%] flex-none border-t border-slate-800">
+                    <div className="flex items-center justify-between border-b border-slate-800 px-3 py-1.5">
                         <span className="text-[10px] uppercase tracking-[0.14em] text-slate-500">PDF preview</span>
                         <span className="flex gap-1">
                             <a
                                 href={pdfEmbedUrl(paper)}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-sky-300"
+                                className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400 transition hover:border-orange-400/50 hover:text-orange-300"
                             >
                                 Open in tab
                             </a>
                             <button
                                 type="button"
                                 onClick={() => setPdfOpen(false)}
-                                className="rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-slate-200"
+                                className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400 transition hover:text-slate-200"
                             >
                                 Hide
                             </button>

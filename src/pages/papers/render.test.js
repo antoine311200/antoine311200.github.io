@@ -3,7 +3,7 @@ import { render, screen, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import PaperSearch from './index';
-import { STORAGE_KEY, emptyStore, makeTopic } from './storage';
+import { STORAGE_KEY, emptyStore, makeTopic, STARTER_TOPICS } from './storage';
 
 // The app fetches on mount; the network is not the subject of these tests.
 beforeEach(() => {
@@ -99,4 +99,28 @@ test('search narrows the library and a non-match empties it', () => {
 
     fireEvent.change(box, { target: { value: 'au:nobody' } });
     expect(screen.getByText('Nothing matches')).toBeInTheDocument();
+});
+
+test('suggested topics can be added to a store that predates them', () => {
+    // A store seeded before the starter topics changed: it keeps its own topic and
+    // is never silently overwritten, but the missing ones are one click away.
+    const store = emptyStore();
+    store.settings.autoFetchOnOpen = false;
+    store.topics = [makeTopic({ id: 't_old', name: 'Tensor Networks', terms: ['tensor network'] })];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+
+    draw();
+    const nav = screen.getByRole('navigation');
+    fireEvent.click(within(nav).getByRole('button', { name: /\bTopics\b/ }));
+
+    expect(screen.getAllByText('Tensor Networks').length).toBeGreaterThan(0);
+    const add = screen.getByRole('button', { name: new RegExp(`Add ${STARTER_TOPICS.length} suggested`) });
+    fireEvent.click(add);
+
+    STARTER_TOPICS.forEach((t) => {
+        expect(screen.getAllByText(t.name).length).toBeGreaterThan(0);
+    });
+    expect(screen.getAllByText('Tensor Networks').length).toBeGreaterThan(0);   // the old one survives
+    // Nothing left to suggest, so the button retires itself.
+    expect(screen.queryByRole('button', { name: /suggested/ })).not.toBeInTheDocument();
 });

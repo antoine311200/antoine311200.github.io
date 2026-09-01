@@ -83,7 +83,7 @@ export default function Authors({ onOpenAuthor }) {
                         {topFollowed.map((a) => (
                             <Chip key={a.key} onClick={() => onOpenAuthor(a.key)} className="!px-2 !py-1 !text-[11px]">
                                 {a.name}
-                                <span className="ml-1 rounded bg-white/10 px-1 font-mono text-[9px]">{a.count}</span>
+                                <span className="ml-1 rounded bg-slate-700 px-1 font-mono text-[9px]">{a.count}</span>
                             </Chip>
                         ))}
                     </div>
@@ -100,9 +100,9 @@ export default function Authors({ onOpenAuthor }) {
                         : 'Fetch a few topics to populate the author index.'}
                 </Empty>
             ) : (
-                <div className="overflow-hidden rounded-xl border border-white/[0.07]">
+                <div className="overflow-hidden rounded-xl border border-slate-800">
                     <table className="w-full text-left text-[12px]">
-                        <thead className="bg-white/[0.03] text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                        <thead className="bg-slate-800/40 text-[10px] uppercase tracking-[0.12em] text-slate-500">
                             <tr>
                                 <th className="px-3 py-2 font-semibold">Author</th>
                                 <th className="w-16 px-2 py-2 text-right font-semibold">Papers</th>
@@ -120,12 +120,12 @@ export default function Authors({ onOpenAuthor }) {
                                         <tr
                                             onClick={() => setExpanded(open ? null : a.key)}
                                             className={cx(
-                                                'cursor-pointer border-t border-white/[0.05] transition',
-                                                open ? 'bg-white/[0.05]' : 'hover:bg-white/[0.03]',
+                                                'cursor-pointer border-t border-slate-800 transition',
+                                                open ? 'bg-white/5' : 'hover:bg-slate-800/40',
                                             )}
                                         >
                                             <td className="px-3 py-2">
-                                                <span className={cx('font-medium', a.followed ? 'text-sky-300' : 'text-slate-200')}>
+                                                <span className={cx('font-medium', a.followed ? 'text-orange-300' : 'text-slate-200')}>
                                                     {a.name}
                                                 </span>
                                                 {a.affiliation && (
@@ -165,7 +165,7 @@ export default function Authors({ onOpenAuthor }) {
                                             </td>
                                         </tr>
                                         {open && (
-                                            <tr className="border-t border-white/[0.05] bg-slate-950/40">
+                                            <tr className="border-t border-slate-800 bg-slate-950/40">
                                                 <td colSpan={6} className="px-4 py-3">
                                                     <AuthorDetail author={a} onOpenAuthor={onOpenAuthor} record={authors[a.key]} dispatch={dispatch} />
                                                 </td>
@@ -201,7 +201,7 @@ function AuthorDetail({ author, onOpenAuthor, record, dispatch }) {
                                 href={`https://arxiv.org/abs/${p.id}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="line-clamp-1 text-[11.5px] text-slate-300 hover:text-sky-300"
+                                className="line-clamp-1 text-[11.5px] text-slate-300 hover:text-orange-300"
                             >
                                 {p.title}
                             </a>
@@ -223,7 +223,7 @@ function AuthorDetail({ author, onOpenAuthor, record, dispatch }) {
                                 href={l.href}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-[10.5px] text-slate-400 transition hover:border-sky-400/40 hover:text-sky-300"
+                                className="rounded-lg border border-slate-700 bg-slate-800/40 px-2 py-1 text-[10.5px] text-slate-400 transition hover:border-orange-400/40 hover:text-orange-300"
                             >
                                 {l.label}
                             </a>
@@ -233,7 +233,7 @@ function AuthorDetail({ author, onOpenAuthor, record, dispatch }) {
                         defaultValue={(record && record.scholar) || ''}
                         onBlur={(e) => dispatch({ type: 'AUTHOR_PATCH', name: author.name, patch: { scholar: e.target.value.trim() } })}
                         placeholder="Google Scholar user id (optional) — links straight to their profile"
-                        className="mt-2 w-full rounded-lg border border-white/10 bg-slate-950/60 px-2 py-1 text-[10.5px] text-slate-300 placeholder:text-slate-600 outline-none focus:border-sky-400/50"
+                        className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950/60 px-2 py-1 text-[10.5px] text-slate-300 placeholder:text-slate-600 outline-none focus:border-orange-400/50"
                     />
                 </div>
 

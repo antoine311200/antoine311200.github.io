@@ -205,7 +205,7 @@ export default function Workspace({
         <div className="flex h-full min-h-0">
             <div className="flex min-h-0 min-w-0 flex-1 flex-col">
                 {/* ------------------------------------------------------ toolbar */}
-                <header className="flex-none border-b border-white/[0.07] px-5 py-3">
+                <header className="flex-none border-b border-slate-800 px-5 py-3">
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="min-w-0">
                             <h1 className="text-base font-semibold text-slate-100">{title}</h1>
@@ -219,14 +219,14 @@ export default function Workspace({
                                 value={filters.query}
                                 onChange={(e) => patch({ query: e.target.value })}
                                 placeholder="Search  ·  au:  ti:  cat:  tag:  is:starred"
-                                className="w-64 rounded-lg border border-white/10 bg-slate-950/60 py-1.5 pl-8 pr-3 text-xs text-slate-100 placeholder:text-slate-600 outline-none transition focus:w-80 focus:border-sky-400/50"
+                                className="w-64 rounded-lg border border-slate-700 bg-slate-950/60 py-1.5 pl-8 pr-3 text-xs text-slate-100 placeholder:text-slate-600 outline-none transition focus:w-80 focus:border-orange-400/60"
                             />
                             <span className="pointer-events-none absolute left-2.5 top-1.5 text-slate-600">⌕</span>
                         </div>
                         <select
                             value={filters.sort}
                             onChange={(e) => patch({ sort: e.target.value })}
-                            className="rounded-lg border border-white/10 bg-slate-950/60 px-2 py-1.5 text-[11px] text-slate-300 outline-none focus:border-sky-400/50"
+                            className="rounded-lg border border-slate-700 bg-slate-950/60 px-2 py-1.5 text-[11px] text-slate-300 outline-none focus:border-orange-400/60"
                         >
                             {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                         </select>
@@ -240,7 +240,7 @@ export default function Workspace({
                     </div>
 
                     {showFacets && (
-                        <div className="mt-3 space-y-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] p-3">
+                        <div className="mt-3 space-y-2.5 rounded-xl border border-slate-800 bg-slate-900/40 p-3">
                             <FacetRow label="Topics">
                                 {topics.map((t) => (
                                     <Chip
@@ -316,8 +316,8 @@ export default function Workspace({
 
                 {/* ------------------------------------------------- bulk action bar */}
                 {selected.size > 0 && (
-                    <div className="flex flex-none flex-wrap items-center gap-1.5 border-b border-sky-400/20 bg-sky-500/[0.07] px-5 py-2">
-                        <span className="text-[11px] font-medium text-sky-200">{selected.size} selected</span>
+                    <div className="flex flex-none flex-wrap items-center gap-1.5 border-b border-orange-400/25 bg-orange-400/[0.07] px-5 py-2">
+                        <span className="text-[11px] font-medium text-orange-200">{selected.size} selected</span>
                         <div className="flex-1" />
                         <Button size="sm" onClick={() => bulk({ status: 'queued' })}>Queue</Button>
                         <Button size="sm" onClick={() => bulk({ status: 'read' })}>Mark read</Button>
@@ -343,7 +343,7 @@ export default function Workspace({
                                 const unread = dayPapers.filter((p) => !(states[p.id] && states[p.id].status !== 'unread')).length;
                                 return (
                                     <section key={day}>
-                                        <div className="sticky top-0 z-10 -mx-1 mb-2 flex items-baseline gap-2 bg-slate-950/85 px-1 py-1.5 backdrop-blur">
+                                        <div className="sticky top-0 z-10 -mx-1 mb-2 flex items-baseline gap-2 bg-slate-950/70 px-1 py-1.5 backdrop-blur-md">
                                             <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
                                                 {relativeDay(day)}
                                             </h2>
@@ -351,7 +351,7 @@ export default function Workspace({
                                                 {dayPapers.length} paper{dayPapers.length === 1 ? '' : 's'}
                                                 {unread ? ` · ${unread} unread` : ''}
                                             </span>
-                                            <div className="h-px flex-1 bg-white/[0.06]" />
+                                            <div className="h-px flex-1 bg-slate-800" />
                                             <button
                                                 type="button"
                                                 onClick={() => dispatch({
@@ -359,7 +359,7 @@ export default function Workspace({
                                                     ids: dayPapers.map((p) => p.id),
                                                     patch: { status: 'read' },
                                                 })}
-                                                className="text-[10px] text-slate-600 transition hover:text-sky-300"
+                                                className="text-[10px] text-slate-600 transition hover:text-orange-300"
                                             >
                                                 mark day read
                                             </button>

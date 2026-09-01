@@ -2,18 +2,30 @@ import React, { useMemo, useState } from 'react';
 
 import { usePapers } from '../context';
 import { buildQuery, CATEGORIES, searchRaw } from '../arxiv';
-import { makeTopic } from '../storage';
+import { makeTopic, STARTER_TOPICS } from '../storage';
 import {
     Button, Chip, Empty, Field, Input, Modal, Panel, TokenInput, cx, shortDate, useCopy,
 } from '../components/ui';
 
-const PALETTE = ['#38bdf8', '#a78bfa', '#34d399', '#fbbf24', '#f472b6', '#fb7185', '#22d3ee', '#c084fc'];
+const PALETTE = ['#fb923c', '#a78bfa', '#34d399', '#fbbf24', '#f472b6', '#fb7185', '#22d3ee', '#c084fc'];
 
 /** Topic management: create, tune and test the saved queries that feed the digest. */
 export default function Topics() {
     const { topics, dispatch, paperList, fetchTopics, fetchState, settings } = usePapers();
     const [editing, setEditing] = useState(null);
     const [probe, setProbe] = useState(null);
+
+    // Starter topics are only seeded into a brand-new store, so anyone who opened the
+    // app before they changed keeps their old set. Offer the missing ones explicitly
+    // rather than overwriting topics the user may have tuned.
+    const missingStarters = useMemo(() => {
+        const have = new Set(topics.map((t) => t.name.toLowerCase()));
+        return STARTER_TOPICS.filter((t) => !have.has(t.name.toLowerCase()));
+    }, [topics]);
+
+    const addStarters = () => missingStarters.forEach(
+        (t) => dispatch({ type: 'TOPIC_ADD', topic: t }),
+    );
 
     const countsByTopic = useMemo(() => {
         const map = {};
@@ -31,6 +43,11 @@ export default function Topics() {
                     </p>
                 </div>
                 <div className="flex-1" />
+                {missingStarters.length > 0 && (
+                    <Button onClick={addStarters} title={missingStarters.map((t) => t.name).join(', ')}>
+                        + Add {missingStarters.length} suggested
+                    </Button>
+                )}
                 <Button onClick={() => fetchTopics()} disabled={fetchState.running}>
                     {fetchState.running ? 'Fetching…' : 'Fetch all'}
                 </Button>
@@ -40,7 +57,15 @@ export default function Topics() {
             </header>
 
             {!topics.length && (
-                <Empty icon="◈" title="No topics yet">
+                <Empty
+                    icon="◈"
+                    title="No topics yet"
+                    action={
+                        <Button variant="primary" size="lg" onClick={addStarters}>
+                            Start from the {STARTER_TOPICS.length} suggested topics
+                        </Button>
+                    }
+                >
                     Add one topic per research thread you track. Narrow beats broad: three or four precise
                     keywords plus a category will surface far more of what you actually want to read.
                 </Empty>
@@ -51,8 +76,8 @@ export default function Topics() {
                     <article
                         key={topic.id}
                         className={cx(
-                            'rounded-xl border bg-white/[0.02] p-4 transition',
-                            topic.enabled ? 'border-white/[0.07]' : 'border-white/[0.04] opacity-55',
+                            'rounded-xl border bg-slate-900/40 p-4 transition',
+                            topic.enabled ? 'border-slate-800' : 'border-slate-800/60 opacity-55',
                         )}
                     >
                         <div className="flex items-start gap-2">
@@ -73,7 +98,7 @@ export default function Topics() {
                                     'flex-none rounded-md border px-1.5 py-0.5 text-[10px] transition',
                                     topic.enabled
                                         ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
-                                        : 'border-white/10 text-slate-500',
+                                        : 'border-slate-700 text-slate-500',
                                 )}
                             >
                                 {topic.enabled ? 'on' : 'off'}
@@ -231,7 +256,7 @@ function TopicEditor({ topic, onClose, onSave }) {
                         <select
                             value={draft.fields}
                             onChange={(e) => set({ fields: e.target.value })}
-                            className="w-full rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-400/50"
+                            className="w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-orange-400/50"
                         >
                             <option value="title">Title only (precise)</option>
                             <option value="title_abstract">Title and abstract</option>
@@ -252,7 +277,7 @@ function TopicEditor({ topic, onClose, onSave }) {
 
                 <div>
                     <span className="mb-1 block text-[11px] font-medium text-slate-400">Generated arXiv query</span>
-                    <pre className="max-h-24 overflow-auto rounded-lg border border-white/10 bg-slate-950/60 p-2.5 font-mono text-[10.5px] leading-relaxed text-slate-400">
+                    <pre className="max-h-24 overflow-auto rounded-lg border border-slate-700 bg-slate-950/60 p-2.5 font-mono text-[10.5px] leading-relaxed text-slate-400">
                         {query || 'Add a keyword, category or author to build a query.'}
                     </pre>
                     {query && (
@@ -271,7 +296,7 @@ function TopicEditor({ topic, onClose, onSave }) {
                     )}
                 </div>
 
-                <div className="flex justify-end gap-2 border-t border-white/10 pt-3">
+                <div className="flex justify-end gap-2 border-t border-slate-700 pt-3">
                     <Button onClick={onClose}>Cancel</Button>
                     <Button variant="primary" onClick={() => onSave(draft)} disabled={!query}>Save topic</Button>
                 </div>
@@ -309,12 +334,12 @@ function PreviewModal({ topic, onClose, settings }) {
             )}
             <ul className="max-h-[50vh] space-y-1.5 overflow-y-auto">
                 {state.entries.map((e) => (
-                    <li key={e.id} className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+                    <li key={e.id} className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2">
                         <a
                             href={`https://arxiv.org/abs/${e.id}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="line-clamp-2 text-[12px] text-slate-200 hover:text-sky-300"
+                            className="line-clamp-2 text-[12px] text-slate-200 hover:text-orange-300"
                         >
                             {e.title}
                         </a>

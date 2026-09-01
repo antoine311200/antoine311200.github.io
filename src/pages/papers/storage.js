@@ -37,7 +37,7 @@ export const emptyStore = () => ({
 export const STARTER_TOPICS = [
     {
         name: 'Optimal Transport',
-        color: '#38bdf8',
+        color: '#fb923c',
         terms: [
             'optimal transport', 'wasserstein', 'sinkhorn',
             'schrodinger bridge', 'gromov-wasserstein', 'entropic regularization',
@@ -65,7 +65,7 @@ export const STARTER_TOPICS = [
     },
     {
         name: 'Mathematical Finance',
-        color: '#fbbf24',
+        color: '#38bdf8',
         terms: [
             'option pricing', 'stochastic volatility', 'rough volatility',
             'deep hedging', 'limit order book', 'market making',
@@ -79,7 +79,7 @@ export function makeTopic(partial = {}) {
     return {
         id: `t_${Math.random().toString(36).slice(2, 10)}`,
         name: 'New topic',
-        color: '#38bdf8',
+        color: '#fb923c',
         terms: [],
         exclude: [],
         categories: [],

@@ -6,8 +6,8 @@ import { Chip, ScoreBadge, cx, shortDate } from './ui';
 
 const STATUS_STYLE = {
     unread: '',
-    queued: 'text-amber-300',
-    reading: 'text-sky-300',
+    queued: 'text-sky-300',
+    reading: 'text-orange-300',
     read: 'text-emerald-400',
     archived: 'text-slate-600',
     dismissed: 'text-slate-700',
@@ -44,7 +44,7 @@ function IconButton({ title, onClick, active, tone, children }) {
             onClick={(e) => { e.stopPropagation(); onClick(); }}
             className={cx(
                 'rounded-md p-1.5 transition-colors',
-                active ? tone || 'text-sky-300 bg-sky-500/10' : 'text-slate-500 hover:bg-white/[0.07] hover:text-slate-200',
+                active ? tone || 'text-orange-300 bg-orange-400/10' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200',
             )}
         >
             {children}
@@ -80,15 +80,15 @@ export default function PaperCard({ paper, selected, focused, onOpen, onSelectTo
                 'group relative cursor-pointer rounded-xl border px-4 transition-colors duration-150',
                 compact ? 'py-2.5' : 'py-3.5',
                 focused
-                    ? 'border-sky-400/50 bg-sky-500/[0.07]'
-                    : 'border-white/[0.07] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]',
+                    ? 'border-orange-400/50 bg-orange-400/[0.06] shadow-lg shadow-black/20'
+                    : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-white/5',
                 st.status === 'dismissed' && 'opacity-40',
                 st.status === 'archived' && 'opacity-60',
             )}
         >
             {/* Unread marker */}
             {st.status === 'unread' && (
-                <span className="absolute left-1.5 top-4 h-1.5 w-1.5 rounded-full bg-sky-400/70" aria-hidden />
+                <span className="absolute left-1.5 top-4 h-1.5 w-1.5 rounded-full bg-orange-400/80" aria-hidden />
             )}
 
             <div className="flex items-start gap-3">
@@ -97,7 +97,7 @@ export default function PaperCard({ paper, selected, focused, onOpen, onSelectTo
                     checked={!!selected}
                     onClick={(e) => e.stopPropagation()}
                     onChange={onSelectToggle}
-                    className="mt-1 h-3.5 w-3.5 flex-none cursor-pointer accent-sky-500 opacity-0 transition group-hover:opacity-100 checked:opacity-100"
+                    className="mt-1 h-3.5 w-3.5 flex-none cursor-pointer accent-orange-400 opacity-0 transition group-hover:opacity-100 checked:opacity-100"
                     aria-label="Select paper"
                 />
 
@@ -117,7 +117,7 @@ export default function PaperCard({ paper, selected, focused, onOpen, onSelectTo
                         {authorLine.map((a, i) => (
                             <React.Fragment key={a.name + i}>
                                 {i > 0 && ', '}
-                                <span className={followedAuthors.has(a.name) ? 'font-medium text-sky-300' : undefined}>
+                                <span className={followedAuthors.has(a.name) ? 'font-medium text-orange-300' : undefined}>
                                     {a.name}
                                 </span>
                             </React.Fragment>
@@ -169,7 +169,7 @@ export default function PaperCard({ paper, selected, focused, onOpen, onSelectTo
                     <IconButton
                         title="Add to reading queue"
                         active={st.status === 'queued'}
-                        tone="text-amber-300 bg-amber-500/10"
+                        tone="text-sky-300 bg-sky-500/10"
                         onClick={() => patch({ status: st.status === 'queued' ? 'unread' : 'queued' })}
                     >
                         {ICONS.queue}

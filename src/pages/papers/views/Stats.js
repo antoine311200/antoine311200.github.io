@@ -94,7 +94,7 @@ export default function Stats({ onGo }) {
                             <span>New into library</span>
                             <span>{daily.reduce((n, d) => n + d.added, 0)} total</span>
                         </div>
-                        <Sparkline data={daily.map((d) => d.added)} height={40} color="#38bdf8" />
+                        <Sparkline data={daily.map((d) => d.added)} height={40} color="#fb923c" />
                     </div>
                     <div>
                         <div className="mb-1 flex justify-between text-[10px] text-slate-500">
@@ -138,7 +138,7 @@ export default function Stats({ onGo }) {
                                     'rounded-md border px-2 py-1 text-[11px]',
                                     t.lift > 2.5
                                         ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
-                                        : 'border-white/10 bg-white/[0.04] text-slate-300',
+                                        : 'border-slate-700 bg-slate-800/40 text-slate-300',
                                 )}
                             >
                                 {t.term}
@@ -157,7 +157,7 @@ export default function Stats({ onGo }) {
                 <Panel
                     title="Most frequent authors"
                     action={
-                        <button type="button" onClick={() => onGo('authors')} className="text-[10px] text-slate-500 hover:text-sky-300">
+                        <button type="button" onClick={() => onGo('authors')} className="text-[10px] text-slate-500 hover:text-orange-300">
                             all authors →
                         </button>
                     }
@@ -168,7 +168,7 @@ export default function Stats({ onGo }) {
                             label={a.followed ? `● ${a.name}` : a.name}
                             value={a.count}
                             max={Math.max(1, authorsIndex[0].count)}
-                            color={a.followed ? '#38bdf8' : '#64748b'}
+                            color={a.followed ? '#fb923c' : '#64748b'}
                         />
                     ))}
                     {!authorsIndex.length && <p className="text-[11px] text-slate-600">Nothing fetched yet.</p>}
