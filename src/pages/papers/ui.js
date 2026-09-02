@@ -433,3 +433,75 @@ export function relativeDay(iso) {
     if (day === yesterday) return 'Yesterday';
     return new Date(day).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
 }
+
+
+/* ------------------------------------------------------------------ popover */
+
+/**
+ * A small panel anchored to its trigger. Used to collapse a long list of options
+ * (topics, say) into one control instead of a row of competing chips.
+ */
+export function Popover({ trigger, children, align = 'left', width = 'w-60' }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useEffect(() => {
+        if (!open) return undefined;
+        const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+        const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+        window.addEventListener('mousedown', onDown);
+        window.addEventListener('keydown', onKey);
+        return () => {
+            window.removeEventListener('mousedown', onDown);
+            window.removeEventListener('keydown', onKey);
+        };
+    }, [open]);
+
+    return (
+        <div ref={ref} className="relative">
+            {trigger({ open, toggle: () => setOpen((o) => !o) })}
+            {open && (
+                <div
+                    style={{ background: 'rgba(13,22,40,0.98)' }}
+                    className={cx(
+                        'pr-fade absolute z-50 mt-1.5 max-h-72 overflow-y-auto rounded-xl border border-slate-700/70 p-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl',
+                        align === 'right' ? 'right-0' : 'left-0',
+                        width,
+                    )}
+                >
+                    {children({ close: () => setOpen(false) })}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/* ---------------------------------------------------------------- segmented */
+
+/**
+ * A run of related toggles in one container, so a group of filters reads as a single
+ * control rather than as loose pills competing with everything around them.
+ */
+export function Segmented({ options, isActive, onToggle, className }) {
+    return (
+        <div className={cx('flex items-center gap-0.5 rounded-lg border border-slate-700 bg-slate-900/50 p-0.5', className)}>
+            {options.map((o) => (
+                <button
+                    key={o.id}
+                    type="button"
+                    title={o.title || o.label}
+                    data-testid={o.testId}
+                    onClick={() => onToggle(o)}
+                    className={cx(
+                        'rounded-md px-2 py-[3px] text-[11px] font-medium transition-colors',
+                        isActive(o)
+                            ? 'bg-orange-400/15 text-orange-200'
+                            : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
+                    )}
+                >
+                    {o.label}
+                </button>
+            ))}
+        </div>
+    );
+}

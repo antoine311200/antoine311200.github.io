@@ -88,34 +88,37 @@ A **source-tree sidebar and a file list**, the way an editor does it. The tree c
 only folders — each with a count chip rather than its papers — so the list gets the
 screen.
 
-The tree has three kinds of node:
+The tree runs saved views, then the archive, then your folders — the two things you
+cannot edit sit together above everything that is yours, with rules between the groups:
 
-- **📡 Stream** — a read-only mirror of everything fetched, nested Month › Week › Day.
-  It buckets on **publication date**, not fetch date: this is the archive you come
-  back to months later, and you remember when a paper was *written*. Bucketing it by
-  arrival would file a fortnight of literature under a single day just because you
-  were away. (The Stream *tab* still buckets on arrival — it answers a different
-  question, "what came in today", and the row is labelled so the difference is
-  visible rather than silent.)
-- **★ Starred** and **🕓 Read later** — smart folders. They are a view of reading
-  state, not a second place a paper lives, so they can never drift out of sync with
-  the stars and queue you set elsewhere. Dropping a paper on one *sets* that state;
-  the paper stays wherever it was filed.
-- **Your folders** — nest as deep as you like, rename by double-click, reorder by drag.
+- **★ Starred** and **🕓 Read later** — smart folders, first because they are the two
+  views you check constantly. They are a *view of reading state*, not a second place a
+  paper lives, so they cannot drift out of sync with the stars and queue you set
+  elsewhere. Dropping a paper on one *sets* that state and leaves it where it was filed.
+- **📡 Stream** — bracketed by rules, because it is unlike everything around it:
+  read-only, and organised by date rather than by you. It mirrors everything fetched,
+  nested Month › Week › Day on **publication date**. This is the archive you come back
+  to months later, and you remember when a paper was *written*; bucketing it by arrival
+  would file a fortnight of literature under one day just because you were away. (The
+  Stream *tab* still buckets on arrival — a different question, "what came in today" —
+  and the row is labelled so the difference is visible rather than silent.)
+- **Your folders** — last, the part you actually maintain. Nest as deep as you like,
+  rename by double-click, reorder by drag.
 
 Every row carries its paper count, and an orange **unread** chip beside it when there
 is anything left to do — so a folder you have finished reads as quiet. The tooltip
 gives the full breakdown: total, read, unread, starred.
 
-Creating a subfolder is on the folder's own right-click menu, and on the ＋ in the
-sidebar header for a root one. New folders land in rename mode straight away.
-
 **Filtering** runs the same engine as the Stream, so `au:`, `ti:`, `cat:`, `tag:` and
-`is:starred` mean the same thing in both places. A single row under the header holds
-the query box, state chips (Unread / Queue / Read / Starred / Followed authors), topic
-chips, a **Subfolders** toggle, a sort (newest, recently seen, last revised, citations,
-title, relevance) and a running `n of total`. Filtering everything out says so, rather
-than claiming the folder is empty.
+`is:starred` mean the same thing in both places. One row, read left to right: what you
+are looking for, which slice, how it is ordered, how much there is.
+
+The three kinds of filter are deliberately not interchangeable pills. Reading state is
+one **segmented control** (Unread / Queue / Read / ★ / Followed) so it reads as a single
+thing; **topics** collapse into a popover with colour dots and a count badge, because
+four names like "Diffusion & Generative Models" would otherwise eat the row; and
+**Subfolders**, the sort and a running `n of total` sit apart on the right. Filtering
+everything out says so, rather than claiming the folder is empty.
 
 ### 3.3.1 Dragging
 

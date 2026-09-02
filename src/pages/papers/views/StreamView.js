@@ -201,7 +201,7 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Filter...  au: ti: tag:"
                             aria-label="Filter papers"
-                            className="w-40 rounded-lg border border-slate-700 bg-slate-950/60 px-2.5 py-1 text-[11.5px] text-slate-100 placeholder:text-slate-600 outline-none transition focus:w-52 focus:border-orange-400/60"
+                            className="w-52 rounded-lg border border-slate-700 bg-slate-950/60 px-2.5 py-1 text-[11.5px] text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/60"
                         />
                     </div>
                 </div>

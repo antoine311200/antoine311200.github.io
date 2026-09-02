@@ -8,7 +8,7 @@ import { applyFilters, DEFAULT_FILTERS, SORTS } from '../filters';
 import { buildTimeTree, papersUnder, dayShort } from '../timeTree';
 import PaperRow from '../components/PaperRow';
 import {
-    Button, Chip, ContextMenu, Count, Empty, Modal, cx, shortDate, useContextMenu,
+    Button, ContextMenu, Count, Empty, Modal, Popover, Segmented, cx, shortDate, useContextMenu,
 } from '../ui';
 
 const STREAM_ROOT = 'stream:root';
@@ -192,22 +192,24 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
     const starred = paperList.filter((p) => (states[p.id] || {}).starred);
     const later = paperList.filter((p) => ['queued', 'reading'].includes((states[p.id] || {}).status));
 
-    const rootNodes = [
-        {
-            id: STREAM_ROOT,
-            name: 'Stream',
-            hint: 'by publication date',
-            stats: statsFor(paperList, states),
-            readOnly: true,
-            icon: '\u{1F4E1}',
-            children: streamNodes,
-        },
-        // Smart folders are a view of reading state, not a second place a paper lives —
-        // dropping on one sets the state rather than filing a copy.
+    // Saved views, then the read-only archive, then the folders you maintain — the
+    // two things you cannot edit sit together, above everything that is yours.
+    const smartRoots = [
         { id: STARRED_ROOT, name: 'Starred', stats: statsFor(starred, states), readOnly: true, smart: true, icon: '★' },
         { id: LATER_ROOT, name: 'Read later', stats: statsFor(later, states), readOnly: true, smart: true, icon: '\u{1F553}' },
-        ...folderNodes(null),
     ];
+
+    const userRoots = folderNodes(null);
+
+    const streamRoot = {
+        id: STREAM_ROOT,
+        name: 'Stream',
+        hint: 'by publication date',
+        stats: statsFor(paperList, states),
+        readOnly: true,
+        icon: '\u{1F4E1}',
+        children: streamNodes,
+    };
 
     /** Dropping on a smart folder applies its meaning to the papers. */
     const applySmart = (nodeId, ids) => {
@@ -221,6 +223,30 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
         accept: 'all',
         onDropFolder: (id) => dispatch({ type: 'FOLDER_MOVE', id, parentId: null }),
     });
+
+    const renderRoot = (node) => (
+        <TreeNode
+            key={node.id}
+            node={node}
+            depth={0}
+            expanded={expanded}
+            onToggle={toggle}
+            onExpand={expand}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            onOpenMenu={folderMenu.open}
+            renaming={renaming}
+            setRenaming={setRenaming}
+            dispatch={dispatch}
+            onFilePapers={fileInto}
+            onFileIntoNew={fileIntoNew}
+            onApplySmart={applySmart}
+            draggingPapers={draggingPapers}
+            draggingFolder={draggingFolder}
+            startFolderDrag={startFolderDrag}
+            endDrag={endDrag}
+        />
+    );
 
     return (
         <div className="flex h-full min-h-0">
@@ -246,29 +272,16 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
                     className={cx('min-h-0 flex-1 overflow-y-auto px-1.5 pb-3', rootOver && 'pr-drop-target')}
                     onContextMenu={(e) => { if (e.target === e.currentTarget) folderMenu.open(e, null); }}
                 >
-                    {rootNodes.map((node) => (
-                        <TreeNode
-                            key={node.id}
-                            node={node}
-                            depth={0}
-                            expanded={expanded}
-                            onToggle={toggle}
-                            onExpand={expand}
-                            selectedId={selectedId}
-                            onSelect={setSelectedId}
-                            onOpenMenu={folderMenu.open}
-                            renaming={renaming}
-                            setRenaming={setRenaming}
-                            dispatch={dispatch}
-                            onFilePapers={fileInto}
-                            onFileIntoNew={fileIntoNew}
-                            onApplySmart={applySmart}
-                            draggingPapers={draggingPapers}
-                            draggingFolder={draggingFolder}
-                            startFolderDrag={startFolderDrag}
-                            endDrag={endDrag}
-                        />
-                    ))}
+                    {smartRoots.map(renderRoot)}
+
+                    {/* The archive sits between the saved views and your own folders,
+                        bracketed by rules because it behaves unlike either: read-only,
+                        and organised by date rather than by you. */}
+                    <Separator />
+                    {renderRoot(streamRoot)}
+                    <Separator />
+
+                    {userRoots.map(renderRoot)}
                 </div>
 
                 {(draggingPapers || draggingFolder) && (
@@ -403,6 +416,8 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
         </div>
     );
 }
+
+const Separator = () => <div data-testid="tree-separator" className="my-1.5 h-px bg-slate-800" />;
 
 /* ----------------------------------------------------------------- tree node */
 
@@ -705,23 +720,25 @@ function FileList({
 
 /* ----------------------------------------------------------------- filter bar */
 
-const STATE_CHIPS = [
-    { id: 'unread', label: 'Unread', match: { statuses: ['unread'] } },
-    { id: 'queued', label: 'Queue', match: { statuses: ['queued', 'reading'] } },
-    { id: 'read', label: 'Read', match: { statuses: ['read'] } },
+const STATES = [
+    { id: 'unread', label: 'Unread', statuses: ['unread'] },
+    { id: 'queued', label: 'Queue', statuses: ['queued', 'reading'] },
+    { id: 'read', label: 'Read', statuses: ['read'] },
 ];
 
 /**
- * One row: a query box that speaks the same language as the Stream, state and topic
- * chips, a sort, and a running count. Anything set is one click from being unset.
+ * One row, read left to right: what you are looking for, then which slice, then how
+ * it is ordered, then how much of it there is.
+ *
+ * The three kinds of filter are visually distinct rather than an undifferentiated run
+ * of pills — reading state is a segmented group, and topics collapse into a popover so
+ * four long names do not eat the row.
  */
 function FilterBar({ filters, setFilters, topics, total, shown, recursive, setRecursive, showRecursive }) {
     const patch = (p) => setFilters((f) => ({ ...f, ...p }));
 
-    const stateActive = (chip) => chip.match.statuses.every((x) => filters.statuses.includes(x))
-        && filters.statuses.length === chip.match.statuses.length;
-
-    const toggleState = (chip) => patch({ statuses: stateActive(chip) ? [] : chip.match.statuses });
+    const stateActive = (o) => filters.statuses.length === o.statuses.length
+        && o.statuses.every((x) => filters.statuses.includes(x));
 
     const toggleTopic = (id) => patch({
         topicIds: filters.topicIds.includes(id)
@@ -730,85 +747,132 @@ function FilterBar({ filters, setFilters, topics, total, shown, recursive, setRe
     });
 
     const dirty = filters.query.trim() || filters.statuses.length || filters.starredOnly
-        || filters.topicIds.length || filters.tags.length || filters.followedOnly;
+        || filters.topicIds.length || filters.followedOnly;
 
     return (
-        <div className="flex flex-none flex-wrap items-center gap-1.5 border-b border-slate-800 px-5 py-2">
+        <div className="flex flex-none flex-wrap items-center gap-2 border-b border-slate-800 px-5 py-2">
             <div className="relative">
                 <input
                     value={filters.query}
                     onChange={(e) => patch({ query: e.target.value })}
-                    placeholder="Filter...  au: ti: tag: is:starred"
+                    placeholder="Filter by title, author, tag..."
                     aria-label="Filter papers"
                     data-testid="explorer-filter"
-                    className="w-56 rounded-lg border border-slate-700 bg-slate-950/60 py-1 pl-7 pr-2 text-[11.5px] text-slate-100 placeholder:text-slate-600 outline-none transition focus:w-72 focus:border-orange-400/60"
+                    className="w-60 rounded-lg border border-slate-700 bg-slate-950/60 py-1 pl-7 pr-2 text-[11.5px] text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/60"
                 />
-                <span className="pointer-events-none absolute left-2 top-1 text-slate-600">⌕</span>
+                <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] leading-none text-slate-600">⌕</span>
             </div>
 
-            {STATE_CHIPS.map((chip) => (
-                <Chip
-                    key={chip.id}
-                    data-testid={`explorer-state-${chip.id}`}
-                    active={stateActive(chip)}
-                    onClick={() => toggleState(chip)}
-                >
-                    {chip.label}
-                </Chip>
-            ))}
-            <Chip
-                data-testid="explorer-state-starred"
-                active={filters.starredOnly}
-                onClick={() => patch({ starredOnly: !filters.starredOnly })}
-            >
-                ★ Starred
-            </Chip>
-            <Chip
-                data-testid="explorer-state-followed"
-                active={filters.followedOnly}
-                onClick={() => patch({ followedOnly: !filters.followedOnly })}
-            >
-                Followed authors
-            </Chip>
+            <Segmented
+                options={[
+                    ...STATES.map((o) => ({ ...o, testId: `explorer-state-${o.id}` })),
+                    { id: 'starred', label: '★', title: 'Starred only', testId: 'explorer-state-starred' },
+                    { id: 'followed', label: 'Followed', title: 'By authors you follow', testId: 'explorer-state-followed' },
+                ]}
+                isActive={(o) => (o.id === 'starred' ? filters.starredOnly
+                    : o.id === 'followed' ? filters.followedOnly
+                        : stateActive(o))}
+                onToggle={(o) => {
+                    if (o.id === 'starred') { patch({ starredOnly: !filters.starredOnly }); return; }
+                    if (o.id === 'followed') { patch({ followedOnly: !filters.followedOnly }); return; }
+                    patch({ statuses: stateActive(o) ? [] : o.statuses });
+                }}
+            />
 
-            {topics.length > 0 && <span className="mx-0.5 h-4 w-px bg-slate-800" />}
-            {topics.map((t) => (
-                <Chip
-                    key={t.id}
-                    data-testid={`explorer-topic-${t.id}`}
-                    color={filters.topicIds.includes(t.id) ? t.color : undefined}
-                    active={filters.topicIds.includes(t.id)}
-                    onClick={() => toggleTopic(t.id)}
+            {topics.length > 0 && (
+                <Popover
+                    width="w-64"
+                    trigger={({ open, toggle }) => (
+                        <button
+                            type="button"
+                            onClick={toggle}
+                            data-testid="explorer-topics"
+                            className={cx(
+                                'flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-medium transition',
+                                filters.topicIds.length || open
+                                    ? 'border-orange-400/40 bg-orange-400/12 text-orange-200'
+                                    : 'border-slate-700 bg-slate-900/50 text-slate-400 hover:text-slate-200',
+                            )}
+                        >
+                            Topics
+                            {filters.topicIds.length > 0 && (
+                                <span className="rounded-full bg-orange-400/25 px-1.5 font-mono text-[9px]">
+                                    {filters.topicIds.length}
+                                </span>
+                            )}
+                            <span className="text-[8px] opacity-60">▾</span>
+                        </button>
+                    )}
                 >
-                    {t.name}
-                </Chip>
-            ))}
+                    {() => (
+                        <>
+                            {topics.map((t) => {
+                                const on = filters.topicIds.includes(t.id);
+                                return (
+                                    <button
+                                        key={t.id}
+                                        type="button"
+                                        data-testid={`explorer-topic-${t.id}`}
+                                        onClick={() => toggleTopic(t.id)}
+                                        className={cx(
+                                            'flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] transition',
+                                            on ? 'bg-orange-400/12 text-orange-100' : 'text-slate-300 hover:bg-white/5',
+                                        )}
+                                    >
+                                        <span className="h-2 w-2 flex-none rounded-full" style={{ backgroundColor: t.color }} />
+                                        <span className="min-w-0 flex-1 truncate">{t.name}</span>
+                                        {on && <span className="flex-none text-[10px] text-orange-300">✓</span>}
+                                    </button>
+                                );
+                            })}
+                            {filters.topicIds.length > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => patch({ topicIds: [] })}
+                                    className="mt-1 w-full border-t border-slate-800 pt-1.5 text-[10.5px] text-slate-500 transition hover:text-orange-300"
+                                >
+                                    clear topics
+                                </button>
+                            )}
+                        </>
+                    )}
+                </Popover>
+            )}
+
+            {showRecursive && (
+                <button
+                    type="button"
+                    data-testid="explorer-recursive"
+                    onClick={() => setRecursive(!recursive)}
+                    title="Include papers filed in subfolders"
+                    className={cx(
+                        'rounded-lg border px-2.5 py-1 text-[11px] font-medium transition',
+                        recursive
+                            ? 'border-orange-400/40 bg-orange-400/12 text-orange-200'
+                            : 'border-slate-700 bg-slate-900/50 text-slate-400 hover:text-slate-200',
+                    )}
+                >
+                    Subfolders
+                </button>
+            )}
 
             <div className="flex-1" />
 
-            {showRecursive && (
-                <Chip
-                    data-testid="explorer-recursive"
-                    active={recursive}
-                    onClick={() => setRecursive(!recursive)}
-                    title="Include papers filed in subfolders"
+            <label className="flex items-center gap-1.5 text-[10px] text-slate-600">
+                Sort
+                <select
+                    value={filters.sort}
+                    onChange={(e) => patch({ sort: e.target.value })}
+                    aria-label="Sort papers"
+                    data-testid="explorer-sort"
+                    className="rounded-lg border border-slate-700 bg-slate-950/60 px-2 py-1 text-[11px] text-slate-300 outline-none focus:border-orange-400/60"
                 >
-                    Subfolders
-                </Chip>
-            )}
+                    {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                </select>
+            </label>
 
-            <select
-                value={filters.sort}
-                onChange={(e) => patch({ sort: e.target.value })}
-                aria-label="Sort papers"
-                data-testid="explorer-sort"
-                className="rounded-lg border border-slate-700 bg-slate-950/60 px-2 py-1 text-[11px] text-slate-300 outline-none focus:border-orange-400/60"
-            >
-                {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-            </select>
-
-            <Count data-testid="explorer-count">
-                {shown === total ? `${total}` : `${shown} of ${total}`}
+            <Count data-testid="explorer-count" className="tabular-nums">
+                {shown === total ? `${total} paper${total === 1 ? '' : 's'}` : `${shown} of ${total}`}
             </Count>
 
             {dirty && (
@@ -816,17 +880,11 @@ function FilterBar({ filters, setFilters, topics, total, shown, recursive, setRe
                     type="button"
                     data-testid="explorer-clear"
                     onClick={() => setFilters((f) => ({
-                        ...f,
-                        query: '',
-                        statuses: [],
-                        topicIds: [],
-                        tags: [],
-                        starredOnly: false,
-                        followedOnly: false,
+                        ...f, query: '', statuses: [], topicIds: [], tags: [], starredOnly: false, followedOnly: false,
                     }))}
-                    className="text-[10.5px] text-slate-600 transition hover:text-orange-300"
+                    className="rounded-lg border border-slate-700 px-2 py-1 text-[10.5px] text-slate-500 transition hover:border-orange-400/40 hover:text-orange-300"
                 >
-                    clear
+                    Clear
                 </button>
             )}
         </div>

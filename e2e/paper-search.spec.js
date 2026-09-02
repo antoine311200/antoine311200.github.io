@@ -303,6 +303,34 @@ test.describe('explorer', () => {
         await expect(page.locator('[data-testid^="folder-node-stream:"]')).not.toHaveCount(1);
     });
 
+    test('the sidebar groups saved views, the archive, then your folders', async ({ page }) => {
+        await seed(page, seededStore());
+        await goTo(page, 'explorer');
+
+        // Order top to bottom: the two saved views, then the archive.
+        const rows = page.locator('[data-testid^="folder-node-"]');
+        await expect(rows.nth(0)).toContainText('Starred');
+        await expect(rows.nth(1)).toContainText('Read later');
+        await expect(rows.nth(2)).toContainText('Stream');
+
+        // Stream is bracketed by rules, keeping the two read-only groups together.
+        await expect(page.getByTestId('tree-separator')).toHaveCount(2);
+
+        const store = seededStore();
+        store.folders = [{
+            id: 'f_a', name: 'Thesis', parentId: null, paperIds: [],
+            description: '', color: null, createdAt: new Date().toISOString(),
+        }];
+        await seed(page, store);
+        await goTo(page, 'explorer');
+
+        // Your folders come after the archive, below the second rule.
+        const withFolder = page.locator('[data-testid^="folder-node-"]');
+        await expect(withFolder.nth(2)).toContainText('Stream');
+        await expect(withFolder.last()).toContainText('Thesis');
+        await expect(page.getByTestId('tree-separator')).toHaveCount(2);
+    });
+
     test('Starred and Read later are smart folders driven by reading state', async ({ page }) => {
         const store = seededStore();
         const ids = Object.keys(store.papers);
@@ -450,11 +478,21 @@ test.describe('explorer', () => {
         expect(byAuthor).toBeGreaterThan(0);
         expect(byAuthor).toBeLessThan(6);
 
-        // A state chip, and the count reads "n of total".
+        // A state toggle, and the count reads "n of total".
         await page.getByTestId('explorer-clear').click();
         await page.getByTestId('explorer-state-starred').click();
         await expect(page.getByTestId('paper-row')).toHaveCount(2);
         await expect(page.getByTestId('explorer-count')).toContainText('2 of 6');
+
+        // Topics collapse into a popover rather than a row of long chips.
+        await page.getByTestId('explorer-clear').click();
+        await expect(page.getByTestId('explorer-topic-t_ot')).toHaveCount(0);
+        await page.getByTestId('explorer-topics').click();
+        await page.getByTestId('explorer-topic-t_ot').click();
+        const byTopic = await page.getByTestId('paper-row').count();
+        expect(byTopic).toBeGreaterThan(0);
+        expect(byTopic).toBeLessThan(6);
+        await page.keyboard.press('Escape');
 
         // Filtering everything out explains itself rather than claiming the folder is empty.
         await page.getByTestId('explorer-filter').fill('au:nobody-at-all');

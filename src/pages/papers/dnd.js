@@ -177,14 +177,22 @@ export function useDropTarget({ onDropPapers, onDropFolder, accept = 'papers', d
             // Where the drag started is read from our own state, not from dataTransfer.
             // Custom MIME types are not carried reliably across browsers — when one is
             // dropped, getData returns "" and every move would silently become a copy.
+            // This must be read *before* the drag is ended, which clears it.
             const held = live();
+
+            // End the drag here rather than trusting an event to reach the window: this
+            // handler stops propagation, and a spring-loaded tab switch unmounts the
+            // source before its `dragend` can fire, so neither would ever arrive.
+            const finish = () => { if (drag && drag.endDrag) drag.endDrag(); };
+
             const folderId = (held && held.kind === 'folder' && held.ids[0]) || readFolderId(e);
-            if (folderId && onDropFolder && accept !== 'papers') { onDropFolder(folderId); return; }
+            if (folderId && onDropFolder && accept !== 'papers') { onDropFolder(folderId); finish(); return; }
 
             const ids = readPaperIds(e);
-            if (!ids.length || !onDropPapers) return;
+            if (!ids.length || !onDropPapers) { finish(); return; }
             const source = (held && held.kind === 'paper' && held.source) || readPaperSource(e);
             onDropPapers(ids, { source, copy: wantsCopy(e) || source === STREAM_SOURCE });
+            finish();
         },
     };
     return [over, props];
