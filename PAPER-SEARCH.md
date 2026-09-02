@@ -46,128 +46,83 @@ Single `localStorage` key `paper-radar:v1`:
 
 ---
 
-## 3. Feature set
+## 3. The app
 
-### 3.1 Topics — saved queries that run every day
-- Named topic with a **colour**, free-text **keywords** (phrases supported), **exclude**
-  terms, **arXiv categories**, and **author** filters.
-- Field targeting: title only / title+abstract / all fields.
-- Boolean composition is generated for the arXiv `search_query` grammar
-  (`(ti:"tensor network" OR abs:"tensor network") AND cat:quant-ph ANDNOT abs:"survey"`).
-- Enable/disable a topic without deleting it; per-topic result cap.
-- **Fetch all** runs every enabled topic sequentially with polite throttling.
+Three tabs and a top bar. That is the whole chrome. Everything else is discovered in
+place — right-click menus, panels that slide in beside a list, modals for the rare
+things — so a first-time user sees three words, and a daily user can reach everything.
 
-### 3.2 Daily digest
-- Papers grouped by the day they *entered your library* (`firstSeen`), so a day's list
-  is stable and never re-shuffles.
-- Today / Yesterday / Last 7 days / month archive, with counts.
-- "New since last visit" marker and an unread badge per day.
-- Empty-day states tell you whether the day was quiet or simply never fetched.
+### 3.1 Topics — the standing questions
 
-### 3.3 Relevance scoring — why this paper is here
-- Weighted term matching: title hits count more than abstract hits, exact phrases more
-  than single terms, primary-category match adds a bonus.
-- **Followed-author boost**: a paper by someone you follow is pushed to the top.
-- **Learned feedback**: starring/reading a paper up-weights its distinctive terms,
-  dismissing down-weights them (a lightweight naive term model in `feedback.terms`).
-- Every score is **explainable** — the card shows the matched terms and the reasons.
-- Recency decay so week-old items sink beneath fresh ones at equal relevance.
+A wall of cards, one per topic. The card carries what you look at (name, keywords,
+paper count, last fetch, a 21-day sparkline) and what you do often (Edit, Preview,
+Fetch) on hover. A dashed card at the end creates a new one.
 
-### 3.4 Folders — the bibliography drawer
+- The editor asks for **two things**: a name and some keywords. Exclusions, arXiv
+  categories and author filters are folded behind *More options*, along with the
+  generated query, so the common case is two fields and Enter.
+- **Right-click** a card for Edit, Fetch now, Preview, Duplicate, Enable/Disable and
+  Delete. Double-click opens the editor.
+- **Preview** dry-runs the query against the live source without saving anything.
 
-A file explorer over the library: a nesting folder **tree** on the left, the selected
-folder's papers on the right.
+### 3.2 Stream — what arrived, in time order
 
-- Folders nest arbitrarily; a move that would create a cycle is refused.
-- **Drag papers** onto a folder, or file a multi-selection with *Add to folder…* from
-  any list; drag a folder onto another to reparent it.
-- Counts roll up through subfolders, and *Include subfolders* toggles whether a
-  folder shows its descendants' papers.
-- **Export the folder** as BibTeX, CSV or Markdown — this is what makes it a
-  bibliography for a chapter or a seminar rather than another tag.
-- Deleting a folder deletes its subfolders but never the papers themselves.
+The fetch and the reading surface are the same place, because they are the same act.
 
-### 3.5 Reading workflow
-- Statuses: **unread → queued → reading → read**, plus **archived** and **dismissed**.
-- Star, 0–5 rating, free tags, and a per-paper markdown **note**.
-- Reading queue with counts and a "next up" pick.
-- Bulk actions on multi-select: queue, archive, tag, star, export, add to collection.
-- **Collections** (reading lists) for a seminar, a survey, a chapter.
+- Pressing **Fetch** shows a live banner: which topic is being queried, progress
+  through the list, and a cancel. New papers animate in as they land. When it
+  finishes, a one-line report per topic says what was actually new.
+- Papers nest **Month › Week › Day**, newest first, every level collapsible with
+  counts. The newest month, week and day open automatically; everything older stays
+  folded, so the page opens on "what just arrived" without hiding the archive.
+- A week straddling a month boundary appears under both months and keeps independent
+  collapse state in each.
+- **Quick filters** (Everything / Unread / Starred / Queue) and topic chips replace
+  what used to be five separate nav entries.
+- **Right-click** a paper for open, PDF, star, read, queue, file and dismiss.
 
-### 3.6 Reading the paper
-- Inline **PDF viewer** in a side panel (arXiv PDF in an embedded frame), toggleable to
-  full width, with a one-click "open in new tab".
-- Every outbound link a researcher wants, generated per paper:
-  abs page · PDF · **ar5iv HTML** · alphaXiv · Hugging Face Papers · Semantic Scholar ·
-  Connected Papers · Papers with Code · DOI · Google Scholar lookup.
-- **BibTeX** generated locally, copy or download; also CSV/JSON for the whole library.
+### 3.3 Explorer — the organiser
 
-### 3.7 Authors — the follow graph
-- Every author seen becomes a node in the library with their paper count, first/last
-  seen date, topics they publish in, and co-authors.
-- **Follow** an author: their new papers are boosted and collected in a Following feed.
-- "**How many papers came from people you follow**" — per author and in aggregate, per
-  day and over the last 30 days.
-- Per-author outbound links: **Google Scholar author search**, arXiv author listing,
-  Semantic Scholar, OpenAlex, DBLP, ORCID search.
-- Rising authors: who is appearing more often in your digests lately.
+A folder tree and a contents pane, both drop targets.
 
-### 3.8 Relations
-- **Co-authorship graph** (react-force-graph-2d, canvas, custom-painted to match the
-  site) over the library or a filtered slice, coloured by topic and sized by paper
-  count, with followed authors ringed. Lazy-loaded so the renderer stays out of the
-  main bundle.
-- **Similar papers**: TF-IDF cosine similarity over abstracts → "more like this" on
-  every paper, and a similarity-linked paper graph.
-- **Topic overlap**: which topics keep returning the same papers (a hint to merge or
-  tighten queries).
+- Drag papers onto a **folder in the tree** or into the **contents pane**; drag folders
+  onto each other to reparent (cycles refused). Double-click a name to rename.
+- **Right-click** for New subfolder, Rename, Export (BibTeX/CSV/Markdown) and Delete.
+  Deleting a folder deletes its subfolders and never the papers.
+- Counts roll up through subfolders; a toggle switches between the folder alone and
+  its whole subtree.
+- **Import** takes pasted arXiv ids, links, or a whole `.bib` file, tells you how many
+  are already in your library, and files those.
 
-### 3.9 Analytics
-- Papers per day sparkline, per-topic volume, category mix, top authors.
-- Reading stats: read vs. backlog, reading streak, mean time-to-read.
-- **Trending terms**: TF-IDF of the last two weeks against the library baseline —
-  what is heating up in your field.
+### 3.4 Moving things between tabs
 
-### 3.10 Search & filtering
-- Instant full-text search over the whole local library (title, abstract, author,
-  comment, note, tag) with field prefixes (`au:`, `ti:`, `cat:`, `tag:`).
-- Facets: topic, status, starred, tag, category, author, date range.
-- Sorts: relevance, newest, updated, title, citations (when enriched).
+Two mechanisms, so nobody has to learn one particular gesture:
 
-### 3.11 Sources
+- **Spring-loaded tabs.** Hold a drag over the Explorer tab and it opens, the way a
+  Finder folder springs. Pick papers up in the Stream and drop them in a folder in one
+  continuous motion.
+- **The shelf.** A tray that appears only while dragging or while it holds something.
+  Drop papers on it, change tabs at your own pace, then drag them out — or file them
+  straight into a folder from its dropdown.
 
-Two interchangeable back-ends, chosen in Settings:
+### 3.5 The reading panel
 
-| | **OpenAlex** (default) | **arXiv Atom** |
-|---|---|---|
-| Reachable from a browser | yes, directly | only via a public relay |
-| Keywords, exclusions, authors, dates | yes | yes |
-| arXiv **categories** | **not supported** — reported as ignored, never dropped silently | yes |
-| arXiv version tracking | no | yes |
-| Citation counts | included free | needs enrichment |
+Slides in beside whatever list you are in rather than taking the tab over, so you keep
+your place. Overview (TL;DR, abstract, authors with a follow switch, why it surfaced,
+every outbound link, BibTeX), Notes (tags, markdown notes, folder membership) and
+Related (TF-IDF neighbours). An inline PDF is one click away.
 
-Verified against the live APIs: arXiv answers `200` with a valid Atom feed but no
-`Access-Control-Allow-Origin`, so a browser can never read it; of the free relays,
-corsproxy returns `401`, allorigins `522`, and codetabs times out. OpenAlex returns
-`200` with `Access-Control-Allow-Origin: *`.
+### 3.6 Everything else
 
-### 3.12 Enrichment (optional, cached)
-- Semantic Scholar batch lookup adds **citation counts**, **TL;DR summaries** and
-  stable author ids. Cached per paper, rate-limit aware, entirely opt-in.
+Settings live in a modal behind the gear: source, relay, result caps, auto-fetch,
+enrichment, export/import, prune and reset. Relevance scoring, the learned ranking
+from stars and dismissals, followed-author boosts, and the local query language
+(`au:` `ti:` `cat:` `tag:` `is:`) all still work — they are just no longer tabs.
 
-### 3.13 Portability & safety
-- **Export** the full store as JSON (timestamped filename); **import** with a choice of
-  *merge* (keeps your states, adds new papers) or *replace*.
-- BibTeX / CSV export of the current selection or the whole library.
-- Storage meter with a prune tool (drop dismissed/old unread papers) so you never hit
-  the ~5 MB quota silently.
-
-### 3.14 Keyboard-first
-`j`/`k` move · `o` open · `Enter` detail · `s` star · `q` queue · `r` read ·
-`e` archive · `x` dismiss · `/` search · `g d` digest · `g l` library · `g a` authors ·
-`g g` graph · `g s` stats · `?` shortcut help.
-
----
+**Removed in the rebuild:** the Relations graph, the Authors tab, the Statistics tab,
+and the Digest/Library/Starred/Following/Queue split. Five nav entries became four
+filter chips; two visualisation tabs went entirely. The app is smaller and does the
+same work.
 
 ## 4. Module map
 
@@ -184,8 +139,11 @@ src/pages/papers/
   filters.js              local query language, faceting, sorting, day grouping
   links.js                per-paper and per-author outbound link builders
   bibtex.js               BibTeX / CSV / Markdown serialisation
-  views/                  Digest, Library, Folders, Topics, Authors, Graph, Stats, Settings
-  components/             Workspace, PaperCard, PaperDetail, ui primitives
+  ui.js                   the design system: buttons, cards, menus, modals, motion
+  dnd.js                  drag payloads, spring-loaded tabs, the shelf
+  animations.css          the motion vocabulary
+  views/                  TopicsView, StreamView, ExplorerView, SettingsModal
+  components/             PaperRow, PaperPanel
 ```
 
 The route is registered in `src/index.js` as `/paper-search` (hash router, so the

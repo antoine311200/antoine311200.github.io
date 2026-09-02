@@ -2,8 +2,8 @@
  * The Paper Radar store.
  *
  * One reducer owns everything; the provider persists it to localStorage on a debounce
- * and exposes the derived views (TF-IDF index, author roll-up) that several screens
- * need but nobody should recompute per render.
+ * and exposes the derived values (TF-IDF index, counts) that several screens need
+ * but nobody should recompute per render.
  */
 
 import React, {
@@ -17,7 +17,7 @@ import {
 } from './storage';
 import { searchTopic as searchArxiv, setPreferredStrategy } from './arxiv';
 import { searchTopic as searchOpenAlex } from './openalex';
-import { rescoreAll, learnFrom, buildIndex, authorStats } from './scoring';
+import { rescoreAll, learnFrom, buildIndex } from './scoring';
 import { enrichPapers } from './enrich';
 
 const PaperContext = createContext(null);
@@ -340,6 +340,11 @@ export function PaperProvider({ children }) {
         abortRef.current = new AbortController();
         setError(null);
         setFetchState({ running: true, topic: targets[0].name, done: 0, total: targets.length, log: [] });
+        // A cached or stubbed source can answer in tens of milliseconds; without a
+        // floor the progress banner flashes past and the fetch looks like it did not
+        // happen at all.
+        const startedAt = Date.now();
+        const MIN_VISIBLE_MS = 900;
 
         const useOpenAlex = state.settings.source !== 'arxiv';
         const log = [];
@@ -385,6 +390,9 @@ export function PaperProvider({ children }) {
             if (i < targets.length - 1) await new Promise((r) => setTimeout(r, useOpenAlex ? 350 : 3000));
         }
 
+        const elapsed = Date.now() - startedAt;
+        if (elapsed < MIN_VISIBLE_MS) await new Promise((r) => setTimeout(r, MIN_VISIBLE_MS - elapsed));
+
         const fresh = log.reduce((n, l) => n + (l.fresh || 0), 0);
         const failed = log.filter((l) => !l.ok);
         setFetchState({ running: false, topic: null, done: targets.length, total: targets.length, log });
@@ -428,11 +436,6 @@ export function PaperProvider({ children }) {
 
     const index = useMemo(() => buildIndex(state.papers), [state.papers]);
 
-    const authorsIndex = useMemo(
-        () => authorStats(state.papers, state.authors),
-        [state.papers, state.authors],
-    );
-
     const followedIds = useMemo(() => {
         const keys = new Set(Object.keys(state.authors).filter((k) => state.authors[k].followedAt));
         if (!keys.size) return new Set();
@@ -473,10 +476,9 @@ export function PaperProvider({ children }) {
             yesterday: yesterdayCount,
             followed: followedIds.size,
             filed: new Set(state.folders.flatMap((f) => f.paperIds)).size,
-            authors: authorsIndex.length,
-            following: authorsIndex.filter((a) => a.followed).length,
+            following: Object.values(state.authors).filter((a) => a.followedAt).length,
         };
-    }, [paperList, state.states, state.folders, followedIds, authorsIndex]);
+    }, [paperList, state.states, state.folders, state.authors, followedIds]);
 
     const resetAll = useCallback(async () => {
         await clearStore();
@@ -491,7 +493,6 @@ export function PaperProvider({ children }) {
         resetAll,
         paperList,
         index,
-        authorsIndex,
         followedIds,
         counts,
         fetchState,
@@ -507,7 +508,7 @@ export function PaperProvider({ children }) {
         topicById: (id) => state.topics.find((t) => t.id === id),
         defaults: DEFAULT_SETTINGS,
     }), [
-        state, hydrated, paperList, index, authorsIndex, followedIds, counts,
+        state, hydrated, paperList, index, followedIds, counts,
         fetchState, fetchTopics, cancelFetch, enrich, error, toast, notify, resetAll,
     ]);
 

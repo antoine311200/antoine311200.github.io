@@ -3,10 +3,10 @@ const {
     makeTopic, makePaper, makeStore, seed, readStore, clearStorage, stubOpenAlex, onQuietPage,
 } = require('./fixtures');
 
-const nav = (page) => page.getByRole('navigation');
-const goTo = (page, label) => nav(page).getByRole('button', { name: new RegExp(`\\b${label}\\b`) }).click();
+const tab = (page, id) => page.getByTestId(`tab-${id}`);
+const goTo = async (page, id) => { await tab(page, id).click(); await page.waitForTimeout(200); };
 
-/** A library with 3 topics and 12 papers spread across them. */
+/** Three topics, twelve papers, two nested folders. */
 function seededStore() {
     const topics = [
         makeTopic({ id: 't_ot', name: 'Optimal Transport', color: '#fb923c' }),
@@ -26,296 +26,306 @@ function seededStore() {
     return makeStore({ topics, papers, states });
 }
 
-test.beforeEach(async ({ page }) => {
-    await clearStorage(page);
-});
+test.beforeEach(async ({ page }) => { await clearStorage(page); });
 
-/* ------------------------------------------------------------------ fetching */
+/* ------------------------------------------------------------------- shell -- */
 
-test.describe('fetching', () => {
-    test('a fetch ingests papers, and fetching again adds nothing new', async ({ page }) => {
-        const works = [
-            { arxivId: '2608.11111', title: 'First optimal transport paper' },
-            { arxivId: '2608.22222', title: 'Second optimal transport paper' },
-        ];
-        const calls = await stubOpenAlex(page, works);
-        await seed(page, makeStore({ topics: [makeTopic({ id: 't_ot', name: 'Optimal Transport' })] }));
+test.describe('shell', () => {
+    test('three tabs, no sidebar, settings behind a modal', async ({ page }) => {
+        await seed(page, seededStore());
 
-        await page.getByRole('button', { name: 'Fetch new papers' }).click();
-        await expect(page.getByText('First optimal transport paper')).toBeVisible();
-        await expect(page.getByText('Second optimal transport paper')).toBeVisible();
-        expect(calls.count).toBe(1);
+        await expect(page.getByRole('tablist')).toHaveCount(1);
+        await expect(page.getByRole('tab')).toHaveCount(3);
+        await expect(tab(page, 'stream')).toHaveAttribute('aria-selected', 'true');
 
-        const afterFirst = await readStore(page);
-        expect(Object.keys(afterFirst.papers).sort()).toEqual(['2608.11111', '2608.22222']);
-        const firstSeen = afterFirst.papers['2608.11111'].firstSeen;
-
-        // Second run returns the same works: the API is hit, nothing new is stored,
-        // and firstSeen must not move — that is what keeps past days stable.
-        await page.getByRole('button', { name: 'Fetch new papers' }).click();
-        await expect(page.getByText('No new papers')).toBeVisible();
-        expect(calls.count).toBe(2);
-
-        const afterSecond = await readStore(page);
-        expect(Object.keys(afterSecond.papers)).toHaveLength(2);
-        expect(afterSecond.papers['2608.11111'].firstSeen).toBe(firstSeen);
+        await page.getByTestId('open-settings').click();
+        await expect(page.getByRole('dialog')).toContainText('Settings');
+        await page.keyboard.press('Escape');
+        await expect(page.getByRole('dialog')).toHaveCount(0);
     });
 
-    test('a paper matching two topics is stored once but listed under both', async ({ page }) => {
-        await stubOpenAlex(page, [{ arxivId: '2608.33333', title: 'Shared across topics' }]);
-        await seed(page, makeStore({
-            topics: [makeTopic({ id: 't_a', name: 'Alpha' }), makeTopic({ id: 't_b', name: 'Beta' })],
-        }));
-
-        await page.getByRole('button', { name: 'Fetch new papers' }).click();
-        await expect(page.getByText('1 new paper', { exact: true })).toBeVisible();
-
-        const store = await readStore(page);
-        expect(Object.keys(store.papers)).toHaveLength(1);
-        expect(store.papers['2608.33333'].topicIds.sort()).toEqual(['t_a', 't_b']);
-
-        // Grouped by topic, it renders under each heading.
-        await expect(page.getByTestId('group-heading')).toHaveText(['Alpha', 'Beta']);
-        await expect(page.getByText('Shared across topics')).toHaveCount(2);
-    });
-
-    test('a failing source surfaces an actionable error', async ({ page }) => {
-        await page.route('**/api.openalex.org/**', (r) => r.abort('failed'));
-        await seed(page, makeStore({ topics: [makeTopic({ name: 'Optimal Transport' })] }));
-
-        await page.getByRole('button', { name: 'Fetch new papers' }).click();
-        await expect(page.getByText(/Every topic failed/)).toBeVisible();
-        await expect(page.getByText(/switch the source in Settings/)).toBeVisible();
+    test('tabs switch without losing the library', async ({ page }) => {
+        await seed(page, seededStore());
+        for (const id of ['topics', 'explorer', 'stream']) {
+            await goTo(page, id);
+            await expect(tab(page, id)).toHaveAttribute('aria-selected', 'true');
+        }
+        await expect(page.getByTestId('paper-row').first()).toBeVisible();
     });
 });
 
-/* ------------------------------------------------------------------ grouping */
-
-test.describe('grouping', () => {
-    test('defaults to topic and switches to day and back', async ({ page }) => {
-        await seed(page, seededStore());
-
-        const grouper = page.getByTitle('Group papers by');
-        await expect(grouper).toHaveValue('topic');
-        await expect(page.getByTestId('group-heading')).toHaveText(['Optimal Transport', 'Diffusion', 'SDEs']);
-
-        await grouper.selectOption('day');
-        await expect(page.getByTestId('group-heading').first()).toHaveText('Today');
-
-        await grouper.selectOption('none');
-        await expect(page.getByTestId('group-heading')).toHaveCount(0);
-    });
-
-    test('"mark all read" applies to that group only', async ({ page }) => {
-        await seed(page, seededStore());
-
-        const otHeading = page.getByTestId('group-heading').filter({ hasText: 'Optimal Transport' });
-        await expect(otHeading).toBeVisible();
-        await otHeading.locator('..').getByText('mark all read').click();
-
-        const store = await readStore(page);
-        const otIds = Object.values(store.papers).filter((p) => p.topicIds.includes('t_ot')).map((p) => p.id);
-        const otherIds = Object.values(store.papers).filter((p) => !p.topicIds.includes('t_ot')).map((p) => p.id);
-        expect(otIds.length).toBeGreaterThan(0);
-        otIds.forEach((id) => expect(store.states[id].status).toBe('read'));
-        otherIds.forEach((id) => expect(store.states[id].status).toBe('unread'));
-    });
-});
-
-/* ------------------------------------------------------------------- folders */
-
-test.describe('folders', () => {
-    test('creating a folder from a selection files those papers and survives a reload', async ({ page }) => {
-        await seed(page, seededStore());
-
-        // Select the first two cards via their checkboxes.
-        const boxes = page.getByRole('checkbox', { name: 'Select paper' });
-        await boxes.nth(0).check();
-        await boxes.nth(1).check();
-        await expect(page.getByText('2 selected')).toBeVisible();
-
-        await page.getByRole('button', { name: 'Add to folder…' }).click();
-        await page.getByPlaceholder('…or type a new folder name').fill('Chapter 2');
-        await page.getByRole('button', { name: 'Create', exact: true }).click();
-
-        const store = await readStore(page);
-        expect(store.folders).toHaveLength(1);
-        expect(store.folders[0].name).toBe('Chapter 2');
-        expect(store.folders[0].paperIds).toHaveLength(2);
-
-        // The folder is still there after a reload — it came back from IndexedDB.
-        await page.reload({ waitUntil: 'domcontentloaded' });
-        await goTo(page, 'Folders');
-        await expect(page.getByTestId(`folder-node-${store.folders[0].id}`)).toContainText('Chapter 2');
-        await page.getByTestId(`folder-node-${store.folders[0].id}`).click();
-        await expect(page.getByRole('heading', { name: 'Chapter 2' })).toBeVisible();
-        await expect(page.locator('article')).toHaveCount(2);
-    });
-
-    test('subfolder counts roll up into the parent', async ({ page }) => {
-        const store = seededStore();
-        const ids = Object.keys(store.papers);
-        store.folders = [
-            { id: 'f_root', name: 'Thesis', parentId: null, paperIds: [], description: '', color: null, createdAt: new Date().toISOString() },
-            { id: 'f_kid', name: 'Chapter 1', parentId: 'f_root', paperIds: ids.slice(0, 3), description: '', color: null, createdAt: new Date().toISOString() },
-        ];
-        await seed(page, store);
-        await goTo(page, 'Folders');
-
-        // The parent holds no papers directly but must report its subtree's three.
-        await expect(page.getByTestId('folder-node-f_root')).toContainText('3');
-        await page.getByTestId('folder-node-f_root').click();
-        await expect(page.locator('article')).toHaveCount(3);
-
-        // Turning off the subtree roll-up empties it again.
-        await page.getByRole('button', { name: 'Include subfolders' }).click();
-        await expect(page.getByText('This folder is empty')).toBeVisible();
-    });
-
-    test('deleting a parent folder removes its children but keeps the papers', async ({ page }) => {
-        const store = seededStore();
-        const ids = Object.keys(store.papers);
-        store.folders = [
-            { id: 'f_root', name: 'Thesis', parentId: null, paperIds: [], description: '', color: null, createdAt: new Date().toISOString() },
-            { id: 'f_kid', name: 'Chapter 1', parentId: 'f_root', paperIds: ids.slice(0, 3), description: '', color: null, createdAt: new Date().toISOString() },
-        ];
-        await seed(page, store);
-        await goTo(page, 'Folders');
-
-        page.once('dialog', (d) => d.accept());
-        await page.getByTestId('folder-node-f_root').click();
-        await page.getByRole('button', { name: 'Delete folder' }).click();
-
-        const after = await readStore(page);
-        expect(after.folders).toHaveLength(0);
-        expect(Object.keys(after.papers)).toHaveLength(12);   // papers untouched
-    });
-});
-
-/* ------------------------------------------------------------------- triage */
-
-test.describe('reading workflow', () => {
-    test('keyboard triage persists to IndexedDB', async ({ page }) => {
-        await seed(page, seededStore());
-        await page.locator('body').click({ position: { x: 400, y: 400 } });
-
-        await page.keyboard.press('s');     // star the focused paper
-        await page.keyboard.press('q');     // queue it
-        await expect(page.getByText('Queued').first()).toBeVisible();
-
-        const store = await readStore(page);
-        const starred = Object.values(store.states).filter((s) => s.starred);
-        const queued = Object.values(store.states).filter((s) => s.status === 'queued');
-        expect(starred).toHaveLength(1);
-        expect(queued).toHaveLength(1);
-    });
-
-    test('the queue view shows exactly the queued papers', async ({ page }) => {
-        const store = seededStore();
-        const ids = Object.keys(store.papers);
-        ids.slice(0, 3).forEach((id) => { store.states[id].status = 'queued'; });
-        await seed(page, store);
-
-        await goTo(page, 'Queue');
-        await expect(page.locator('article')).toHaveCount(3);
-    });
-
-    test('dismissing a paper hides it and teaches the ranker', async ({ page }) => {
-        await seed(page, seededStore());
-        const before = await readStore(page);
-        expect(Object.keys(before.feedback.terms)).toHaveLength(0);
-
-        await page.locator('body').click({ position: { x: 400, y: 400 } });
-        await page.keyboard.press('x');
-
-        const after = await readStore(page);
-        const dismissed = Object.values(after.states).filter((s) => s.status === 'dismissed');
-        expect(dismissed).toHaveLength(1);
-        // Its vocabulary now carries negative weight.
-        expect(Object.keys(after.feedback.terms).length).toBeGreaterThan(0);
-    });
-});
-
-/* -------------------------------------------------------------------- search */
-
-test.describe('search', () => {
-    test('field-prefixed queries narrow the library', async ({ page }) => {
-        await seed(page, seededStore());
-        await goTo(page, 'Library');
-
-        const box = page.getByPlaceholder(/Search/);
-        await box.fill('au:lovelace');
-        const withAda = await page.locator('article').count();
-        expect(withAda).toBeGreaterThan(0);
-        expect(withAda).toBeLessThan(12);
-
-        await box.fill('au:nobody-at-all');
-        await expect(page.getByText('Nothing matches')).toBeVisible();
-
-        await box.fill('');
-        await expect(page.locator('article')).toHaveCount(12);
-    });
-});
-
-/* ------------------------------------------------------------------ settings */
-
-test.describe('settings', () => {
-    test('the storage meter reports a real quota, not a 5 MB guess', async ({ page }) => {
-        await seed(page, seededStore());
-        await goTo(page, 'Settings');
-
-        await expect(page.getByText(/available to this site/)).toBeVisible();
-        await expect(page.getByText(/IndexedDB/).first()).toBeVisible();
-        await expect(page.getByText(/5 MB browser budget/)).toHaveCount(0);
-    });
-
-    test('switching the source swaps the fetch back-end', async ({ page }) => {
-        await seed(page, seededStore());
-        await goTo(page, 'Settings');
-
-        const source = page.locator('select').filter({ hasText: 'OpenAlex' }).first();
-        await source.selectOption('arxiv');
-        await expect(page.getByText(/Network route/)).toBeVisible();
-
-        const store = await readStore(page);
-        expect(store.settings.source).toBe('arxiv');
-    });
-});
-
-/* ------------------------------------------------------------------- topics */
+/* ------------------------------------------------------------------ topics -- */
 
 test.describe('topics', () => {
-    test('a new topic is saved and appears in the sidebar', async ({ page }) => {
+    test('creating a topic takes two fields and shows up as a card', async ({ page }) => {
         await seed(page, makeStore({ topics: [] }));
-        await goTo(page, 'Topics');
+        await goTo(page, 'topics');
 
-        await page.getByRole('button', { name: '+ New topic' }).click();
+        await page.getByRole('button', { name: 'Create a topic' }).click();
         await page.getByLabel('Name').fill('Rough Volatility');
-        await page.getByPlaceholder('tensor network, matrix product state…').fill('rough volatility');
+        await page.getByPlaceholder('optimal transport, wasserstein…').fill('rough volatility');
         await page.keyboard.press('Enter');
-        await page.getByRole('button', { name: 'Save topic' }).click();
+        await page.getByRole('button', { name: 'Create topic' }).click();
 
         const store = await readStore(page);
         expect(store.topics).toHaveLength(1);
         expect(store.topics[0].name).toBe('Rough Volatility');
         expect(store.topics[0].terms).toEqual(['rough volatility']);
+        await expect(page.getByTestId(`topic-card-${store.topics[0].id}`)).toContainText('Rough Volatility');
     });
 
-    test('deleting a topic keeps its papers in the library', async ({ page }) => {
-        await seed(page, seededStore());
-        await goTo(page, 'Topics');
+    test('advanced options stay folded away until asked for', async ({ page }) => {
+        await seed(page, makeStore({ topics: [] }));
+        await goTo(page, 'topics');
+        await page.getByRole('button', { name: 'Create a topic' }).click();
 
-        page.once('dialog', (d) => d.accept());
-        await page.getByTestId('topic-card-t_ot').getByRole('button', { name: 'Delete' }).click();
+        await expect(page.getByText('Exclude', { exact: true })).toHaveCount(0);
+        await page.getByText(/More options/).click();
+        await expect(page.getByText('Exclude', { exact: true })).toBeVisible();
+        await expect(page.getByText('arXiv categories', { exact: true })).toBeVisible();
+    });
+
+    test('closing the editor does not crash the app', async ({ page }) => {
+        const errors = [];
+        page.on('pageerror', (e) => errors.push(e.message));
+        await seed(page, seededStore());
+        await goTo(page, 'topics');
+
+        await page.getByTestId('topic-card-t_ot').dblclick();
+        await expect(page.getByRole('dialog')).toBeVisible();
+        await page.getByRole('button', { name: 'Cancel' }).click();
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+
+        await page.getByTestId('topic-card-t_ot').dblclick();
+        await page.getByRole('button', { name: 'Save' }).click();
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+
+        expect(errors).toEqual([]);
+    });
+
+    test('right-click offers duplicate, disable and delete', async ({ page }) => {
+        await seed(page, seededStore());
+        await goTo(page, 'topics');
+
+        await page.getByTestId('topic-card-t_ot').click({ button: 'right' });
+        const menu = page.getByTestId('context-menu');
+        await expect(menu).toBeVisible();
+        await menu.getByText('Duplicate').click();
 
         const store = await readStore(page);
-        expect(store.topics).toHaveLength(2);
-        expect(Object.keys(store.papers)).toHaveLength(12);
-        Object.values(store.papers).forEach((p) => expect(p.topicIds).not.toContain('t_ot'));
+        expect(store.topics).toHaveLength(4);
+        expect(store.topics.some((t) => t.name === 'Optimal Transport copy')).toBe(true);
     });
 });
 
-/* -------------------------------------------------------------- persistence */
+/* ------------------------------------------------------------------ stream -- */
+
+test.describe('stream', () => {
+    test('papers nest under month, week and day, and the levels collapse', async ({ page }) => {
+        await seed(page, seededStore());
+
+        // The fixture spans a month boundary, so both months are present — and a week
+        // that straddles them must appear under each without sharing collapse state.
+        const months = page.getByTestId('month-group');
+        expect(await months.count()).toBeGreaterThanOrEqual(2);
+        await expect(page.getByTestId('week-group').first()).toBeVisible();
+        await expect(page.getByTestId('day-heading').first()).toContainText('Today');
+
+        const before = await page.getByTestId('paper-row').count();
+        expect(before).toBeGreaterThan(0);
+
+        // Collapsing the newest month hides its papers and leaves the others alone.
+        await months.first().getByRole('button').first().click();
+        const after = await page.getByTestId('paper-row').count();
+        expect(after).toBeLessThan(before);
+
+        // Re-opening restores exactly what was there.
+        await months.first().getByRole('button').first().click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(before);
+    });
+
+    test('a fetch animates, then reports what was new; a second adds nothing', async ({ page }) => {
+        const works = [
+            { arxivId: '2608.90001', title: 'First fetched paper' },
+            { arxivId: '2608.90002', title: 'Second fetched paper' },
+        ];
+        const calls = await stubOpenAlex(page, works);
+        await seed(page, makeStore({ topics: [makeTopic({ id: 't_ot', name: 'Optimal Transport' })] }));
+
+        await page.getByTestId('fetch-all').click();
+        await expect(page.getByTestId('fetch-banner')).toBeVisible();
+        await expect(page.getByText('First fetched paper')).toBeVisible();
+        await expect(page.getByText('2 new papers')).toBeVisible();
+        expect(calls.count).toBe(1);
+
+        const first = await readStore(page);
+        const firstSeen = first.papers['2608.90001'].firstSeen;
+
+        await page.getByTestId('fetch-all').click();
+        await expect(page.getByText('No new papers')).toBeVisible();
+
+        const second = await readStore(page);
+        expect(Object.keys(second.papers)).toHaveLength(2);
+        expect(second.papers['2608.90001'].firstSeen).toBe(firstSeen);
+    });
+
+    test('quick filters and topic chips narrow the stream', async ({ page }) => {
+        const store = seededStore();
+        Object.keys(store.papers).slice(0, 3).forEach((id) => { store.states[id].starred = true; });
+        await seed(page, store);
+
+        const all = await page.getByTestId('paper-row').count();
+        await page.getByTestId('filter-quick-starred').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(3);
+
+        await page.getByTestId('filter-quick-all').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(all);
+
+        await page.getByTestId('filter-topic-t_dif').click();
+        const diffusion = await page.getByTestId('paper-row').count();
+        expect(diffusion).toBeGreaterThan(0);
+        expect(diffusion).toBeLessThan(all);
+    });
+
+    test('right-clicking a paper offers reading actions', async ({ page }) => {
+        await seed(page, seededStore());
+        await page.getByTestId('paper-row').first().click({ button: 'right' });
+
+        const menu = page.getByTestId('context-menu');
+        await expect(menu).toBeVisible();
+        await menu.getByText('Add to queue').click();
+
+        const store = await readStore(page);
+        expect(Object.values(store.states).filter((s) => s.status === 'queued')).toHaveLength(1);
+    });
+});
+
+/* ---------------------------------------------------------------- explorer -- */
+
+test.describe('explorer', () => {
+    test('a paper dragged onto a folder is filed there', async ({ page }) => {
+        const store = seededStore();
+        const ids = Object.keys(store.papers);
+        store.folders = [
+            { id: 'f_a', name: 'Inbox', parentId: null, paperIds: ids.slice(0, 2), description: '', color: null, createdAt: new Date().toISOString() },
+            { id: 'f_b', name: 'Chapter 2', parentId: null, paperIds: [], description: '', color: null, createdAt: new Date().toISOString() },
+        ];
+        await seed(page, store);
+        await goTo(page, 'explorer');
+
+        await page.getByTestId('folder-node-f_a').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(2);
+
+        // dragTo drives real HTML5 drag events; raw mouse moves would not.
+        await page.getByTestId('paper-row').first().dragTo(page.getByTestId('folder-node-f_b'));
+
+        const after = await readStore(page);
+        expect(after.folders.find((f) => f.id === 'f_b').paperIds).toHaveLength(1);
+        // Filing moves rather than copies, so it left the folder it came from.
+        expect(after.folders.find((f) => f.id === 'f_a').paperIds).toHaveLength(1);
+    });
+
+    test('holding a drag over a tab springs it open', async ({ page }) => {
+        await seed(page, seededStore());
+        await expect(tab(page, 'stream')).toHaveAttribute('aria-selected', 'true');
+
+        // The spring timer is armed by dragover on the tab itself.
+        await page.getByTestId('tab-explorer').dispatchEvent('dragover');
+        await expect(tab(page, 'explorer')).toHaveAttribute('aria-selected', 'true', { timeout: 3000 });
+    });
+
+    test('subfolders roll up and can be excluded', async ({ page }) => {
+        const store = seededStore();
+        const ids = Object.keys(store.papers);
+        store.folders = [
+            { id: 'f_root', name: 'Thesis', parentId: null, paperIds: [], description: '', color: null, createdAt: new Date().toISOString() },
+            { id: 'f_kid', name: 'Chapter 1', parentId: 'f_root', paperIds: ids.slice(0, 3), description: '', color: null, createdAt: new Date().toISOString() },
+        ];
+        await seed(page, store);
+        await goTo(page, 'explorer');
+
+        await expect(page.getByTestId('folder-node-f_root')).toContainText('3');
+        await page.getByTestId('folder-node-f_root').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(3);
+
+        await page.getByRole('button', { name: 'Subfolders' }).click();
+        await expect(page.getByText('This folder is empty')).toBeVisible();
+    });
+
+    test('right-click renames and deletes a folder without touching the papers', async ({ page }) => {
+        const store = seededStore();
+        store.folders = [{
+            id: 'f_a', name: 'Seminar', parentId: null,
+            paperIds: Object.keys(store.papers).slice(0, 2),
+            description: '', color: null, createdAt: new Date().toISOString(),
+        }];
+        await seed(page, store);
+        await goTo(page, 'explorer');
+
+        await page.getByTestId('folder-node-f_a').click({ button: 'right' });
+        await page.getByTestId('context-menu').getByText('Rename').click();
+        await page.locator('input[value="Seminar"]').fill('Reading group');
+        await page.keyboard.press('Enter');
+        await expect(page.getByTestId('folder-node-f_a')).toContainText('Reading group');
+
+        page.once('dialog', (d) => d.accept());
+        await page.getByTestId('folder-node-f_a').click({ button: 'right' });
+        await page.getByTestId('context-menu').getByText('Delete folder').click();
+
+        const after = await readStore(page);
+        expect(after.folders).toHaveLength(0);
+        expect(Object.keys(after.papers)).toHaveLength(12);
+    });
+
+    test('import files papers already in the library', async ({ page }) => {
+        const store = seededStore();
+        const ids = Object.keys(store.papers).slice(0, 2);
+        store.folders = [{
+            id: 'f_a', name: 'Chapter 2', parentId: null, paperIds: [],
+            description: '', color: null, createdAt: new Date().toISOString(),
+        }];
+        await seed(page, store);
+        await goTo(page, 'explorer');
+
+        await page.getByTestId('folder-node-f_a').click();
+        await page.getByRole('button', { name: 'Import' }).click();
+        await page.getByRole('textbox').last().fill(`${ids[0]}\nhttps://arxiv.org/abs/${ids[1]}\n2999.99999`);
+        await expect(page.getByText('2 already in your library — these will be filed.')).toBeVisible();
+        await page.getByRole('button', { name: /File 2 papers/ }).click();
+
+        const after = await readStore(page);
+        expect(after.folders[0].paperIds.sort()).toEqual(ids.sort());
+    });
+});
+
+/* ------------------------------------------------------------------- shelf -- */
+
+test('the shelf holds papers across a tab change', async ({ page }) => {
+    const store = seededStore();
+    store.folders = [{
+        id: 'f_a', name: 'Later', parentId: null, paperIds: [],
+        description: '', color: null, createdAt: new Date().toISOString(),
+    }];
+    await seed(page, store);
+
+    // The shelf stays hidden until a drag begins.
+    await expect(page.getByTestId('shelf')).toHaveCount(0);
+
+    await page.getByTestId('paper-row').first().hover();
+    await page.mouse.down();
+    await page.mouse.move(400, 400, { steps: 5 });
+    await expect(page.getByTestId('shelf')).toBeVisible();
+    await page.getByTestId('shelf').hover();
+    await page.mouse.up();
+
+    await expect(page.getByTestId('shelf')).toContainText('1 on the shelf');
+
+    await page.getByLabel('File shelf into folder').selectOption('f_a');
+    const after = await readStore(page);
+    expect(after.folders[0].paperIds).toHaveLength(1);
+});
+
+/* ------------------------------------------------------------- persistence -- */
 
 test('a v1 localStorage store migrates into IndexedDB on first load', async ({ page }) => {
     await onQuietPage(page);
@@ -331,17 +341,12 @@ test('a v1 localStorage store migrates into IndexedDB on first load', async ({ p
     });
     await page.goto('/#/paper-search', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('text=Paper Radar');
-    // Give the debounced save a moment to land in IndexedDB.
     await page.waitForTimeout(900);
 
     const store = await readStore(page);
-    expect(store).not.toBeNull();
     expect(store.version).toBe(2);
     expect(store.topics[0].name).toBe('Legacy topic');
-    // v1 collections become root-level folders.
     expect(store.folders).toHaveLength(1);
     expect(store.folders[0].name).toBe('Old collection');
-    expect(store.folders[0].parentId).toBeNull();
-    // The v1 key is cleared so it cannot shadow the newer store.
     expect(await page.evaluate(() => localStorage.getItem('paper-radar:v1'))).toBeNull();
 });

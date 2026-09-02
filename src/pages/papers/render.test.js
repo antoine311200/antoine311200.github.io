@@ -1,12 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, within, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import PaperSearch from './index';
-import { STORAGE_KEY, emptyStore, makeTopic, STARTER_TOPICS } from './storage';
+import { STORAGE_KEY, emptyStore, makeTopic, makeFolder } from './storage';
 import * as idb from './idb';
 
-// The app fetches on mount; the network is not the subject of these tests.
 beforeEach(() => {
     localStorage.clear();
     global.fetch = jest.fn(() => Promise.reject(new Error('offline in tests')));
@@ -17,127 +16,111 @@ beforeEach(() => {
 
 afterEach(() => jest.restoreAllMocks());
 
-const seeded = () => {
+function seeded() {
     const store = emptyStore();
     store.settings.autoFetchOnOpen = false;
-    store.topics = [makeTopic({ id: 't_1', name: 'Tensor Networks', terms: ['tensor network'], color: '#38bdf8' })];
+    store.topics = [makeTopic({ id: 't_ot', name: 'Optimal Transport', terms: ['optimal transport'], color: '#fb923c' })];
+    const day = new Date().toISOString();
     store.papers = {
-        '2401.01234': {
-            id: '2401.01234',
+        '2608.11111': {
+            id: '2608.11111',
             version: 1,
-            title: 'Tensor Network Methods for Quantum Simulation',
-            summary: 'We propose a tensor network approach to quantum simulation.',
+            title: 'Entropic Optimal Transport at Scale',
+            summary: 'We prove a bound and run experiments.',
             authors: [{ name: 'Ada Lovelace' }, { name: 'Alan Turing' }],
-            categories: ['quant-ph'],
-            primary: 'quant-ph',
-            published: new Date().toISOString(),
-            updated: new Date().toISOString(),
-            firstSeen: new Date().toISOString(),
-            topicIds: ['t_1'],
-            score: 42,
-            reasons: [{ kind: 'terms', label: 'matches tensor network' }],
+            categories: [],
+            primary: null,
+            published: day,
+            updated: day,
+            firstSeen: day,
+            topicIds: ['t_ot'],
+            score: 72,
+            citations: 3,
+            reasons: [{ kind: 'terms', label: 'matches optimal transport' }],
         },
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-};
+    store.states = {
+        '2608.11111': {
+            status: 'unread', starred: false, tags: [], note: '',
+            rating: 0, readAt: null, queuedAt: null, updatedAt: Date.now(),
+        },
+    };
+    return store;
+}
 
-const draw = async () => {
+const draw = async (store) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
     const utils = render(<MemoryRouter><PaperSearch /></MemoryRouter>);
-    // Let the async loadStore() promise resolve and the HYDRATE dispatch commit.
+    // Hydration is async; let the loadStore() promise resolve and HYDRATE commit.
     await act(async () => { await Promise.resolve(); });
     return utils;
 };
 
-test('renders the empty state without a stored library', async () => {
-    const store = emptyStore();
-    store.settings.autoFetchOnOpen = false;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-
-    await draw();
+test('opens on the Stream tab with three sections and no sidebar', async () => {
+    await draw(seeded());
     expect(screen.getByText('Paper Radar')).toBeInTheDocument();
-    expect(screen.getByText('Daily digest')).toBeInTheDocument();
-    expect(screen.getByText('Set up your first topic')).toBeInTheDocument();
-});
-
-test('renders a stored paper in the digest and opens its detail panel', async () => {
-    seeded();
-    await draw();
-
-    const title = 'Tensor Network Methods for Quantum Simulation';
-    expect(screen.getByText(title)).toBeInTheDocument();
-    // The digest groups by topic by default; the day header only appears when asked for.
-    expect(screen.getAllByText('Tensor Networks').length).toBeGreaterThan(0);
-    expect(screen.queryByText('Today')).not.toBeInTheDocument();
-
-    fireEvent.change(screen.getByTitle('Group papers by'), { target: { value: 'day' } });
-    expect(screen.getByText('Today')).toBeInTheDocument();
-    fireEvent.change(screen.getByTitle('Group papers by'), { target: { value: 'topic' } });
-
-    fireEvent.click(screen.getByText(title));
-    expect(screen.getByText('Abstract')).toBeInTheDocument();
-    expect(screen.getByText('Why you are seeing this')).toBeInTheDocument();
-    expect(screen.getByText('matches tensor network')).toBeInTheDocument();
-    expect(screen.getAllByText('Ada Lovelace').length).toBeGreaterThan(0);
-});
-
-test('the keyboard triage marks a paper read and persists it', async () => {
-    seeded();
-    await draw();
-
-    fireEvent.keyDown(window, { key: 'r' });
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    // Persistence is debounced, so assert on the rendered state instead.
-    expect(screen.getByText('read')).toBeInTheDocument();
-    expect(saved).toBeTruthy();
-});
-
-test('every navigation target renders without crashing', async () => {
-    seeded();
-    await draw();
-
-    const nav = screen.getByRole('navigation');
-    // Query by role: "Topics" is also a sidebar section heading, so getByText is ambiguous.
-    ['Queue', 'Library', 'Starred', 'Following', 'Topics', 'Authors', 'Statistics', 'Settings'].forEach((label) => {
-        fireEvent.click(within(nav).getByRole('button', { name: new RegExp(`\\b${label}\\b`) }));
+    ['topics', 'stream', 'explorer'].forEach((id) => {
+        expect(screen.getByTestId(`tab-${id}`)).toBeInTheDocument();
     });
-
-    // Settings is the last one clicked.
-    expect(screen.getByText('Your data')).toBeInTheDocument();
-    expect(screen.getByText('Housekeeping')).toBeInTheDocument();
+    expect(screen.getByTestId('tab-stream')).toHaveAttribute('aria-selected', 'true');
+    // One tablist in the top bar is the whole chrome — there is no sidebar nav.
+    expect(screen.getAllByRole('tablist')).toHaveLength(1);
+    expect(screen.getAllByRole('tab')).toHaveLength(3);
 });
 
-test('search narrows the library and a non-match empties it', async () => {
-    seeded();
-    await draw();
-
-    const box = screen.getByPlaceholderText(/Search/);
-    fireEvent.change(box, { target: { value: 'au:lovelace' } });
-    expect(screen.getByText('Tensor Network Methods for Quantum Simulation')).toBeInTheDocument();
-
-    fireEvent.change(box, { target: { value: 'au:nobody' } });
-    expect(screen.getByText('Nothing matches')).toBeInTheDocument();
+test('the stream nests papers under month, week and day', async () => {
+    await draw(seeded());
+    expect(screen.getByTestId('month-group')).toBeInTheDocument();
+    expect(screen.getByTestId('week-group')).toBeInTheDocument();
+    expect(screen.getByTestId('day-heading')).toHaveTextContent('Today');
+    expect(screen.getByText('Entropic Optimal Transport at Scale')).toBeInTheDocument();
 });
 
-test('suggested topics can be added to a store that predates them', async () => {
-    // A store seeded before the starter topics changed: it keeps its own topic and
-    // is never silently overwritten, but the missing ones are one click away.
-    const store = emptyStore();
-    store.settings.autoFetchOnOpen = false;
-    store.topics = [makeTopic({ id: 't_old', name: 'Tensor Networks', terms: ['tensor network'] })];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+test('clicking a paper opens the detail panel beside the list', async () => {
+    await draw(seeded());
+    fireEvent.click(screen.getByText('Entropic Optimal Transport at Scale'));
+    const panel = screen.getByTestId('paper-panel');
+    expect(within(panel).getByText('Abstract')).toBeInTheDocument();
+    expect(within(panel).getByText('matches optimal transport')).toBeInTheDocument();
+    // The list is still there — the panel does not take over the tab.
+    expect(screen.getByTestId('month-group')).toBeInTheDocument();
+});
 
-    await draw();
-    const nav = screen.getByRole('navigation');
-    fireEvent.click(within(nav).getByRole('button', { name: /\bTopics\b/ }));
+test('the Topics tab shows a card per topic plus the create affordance', async () => {
+    await draw(seeded());
+    fireEvent.click(screen.getByTestId('tab-topics'));
+    expect(screen.getByTestId('topic-card-t_ot')).toHaveTextContent('Optimal Transport');
+    expect(screen.getByTestId('new-topic-card')).toBeInTheDocument();
+});
 
-    expect(screen.getAllByText('Tensor Networks').length).toBeGreaterThan(0);
-    const add = screen.getByRole('button', { name: new RegExp(`Add ${STARTER_TOPICS.length} suggested`) });
-    fireEvent.click(add);
-
-    STARTER_TOPICS.forEach((t) => {
-        expect(screen.getAllByText(t.name).length).toBeGreaterThan(0);
+test('right-clicking a topic opens a context menu', async () => {
+    await draw(seeded());
+    fireEvent.click(screen.getByTestId('tab-topics'));
+    fireEvent.contextMenu(screen.getByTestId('topic-card-t_ot'));
+    const menu = screen.getByTestId('context-menu');
+    ['Edit', 'Duplicate', 'Delete'].forEach((label) => {
+        expect(within(menu).getByText(label)).toBeInTheDocument();
     });
-    expect(screen.getAllByText('Tensor Networks').length).toBeGreaterThan(0);   // the old one survives
-    // Nothing left to suggest, so the button retires itself.
-    expect(screen.queryByRole('button', { name: /suggested/ })).not.toBeInTheDocument();
+});
+
+test('the Explorer rolls subfolder counts up into the parent', async () => {
+    const store = seeded();
+    store.folders = [
+        makeFolder({ id: 'f_root', name: 'Thesis' }),
+        makeFolder({ id: 'f_kid', name: 'Chapter 1', parentId: 'f_root', paperIds: ['2608.11111'] }),
+    ];
+    await draw(store);
+
+    fireEvent.click(screen.getByTestId('tab-explorer'));
+    // The parent holds nothing directly but must report its subtree's one paper.
+    expect(screen.getByTestId('folder-node-f_root')).toHaveTextContent('1');
+    fireEvent.click(screen.getByTestId('folder-node-f_root'));
+    expect(screen.getByRole('heading', { name: 'Thesis' })).toBeInTheDocument();
+});
+
+test('settings live in a modal, not a tab', async () => {
+    await draw(seeded());
+    expect(screen.queryByTestId('tab-settings')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('open-settings'));
+    expect(screen.getByRole('dialog')).toHaveTextContent('Settings');
 });

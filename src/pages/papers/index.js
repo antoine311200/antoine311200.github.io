@@ -1,391 +1,312 @@
-import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import './animations.css';
 import { PaperProvider, usePapers } from './context';
-import { authorKey, papersInFolder } from './storage';
-import Digest from './views/Digest';
-import Library from './views/Library';
-import Topics from './views/Topics';
-import Authors from './views/Authors';
-import FoldersView from './views/Folders';
-import Stats from './views/Stats';
-import Settings from './views/Settings';
-import Workspace from './components/Workspace';
-import { Button, Modal, cx, PAGE_BACKGROUND } from './components/ui';
+import { DragProvider, useDrag, useDropTarget } from './dnd';
+import TopicsView from './views/TopicsView';
+import StreamView from './views/StreamView';
+import ExplorerView from './views/ExplorerView';
+import SettingsModal from './views/SettingsModal';
+import PaperPanel from './components/PaperPanel';
+import { Button, Count, PAGE_BACKGROUND, Spinner, cx } from './ui';
 
-// react-force-graph pulls in a canvas renderer and d3-force; code-split it so the
-// main bundle stays light and the graph only loads when Relations is opened.
-const Graph = lazy(() => import('./views/Graph'));
-
-/* ---------------------------------------------------------------- navigation */
-
-const NAV = [
-    { id: 'digest', label: 'Digest', key: 'd', badge: (c) => c.today || null, icon: '◈' },
-    { id: 'queue', label: 'Queue', key: 'u', badge: (c) => c.queued || null, icon: '≡' },
-    { id: 'library', label: 'Library', key: 'l', badge: (c) => c.total || null, icon: '▤' },
-    { id: 'starred', label: 'Starred', key: 'b', badge: (c) => c.starred || null, icon: '★' },
-    { id: 'following', label: 'Following', key: 'f', badge: (c) => c.followed || null, icon: '◉' },
-    { id: 'folders', label: 'Folders', key: 'o', badge: (c) => c.filed || null, icon: '🗂' },
-    { id: 'topics', label: 'Topics', key: 't', icon: '◇' },
-    { id: 'authors', label: 'Authors', key: 'a', icon: '◎' },
-    { id: 'graph', label: 'Relations', key: 'g', icon: '◍' },
-    { id: 'stats', label: 'Statistics', key: 's', icon: '◫' },
-    { id: 'settings', label: 'Settings', key: ',', icon: '⚙' },
+const TABS = [
+    { id: 'topics', label: 'Topics' },
+    { id: 'stream', label: 'Stream' },
+    { id: 'explorer', label: 'Explorer' },
 ];
 
-const PAGE_VIEWS = new Set(['topics', 'authors', 'stats', 'settings']);
+/* ------------------------------------------------------------------- shell -- */
 
-const SHORTCUTS = [
-    ['Navigation', [
-        ['j / ↓', 'next paper'], ['k / ↑', 'previous paper'], ['o / Enter', 'open detail panel'],
-        ['O', 'open on arXiv'], ['p', 'open the PDF'], ['Esc', 'close panel / clear selection'],
-    ]],
-    ['Triage', [
-        ['s', 'star (teaches the ranker)'], ['q', 'add to reading queue'], ['r', 'mark read'],
-        ['e', 'archive'], ['x', 'dismiss (teaches the ranker)'], ['Space', 'select for bulk action'],
-    ]],
-    ['Going places', [
-        ['/', 'focus search'], ['g then d', 'digest'], ['g then l', 'library'], ['g then u', 'queue'],
-        ['g then a', 'authors'], ['g then o', 'folders'], ['g then g', 'relations'], ['g then s', 'statistics'],
-        ['R', 'fetch all topics'], ['?', 'this help'],
-    ]],
-];
-
-/* --------------------------------------------------------------------- shell */
-
-function Shell() {
+function Shell({ tab, setTab }) {
     const {
-        counts, topics, folders, dispatch, fetchTopics, fetchState, cancelFetch,
-        error, setError, toast, settings, enrich, papers,
+        counts, topics, fetchTopics, fetchState, error, setError, toast, hydrated,
+        papers, settings, enrich, folders, dispatch, notify,
     } = usePapers();
 
-    const [view, setView] = useState('digest');
-    const [authorFilter, setAuthorFilter] = useState(null);
-    const [help, setHelp] = useState(false);
-    const [navOpen, setNavOpen] = useState(false);
-    const [gPending, setGPending] = useState(false);
-    const [folderTarget, setFolderTarget] = useState(null);
+    const [openId, setOpenId] = useState(null);
+    const [selection, setSelection] = useState(() => new Set());
+    const [settingsOpen, setSettingsOpen] = useState(false);
 
-    const go = useCallback((id) => {
-        setAuthorFilter(null);
-        setView(id);
-        setNavOpen(false);
-    }, []);
-
-    const openAuthor = useCallback((key) => {
-        setAuthorFilter(key);
-        setView('author');
-    }, []);
-
-    /* --------------------------------------------- once-a-day auto fetch */
+    /* Once-a-day background fetch, if enabled. */
     useEffect(() => {
-        if (!settings.autoFetchOnOpen) return;
+        if (!hydrated || !settings.autoFetchOnOpen) return undefined;
         const today = new Date().toISOString().slice(0, 10);
         const stale = topics.filter((t) => t.enabled && String(t.lastFetch || '').slice(0, 10) !== today);
-        if (!stale.length || fetchState.running) return;
+        if (!stale.length || fetchState.running) return undefined;
         const timer = setTimeout(() => fetchTopics(stale.map((t) => t.id)), 900);
         return () => clearTimeout(timer);
-        // Intentionally runs only on mount: this is the "first visit of the day" pull.
+        // Deliberately mount-only: this is the "first visit of the day" pull.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [hydrated]);
 
-    /* ---------------------------------------- enrichment of newly arrived */
+    /* Progressive enrichment when it is switched on. */
     useEffect(() => {
-        if (!settings.enrich || fetchState.running) return;
+        if (!settings.enrich || fetchState.running) return undefined;
         const pending = Object.values(papers).filter((p) => !p.enriched).map((p) => p.id);
-        if (pending.length < 1) return;
+        if (!pending.length) return undefined;
         const timer = setTimeout(() => enrich(pending.slice(0, 100)), 2500);
         return () => clearTimeout(timer);
     }, [settings.enrich, fetchState.running, papers, enrich]);
 
-    /* ------------------------------------------------ global shortcuts */
+    const fetchAll = useCallback(() => { setTab('stream'); fetchTopics(); }, [fetchTopics, setTab]);
+    const fetchOne = useCallback((id) => { setTab('stream'); fetchTopics([id]); }, [fetchTopics, setTab]);
+
+    const openPaper = openId ? papers[openId] : null;
+
+    // Escape closes the panel first, then clears a selection.
     useEffect(() => {
         const onKey = (e) => {
-            const tag = (e.target.tagName || '').toLowerCase();
-            if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
-            if (e.metaKey || e.ctrlKey || e.altKey) return;
-
-            if (e.key === '?') { setHelp((h) => !h); return; }
-            if (e.key === 'R') { fetchTopics(); return; }
-            if (e.key === 'g') { setGPending(true); setTimeout(() => setGPending(false), 1200); return; }
-            if (gPending) {
-                const target = NAV.find((n) => n.key === e.key);
-                setGPending(false);
-                if (target) { e.preventDefault(); go(target.id); }
-            }
+            if (e.key !== 'Escape') return;
+            const t = (e.target.tagName || '').toLowerCase();
+            if (t === 'input' || t === 'textarea') return;
+            if (openId) setOpenId(null);
+            else if (selection.size) setSelection(new Set());
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [gPending, go, fetchTopics]);
+    }, [openId, selection.size]);
 
-    // Recover the display spelling of a followed author from any paper they appear on.
-    const authorName = useMemo(() => {
-        if (!authorFilter) return '';
-        for (const p of Object.values(papers)) {
-            const hit = (p.authors || []).find((a) => authorKey(a.name) === authorFilter);
-            if (hit) return hit.name;
-        }
-        return authorFilter;
-    }, [authorFilter, papers]);
-
-    // Memoised so the author workspace does not refilter on every store change.
-    const authorLock = useMemo(() => ({ authorKey: authorFilter }), [authorFilter]);
-
-    const body = () => {
-        switch (view) {
-            case 'digest': return <Digest onGo={go} />;
-            case 'queue': return <Library preset="queue" />;
-            case 'library': return <Library preset="all" />;
-            case 'starred': return <Library preset="starred" />;
-            case 'following': return <Library preset="following" />;
-            case 'folders': return <FoldersView initialFolderId={folderTarget} />;
-            case 'topics': return <Topics />;
-            case 'authors': return <Authors onOpenAuthor={openAuthor} />;
-            case 'graph': return (
-                <Suspense fallback={
-                    <div className="flex h-full items-center justify-center text-xs text-slate-500">
-                        Loading the network…
-                    </div>
-                }>
-                    <Graph onOpenAuthor={openAuthor} />
-                </Suspense>
-            );
-            case 'stats': return <Stats onGo={go} />;
-            case 'settings': return <Settings />;
-            case 'author': return (
-                <Workspace
-                    key={authorFilter}
-                    title={authorName}
-                    subtitle="Everything by this author in your library"
-                    lockedFilters={authorLock}
-                    initialFilters={{ sort: 'newest', hideArchived: false, hideDismissed: false }}
-                    headerExtra={<Button onClick={() => go('authors')}>← All authors</Button>}
-                />
-            );
-            default: return <Digest onGo={go} />;
-        }
-    };
+    if (!hydrated) {
+        return (
+            <div className="flex h-screen w-screen items-center justify-center text-slate-500" style={PAGE_BACKGROUND}>
+                <span className="flex items-center gap-2 text-xs"><Spinner /> opening your library…</span>
+            </div>
+        );
+    }
 
     return (
-        <div className="flex h-screen w-screen overflow-hidden text-slate-300" style={PAGE_BACKGROUND}>
-            {/* ------------------------------------------------------ sidebar */}
-            <nav className={cx(
-                'z-30 flex w-56 flex-none flex-col border-r border-slate-800 bg-slate-950/60 backdrop-blur-sm',
-                'max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:shadow-2xl max-lg:transition-transform',
-                !navOpen && 'max-lg:-translate-x-full',
-            )}>
-                <div className="flex items-center gap-2 px-4 py-4">
-                    <span className="text-lg leading-none text-orange-400">◈</span>
-                    <div className="min-w-0">
-                        <h1 className="truncate text-sm font-semibold text-slate-100">Paper Radar</h1>
-                        <Link to="/" className="text-[10px] text-slate-500 transition hover:text-orange-300">
-                            ← antoine debouchage
-                        </Link>
-                    </div>
-                </div>
+        <div className="flex h-screen w-screen flex-col overflow-hidden text-slate-300" style={PAGE_BACKGROUND}>
+            <TopBar
+                tab={tab}
+                setTab={setTab}
+                counts={counts}
+                onFetchAll={fetchAll}
+                running={fetchState.running}
+                onSettings={() => setSettingsOpen(true)}
+            />
 
-                <div className="px-3">
-                    <Button
-                        variant="primary"
-                        size="lg"
-                        className="w-full justify-center"
-                        onClick={() => (fetchState.running ? cancelFetch() : fetchTopics())}
-                    >
-                        {fetchState.running ? 'Cancel fetch' : 'Fetch new papers'}
-                    </Button>
-                    {fetchState.running && (
-                        <div className="mt-2">
-                            <div className="h-0.5 overflow-hidden rounded-full bg-slate-800">
-                                <div
-                                    className="h-full bg-orange-400 transition-all duration-500"
-                                    style={{ width: `${((fetchState.done + 0.5) / Math.max(1, fetchState.total)) * 100}%` }}
-                                />
-                            </div>
-                            <p className="mt-1 truncate text-[10px] text-slate-500">
-                                {fetchState.topic} · {fetchState.done + 1}/{fetchState.total}
-                            </p>
-                        </div>
+            {error && (
+                <div className="flex flex-none items-start gap-3 border-b border-rose-500/25 bg-rose-500/[0.08] px-6 py-2.5">
+                    <span className="text-rose-400">!</span>
+                    <p className="flex-1 text-[11.5px] leading-relaxed text-rose-200">{error}</p>
+                    <button type="button" onClick={() => setError(null)} className="text-rose-300/60 hover:text-rose-200">✕</button>
+                </div>
+            )}
+
+            <main className="flex min-h-0 flex-1">
+                <div className="min-w-0 flex-1">
+                    {tab === 'topics' && <TopicsView onFetchTopic={fetchOne} />}
+                    {tab === 'stream' && (
+                        <StreamView
+                            onFetchAll={fetchAll}
+                            selection={selection}
+                            setSelection={setSelection}
+                            openId={openId}
+                            setOpenId={setOpenId}
+                        />
+                    )}
+                    {tab === 'explorer' && (
+                        <ExplorerView
+                            selection={selection}
+                            setSelection={setSelection}
+                            openId={openId}
+                            setOpenId={setOpenId}
+                        />
                     )}
                 </div>
 
-                <ul className="mt-4 space-y-0.5 px-2">
-                    {NAV.map((item) => {
-                        const badge = item.badge ? item.badge(counts) : null;
-                        const active = view === item.id || (view === 'author' && item.id === 'authors');
-                        return (
-                            <li key={item.id}>
-                                <button
-                                    type="button"
-                                    onClick={() => go(item.id)}
-                                    className={cx(
-                                        'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition',
-                                        active
-                                            ? 'bg-orange-400/[0.12] text-orange-200'
-                                            : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
-                                    )}
-                                >
-                                    <span className={cx('w-3.5 text-center text-[11px]', active ? 'text-orange-300' : 'text-slate-600')}>
-                                        {item.icon}
-                                    </span>
-                                    <span className="flex-1 truncate">{item.label}</span>
-                                    {badge != null && (
-                                        <span className={cx(
-                                            'rounded px-1 font-mono text-[9.5px] tabular-nums',
-                                            active ? 'bg-orange-400/20 text-orange-100' : 'bg-slate-800 text-slate-500',
-                                        )}>
-                                            {badge > 999 ? `${(badge / 1000).toFixed(1)}k` : badge}
-                                        </span>
-                                    )}
-                                </button>
-                            </li>
-                        );
-                    })}
-                </ul>
-
-                {topics.length > 0 && (
-                    <div className="mt-5 min-h-0 flex-1 overflow-y-auto px-2">
-                        <h2 className="px-2.5 pb-1.5 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-slate-600">
-                            Topics
-                        </h2>
-                        <ul className="space-y-0.5">
-                            {topics.map((t) => (
-                                <li key={t.id}>
-                                    <button
-                                        type="button"
-                                        onClick={() => go('topics')}
-                                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1 text-left text-[11.5px] text-slate-500 transition hover:bg-white/5 hover:text-slate-300"
-                                    >
-                                        <span
-                                            className={cx('h-1.5 w-1.5 flex-none rounded-full', !t.enabled && 'opacity-30')}
-                                            style={{ backgroundColor: t.color }}
-                                        />
-                                        <span className="truncate">{t.name}</span>
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-
-                        <div className="mt-4 flex items-center justify-between px-2.5 pb-1.5">
-                            <h2 className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-slate-600">
-                                Folders
-                            </h2>
-                            <button
-                                type="button"
-                                title="New folder"
-                                onClick={() => {
-                                    // eslint-disable-next-line no-alert
-                                    const name = window.prompt('Name this folder');
-                                    if (name && name.trim()) dispatch({ type: 'FOLDER_ADD', name: name.trim() });
-                                    go('folders');
-                                }}
-                                className="text-slate-600 transition hover:text-orange-300"
-                            >
-                                +
-                            </button>
-                        </div>
-                        <ul className="space-y-0.5 pb-4">
-                            {folders.filter((c) => !c.parentId).map((c) => (
-                                <li key={c.id}>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setFolderTarget(c.id); setView('folders'); setNavOpen(false); }}
-                                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1 text-left text-[11.5px] text-slate-500 transition hover:bg-white/5 hover:text-slate-300"
-                                    >
-                                        <span className="flex-none text-[10px]">📁</span>
-                                        <span className="truncate">{c.name}</span>
-                                        <span className="ml-auto font-mono text-[9.5px] text-slate-700">
-                                            {papersInFolder(folders, c.id).size}
-                                        </span>
-                                    </button>
-                                </li>
-                            ))}
-                            {!folders.length && (
-                                <li className="px-2.5 text-[10px] leading-relaxed text-slate-700">
-                                    Bibliography drawers for a chapter or a seminar.
-                                </li>
-                            )}
-                        </ul>
+                {openPaper && (
+                    <div className="w-[40%] min-w-[23rem] max-w-[44rem] flex-none max-lg:fixed max-lg:inset-0 max-lg:z-50 max-lg:w-full max-lg:max-w-none">
+                        <PaperPanel paper={openPaper} onClose={() => setOpenId(null)} onOpenPaper={setOpenId} />
                     </div>
                 )}
-
-                <div className="mt-auto border-t border-slate-800 px-3 py-2.5">
-                    <button
-                        type="button"
-                        onClick={() => setHelp(true)}
-                        className="text-[10.5px] text-slate-600 transition hover:text-orange-300"
-                    >
-                        ? keyboard shortcuts
-                    </button>
-                </div>
-            </nav>
-
-            {navOpen && (
-                <div className="fixed inset-0 z-20 bg-slate-950/70 lg:hidden" onClick={() => setNavOpen(false)} />
-            )}
-
-            {/* --------------------------------------------------------- main */}
-            <main className="flex min-w-0 flex-1 flex-col">
-                <button
-                    type="button"
-                    onClick={() => setNavOpen(true)}
-                    className="absolute left-3 top-3 z-10 rounded-lg border border-slate-700 bg-slate-900/90 px-2 py-1 text-xs text-slate-300 backdrop-blur lg:hidden"
-                >
-                    ☰
-                </button>
-
-                {error && (
-                    <div className="flex flex-none items-start gap-3 border-b border-rose-500/25 bg-rose-500/[0.08] px-5 py-2.5">
-                        <span className="text-rose-400">!</span>
-                        <p className="flex-1 text-[11.5px] leading-relaxed text-rose-200">{error}</p>
-                        <button type="button" onClick={() => setError(null)} className="text-rose-300/60 hover:text-rose-200">✕</button>
-                    </div>
-                )}
-
-                <div className={cx(
-                    'min-h-0 flex-1',
-                    PAGE_VIEWS.has(view) ? 'overflow-y-auto' : 'overflow-hidden',
-                )}>
-                    {body()}
-                </div>
             </main>
 
+            <Shelf
+                folders={folders}
+                dispatch={dispatch}
+                notify={notify}
+                papers={papers}
+                onGoExplorer={() => setTab('explorer')}
+            />
+
             {toast && (
-                <div className="pointer-events-none fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full border border-slate-700 bg-slate-900/95 px-4 py-2 text-xs text-slate-200 shadow-xl shadow-black/40 backdrop-blur">
+                <div className="pr-rise pointer-events-none fixed bottom-6 left-1/2 z-[90] -translate-x-1/2 rounded-full border border-slate-700 bg-slate-900/95 px-4 py-2 text-xs text-slate-200 shadow-xl shadow-black/40 backdrop-blur">
                     {toast.message}
                 </div>
             )}
 
-            <Modal open={help} onClose={() => setHelp(false)} title="Keyboard shortcuts" width="max-w-2xl">
-                <div className="grid gap-5 sm:grid-cols-3">
-                    {SHORTCUTS.map(([group, rows]) => (
-                        <div key={group}>
-                            <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{group}</h3>
-                            <dl className="space-y-1.5">
-                                {rows.map(([keys, what]) => (
-                                    <div key={keys} className="flex items-baseline gap-2">
-                                        <dt className="flex-none rounded border border-slate-700 bg-slate-800/60 px-1.5 py-0.5 font-mono text-[10px] text-slate-300">
-                                            {keys}
-                                        </dt>
-                                        <dd className="text-[11px] text-slate-500">{what}</dd>
-                                    </div>
-                                ))}
-                            </dl>
-                        </div>
-                    ))}
-                </div>
-            </Modal>
+            <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
         </div>
     );
 }
 
-export default function PaperSearch() {
-    useEffect(() => {
-        document.title = 'Paper Radar | Antoine Debouchage';
-    }, []);
+/* ------------------------------------------------------------------ top bar */
+
+function TopBar({ tab, setTab, counts, onFetchAll, running, onSettings }) {
+    const { springProps, dragging } = useDrag();
 
     return (
+        <header className="flex flex-none items-center gap-4 border-b border-slate-800 bg-slate-950/50 px-5 py-2.5 backdrop-blur">
+            <Link to="/" className="group flex items-center gap-2" title="Back to the site">
+                <span className="text-base leading-none text-orange-400">◈</span>
+                <span className="text-[13px] font-semibold text-slate-100 transition group-hover:text-orange-300">Paper Radar</span>
+            </Link>
+
+            <nav
+                role="tablist"
+                aria-label="Sections"
+                className="ml-2 flex items-center gap-0.5 rounded-xl border border-slate-800 bg-slate-900/50 p-0.5"
+            >
+                {TABS.map((t) => (
+                    <button
+                        key={t.id}
+                        role="tab"
+                        aria-selected={tab === t.id}
+                        data-testid={`tab-${t.id}`}
+                        onClick={() => setTab(t.id)}
+                        {...springProps(t.id)}
+                        className={cx(
+                            'relative rounded-lg px-3.5 py-1.5 text-[12.5px] font-medium transition-all duration-150',
+                            tab === t.id ? 'bg-orange-400/12 text-orange-200' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
+                            dragging && tab !== t.id && 'ring-1 ring-inset ring-orange-400/25',
+                        )}
+                    >
+                        {t.label}
+                        {t.id === 'stream' && counts.unread > 0 && (
+                            <span className="ml-1.5 font-mono text-[9.5px] opacity-60">{counts.unread}</span>
+                        )}
+                    </button>
+                ))}
+            </nav>
+
+            {dragging && <span className="pr-pulse text-[10.5px] text-orange-300/80">hold over a tab to switch</span>}
+
+            <div className="flex-1" />
+
+            <Count className="hidden sm:block">{counts.total.toLocaleString()} papers</Count>
+
+            <Button variant="primary" size="md" onClick={onFetchAll} disabled={running} data-testid="fetch-all">
+                {running ? <><Spinner className="!border-slate-800 !border-t-slate-950" /> Fetching</> : 'Fetch'}
+            </Button>
+
+            <button
+                type="button"
+                onClick={onSettings}
+                aria-label="Settings"
+                data-testid="open-settings"
+                className="rounded-lg p-1.5 text-slate-500 transition hover:bg-white/5 hover:text-slate-200"
+            >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.9 13.5a8 8 0 000-3l2-1.5-2-3.4-2.3 1a8 8 0 00-2.6-1.5L14.6 2h-4l-.4 2.6a8 8 0 00-2.6 1.5l-2.3-1-2 3.4 2 1.5a8 8 0 000 3l-2 1.5 2 3.4 2.3-1a8 8 0 002.6 1.5l.4 2.6h4l.4-2.6a8 8 0 002.6-1.5l2.3 1 2-3.4z" strokeLinejoin="round" />
+                </svg>
+            </button>
+        </header>
+    );
+}
+
+/* -------------------------------------------------------------------- shelf */
+
+/**
+ * A holding tray. It exists only while you are dragging or while it holds something,
+ * so it never competes for attention — but it means you can pick papers up in one
+ * tab and put them down in another without one continuous gesture.
+ */
+function Shelf({ folders, dispatch, notify, papers, onGoExplorer }) {
+    const { dragging, shelf, addToShelf, clearShelf, startPaperDrag, endDrag } = useDrag();
+    const [over, dropProps] = useDropTarget({ onDropPapers: (ids) => addToShelf(ids) });
+
+    const titles = useMemo(
+        () => shelf.map((id) => (papers[id] || {}).title).filter(Boolean),
+        [shelf, papers],
+    );
+
+    if (!dragging && !shelf.length) return null;
+
+    return (
+        <div
+            {...dropProps}
+            data-testid="shelf"
+            className={cx(
+                'pr-rise fixed bottom-5 right-5 z-[60] w-64 rounded-2xl border p-3 shadow-2xl shadow-black/50 backdrop-blur-xl',
+                over ? 'border-orange-400/60 bg-orange-400/10' : 'border-slate-700 bg-slate-900/95',
+            )}
+        >
+            <div className="flex items-center gap-2">
+                <span className="text-sm">🗃</span>
+                <span className="flex-1 text-[11.5px] font-medium text-slate-200">
+                    {shelf.length ? `${shelf.length} on the shelf` : 'Drop to hold'}
+                </span>
+                {shelf.length > 0 && (
+                    <button type="button" onClick={clearShelf} className="text-[10px] text-slate-500 hover:text-slate-200">
+                        clear
+                    </button>
+                )}
+            </div>
+
+            {shelf.length > 0 ? (
+                <>
+                    <ul className="mt-2 max-h-24 space-y-0.5 overflow-y-auto">
+                        {titles.slice(0, 4).map((t, i) => (
+                            <li key={i} className="truncate text-[10.5px] text-slate-500">{t}</li>
+                        ))}
+                        {titles.length > 4 && <li className="text-[10px] text-slate-600">+{titles.length - 4} more</li>}
+                    </ul>
+                    <div
+                        draggable
+                        onDragStart={(e) => startPaperDrag(e, shelf)}
+                        onDragEnd={endDrag}
+                        className="mt-2 cursor-grab rounded-lg border border-dashed border-slate-600 py-1.5 text-center text-[10.5px] text-slate-400 transition hover:border-orange-400/60 hover:text-orange-300 active:cursor-grabbing"
+                    >
+                        drag these into a folder
+                    </div>
+                    {folders.length > 0 && (
+                        <select
+                            aria-label="File shelf into folder"
+                            defaultValue=""
+                            onChange={(e) => {
+                                if (!e.target.value) return;
+                                dispatch({ type: 'FOLDER_MOVE_PAPERS', id: e.target.value, paperIds: shelf });
+                                notify(`${shelf.length} filed`);
+                                clearShelf();
+                                onGoExplorer();
+                            }}
+                            className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950/60 px-2 py-1 text-[11px] text-slate-300 outline-none focus:border-orange-400/60"
+                        >
+                            <option value="">…or file straight into</option>
+                            {folders.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                        </select>
+                    )}
+                </>
+            ) : (
+                <p className="mt-1 text-[10.5px] leading-relaxed text-slate-500">
+                    Park papers here, switch tabs, then drag them into a folder.
+                </p>
+            )}
+        </div>
+    );
+}
+
+/* --------------------------------------------------------------------- root */
+
+/** Tab state lives above the drag layer so a spring-loaded tab can switch it. */
+function Workspace() {
+    const [tab, setTab] = useState('stream');
+    return (
+        <DragProvider onTabHover={setTab}>
+            <Shell tab={tab} setTab={setTab} />
+        </DragProvider>
+    );
+}
+
+export default function PaperSearch() {
+    useEffect(() => { document.title = 'Paper Radar | Antoine Debouchage'; }, []);
+    return (
         <PaperProvider>
-            <Shell />
+            <Workspace />
         </PaperProvider>
     );
 }
