@@ -34,8 +34,8 @@ function Shell({ tab, setTab }) {
     const panel = useResizable({
         key: 'panelWidth',
         initial: 520,
-        min: 360,
-        max: () => Math.max(360, window.innerWidth - 460),
+        min: 300,
+        max: () => Math.max(300, window.innerWidth - 380),
         edge: 'left',
     });
 

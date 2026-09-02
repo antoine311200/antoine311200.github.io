@@ -578,22 +578,35 @@ export function useResizable({ key, initial, min, max, edge = 'right' }) {
         const startX = e.clientX;
         const startWidth = latest.current;
         const direction = edge === 'left' ? -1 : 1;
+        const handle = e.currentTarget;
+        const { pointerId } = e;
         setDragging(true);
-        // The cursor has to survive leaving the handle, or a fast drag flickers.
+
+        // Once the pane hits its limit the cursor runs on ahead of the border
+        // and ends up over whatever is beside it — the PDF iframe included,
+        // which would otherwise eat the rest of the gesture and leave the
+        // handle dead. Capture keeps every move addressed here, and the
+        // overlay ResizeHandle draws while dragging keeps hit-testing out of
+        // frames entirely.
+        try { handle.setPointerCapture(pointerId); } catch { /* older engines cope without */ }
         const previousCursor = document.body.style.cursor;
         document.body.style.cursor = 'col-resize';
         document.body.style.userSelect = 'none';
 
         const move = (ev) => set(startWidth + direction * (ev.clientX - startX));
         const up = () => {
-            window.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointerup', up);
+            handle.removeEventListener('pointercancel', up);
+            try { handle.releasePointerCapture(pointerId); } catch { /* already released */ }
             document.body.style.cursor = previousCursor;
             document.body.style.userSelect = '';
             setDragging(false);
             writePref(key, latest.current);
         };
-        window.addEventListener('pointermove', move);
-        window.addEventListener('pointerup', up, { once: true });
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', up);
+        handle.addEventListener('pointercancel', up);
     }, [edge, key, set]);
 
     const onKeyDown = useCallback((e) => {
@@ -628,23 +641,28 @@ export function useResizable({ key, initial, min, max, edge = 'right' }) {
 /** The grab strip itself: a wide hit area, a hairline that only shows on approach. */
 export function ResizeHandle({ side = 'right', dragging, className, ...props }) {
     return (
-        <div
-            {...props}
-            data-testid="resize-handle"
-            className={cx(
-                'group absolute inset-y-0 z-20 w-2 cursor-col-resize touch-none outline-none',
-                side === 'right' ? '-right-1' : '-left-1',
-                className,
-            )}
-        >
-            <span
-                aria-hidden
+        <>
+            <div
+                {...props}
+                data-testid="resize-handle"
                 className={cx(
-                    'pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 transition-colors',
-                    dragging ? 'bg-orange-400' : 'bg-transparent group-hover:bg-orange-400/60 group-focus:bg-orange-400/60',
+                    'group absolute inset-y-0 z-20 w-2 cursor-col-resize touch-none outline-none',
+                    side === 'right' ? '-right-1' : '-left-1',
+                    className,
                 )}
-            />
-        </div>
+            >
+                <span
+                    aria-hidden
+                    className={cx(
+                        'pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 transition-colors',
+                        dragging ? 'bg-orange-400' : 'bg-transparent group-hover:bg-orange-400/60 group-focus:bg-orange-400/60',
+                    )}
+                />
+            </div>
+            {/* Covers the page for the length of the drag so nothing underneath
+                — an iframe, a draggable card — can steal the gesture. */}
+            {dragging && <div aria-hidden className="fixed inset-0 z-[95] cursor-col-resize" />}
+        </>
     );
 }
 

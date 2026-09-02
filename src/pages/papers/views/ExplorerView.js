@@ -57,7 +57,14 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
 
     const [selectedId, setSelectedId] = useState(STREAM_ROOT);
     const [collapsed, setCollapsed] = usePref('explorerSidebarCollapsed', false);
-    const sidebar = useResizable({ key: 'explorerSidebarWidth', initial: 256, min: 180, max: 460, edge: 'right' });
+    // Room to breathe on a wide screen; on a small one the list still wins.
+    const sidebar = useResizable({
+        key: 'explorerSidebarWidth',
+        initial: 256,
+        min: 160,
+        max: () => Math.max(240, Math.min(720, window.innerWidth - 480)),
+        edge: 'right',
+    });
     const [expanded, setExpanded] = useState(() => new Set([STREAM_ROOT]));
     const [renaming, setRenaming] = useState(null);
     const [importOpen, setImportOpen] = useState(false);

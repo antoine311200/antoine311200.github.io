@@ -86,8 +86,9 @@ The fetch and the reading surface are the same place, because they are the same 
 
 A **source-tree sidebar and a file list**, the way an editor does it. The tree carries
 only folders — each with a count chip rather than its papers — so the list gets the
-screen. Drag its right edge to set how much, and `«` folds it down to a rail when you
-want the list alone; the rail springs back open while a drag is in flight, because you
+screen. Drag its right edge to set how much — the drag holds the pointer for its whole
+length, so running past the limit and coming back still works even across the PDF
+frame — and `«` folds it down to a rail when you want the list alone; the rail springs back open while a drag is in flight, because you
 cannot file a paper into folders you cannot see. Width and folded state are remembered
 per device (localStorage, not the store, so they never travel with an export).
 
