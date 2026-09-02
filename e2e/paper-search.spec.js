@@ -231,6 +231,62 @@ test.describe('explorer', () => {
         await expect(page.getByTestId('paper-row')).toHaveCount(streamCount);
     });
 
+    test('a move stays a move even when the browser drops custom drag types', async ({ page }) => {
+        const store = seededStore();
+        const ids = Object.keys(store.papers);
+        store.folders = [
+            { id: 'f_a', name: 'Inbox', parentId: null, paperIds: ids.slice(0, 2), description: '', color: null, createdAt: new Date().toISOString() },
+            { id: 'f_b', name: 'Chapter 2', parentId: null, paperIds: [], description: '', color: null, createdAt: new Date().toISOString() },
+        ];
+        await seed(page, store);
+        await goTo(page, 'explorer');
+        await page.getByTestId('folder-node-f_a').click();
+
+        // Some browsers carry only text/plain across a drag and silently drop custom
+        // MIME types. If the source were read from dataTransfer, every move would
+        // become a copy — so replay a drag with the custom types stripped.
+        await page.evaluate((paperId) => {
+            const row = document.querySelector(`[data-paper-id="${paperId}"]`);
+            const target = document.querySelector('[data-testid="folder-node-f_b"]');
+            row.dispatchEvent(new DragEvent('dragstart', { dataTransfer: new DataTransfer(), bubbles: true }));
+            const stripped = new DataTransfer();
+            stripped.setData('text/plain', paperId);
+            target.dispatchEvent(new DragEvent('dragenter', { dataTransfer: stripped, bubbles: true }));
+            target.dispatchEvent(new DragEvent('drop', { dataTransfer: stripped, bubbles: true }));
+        }, ids[0]);
+
+        const after = await readStore(page);
+        expect(after.folders.find((f) => f.id === 'f_b').paperIds).toContain(ids[0]);
+        expect(after.folders.find((f) => f.id === 'f_a').paperIds).not.toContain(ids[0]);
+    });
+
+    test('the drop highlight clears when the drag ends', async ({ page }) => {
+        const store = seededStore();
+        store.folders = [{
+            id: 'f_a', name: 'Inbox', parentId: null, paperIds: Object.keys(store.papers).slice(0, 1),
+            description: '', color: null, createdAt: new Date().toISOString(),
+        }];
+        await seed(page, store);
+        await goTo(page, 'explorer');
+        await page.getByTestId('folder-node-f_a').click();
+
+        const target = page.getByTestId('folder-node-f_a');
+        await page.evaluate(() => {
+            const row = document.querySelector('[data-paper-id]');
+            const folder = document.querySelector('[data-testid="folder-node-f_a"]');
+            row.dispatchEvent(new DragEvent('dragstart', { dataTransfer: new DataTransfer(), bubbles: true }));
+            folder.dispatchEvent(new DragEvent('dragenter', { dataTransfer: new DataTransfer(), bubbles: true }));
+        });
+        await expect(target).toHaveClass(/pr-drop-target/);
+
+        // Ending the drag without a dragleave must still clear it.
+        await page.evaluate(() => {
+            document.querySelector('[data-paper-id]')
+                .dispatchEvent(new DragEvent('dragend', { dataTransfer: new DataTransfer(), bubbles: true }));
+        });
+        await expect(target).not.toHaveClass(/pr-drop-target/);
+    });
+
     test('the Stream is a read-only Month > Week > Day tree in the sidebar', async ({ page }) => {
         await seed(page, seededStore());
         await goTo(page, 'explorer');
@@ -315,6 +371,63 @@ test.describe('explorer', () => {
         const after = await readStore(page);
         expect(after.folders).toHaveLength(0);
         expect(Object.keys(after.papers)).toHaveLength(12);
+    });
+
+    test('the Explorer filters with the same query language as the Stream', async ({ page }) => {
+        const store = seededStore();
+        const ids = Object.keys(store.papers);
+        ids.slice(0, 2).forEach((id) => { store.states[id].starred = true; });
+        store.folders = [{
+            id: 'f_a', name: 'Inbox', parentId: null, paperIds: ids.slice(0, 6),
+            description: '', color: null, createdAt: new Date().toISOString(),
+        }];
+        await seed(page, store);
+        await goTo(page, 'explorer');
+        await page.getByTestId('folder-node-f_a').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(6);
+
+        // Field-prefixed search.
+        await page.getByTestId('explorer-filter').fill('au:lovelace');
+        const byAuthor = await page.getByTestId('paper-row').count();
+        expect(byAuthor).toBeGreaterThan(0);
+        expect(byAuthor).toBeLessThan(6);
+
+        // A state chip, and the count reads "n of total".
+        await page.getByTestId('explorer-clear').click();
+        await page.getByTestId('explorer-state-starred').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(2);
+        await expect(page.getByTestId('explorer-count')).toContainText('2 of 6');
+
+        // Filtering everything out explains itself rather than claiming the folder is empty.
+        await page.getByTestId('explorer-filter').fill('au:nobody-at-all');
+        await expect(page.getByText('Nothing matches these filters')).toBeVisible();
+
+        await page.getByTestId('explorer-clear').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(6);
+    });
+
+    test('sorting the Explorer reorders the list', async ({ page }) => {
+        const store = seededStore();
+        store.folders = [{
+            id: 'f_a', name: 'Inbox', parentId: null, paperIds: Object.keys(store.papers),
+            description: '', color: null, createdAt: new Date().toISOString(),
+        }];
+        await seed(page, store);
+        await goTo(page, 'explorer');
+        await page.getByTestId('folder-node-f_a').click();
+
+        // Compare the whole order: the fixture's newest paper also sorts first by title,
+        // so looking at the head alone proves nothing.
+        const titles = () => page.getByTestId('paper-row').locator('h3').allInnerTexts();
+
+        await page.getByTestId('explorer-sort').selectOption('newest');
+        const byDate = await titles();
+        await page.getByTestId('explorer-sort').selectOption('title');
+        const byTitle = await titles();
+
+        expect(byTitle).toHaveLength(byDate.length);
+        expect(byTitle).not.toEqual(byDate);
+        expect([...byTitle].sort()).toEqual(byTitle);
     });
 
     test('import files papers already in the library', async ({ page }) => {

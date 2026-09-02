@@ -98,6 +98,13 @@ The tree has two kinds of node:
 Creating a subfolder is on the folder's own right-click menu, and on the ＋ in the
 sidebar header for a root one. New folders land in rename mode straight away.
 
+**Filtering** runs the same engine as the Stream, so `au:`, `ti:`, `cat:`, `tag:` and
+`is:starred` mean the same thing in both places. A single row under the header holds
+the query box, state chips (Unread / Queue / Read / Starred / Followed authors), topic
+chips, a **Subfolders** toggle, a sort (newest, recently seen, last revised, citations,
+title, relevance) and a running `n of total`. Filtering everything out says so, rather
+than claiming the folder is empty.
+
 ### 3.3.1 Dragging
 
 Where a paper came from decides what a drop means:
@@ -112,6 +119,12 @@ Three things make the gesture forgiving:
 
 - The **drag image is a small pill** ("3 papers"), not a snapshot of the row — a
   full-width card following the cursor hides the very target you are aiming at.
+- Where a drag started is tracked in memory, not in `dataTransfer`. Custom MIME types
+  are not carried reliably across browsers, and when one is dropped `getData` returns
+  an empty string — which silently turned every move into a copy.
+- Highlights clear when the drag *ends*, not only on `dragleave`: a drop handled by a
+  nested target never reaches its parent, and a cancelled drag fires no leave at all,
+  so either would otherwise leave an outline stuck on.
 - Every valid folder carries a faint dashed outline for the whole drag, and the one
   under the pointer fills and brightens.
 - Holding over a folder for a beat **springs it open**, revealing its subfolders, and

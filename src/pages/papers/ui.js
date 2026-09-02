@@ -92,8 +92,10 @@ export function Chip({ color, children, onClick, active, title, className, ...re
 }
 
 /** A count that reads as a quiet annotation, not a badge demanding attention. */
-export const Count = ({ children, className }) => (
-    <span className={cx('font-mono text-[10px] tabular-nums text-slate-500', className)}>{children}</span>
+export const Count = ({ children, className, ...rest }) => (
+    <span {...rest} className={cx('font-mono text-[10px] tabular-nums text-slate-500', className)}>
+        {children}
+    </span>
 );
 
 /* -------------------------------------------------------------------- surface */

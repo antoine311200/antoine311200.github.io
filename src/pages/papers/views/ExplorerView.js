@@ -4,10 +4,11 @@ import { usePapers } from '../context';
 import { folderPath, folderSubtree, papersInFolder, download, makeFolder } from '../storage';
 import { toBibtexAll, toCsv, toMarkdown } from '../bibtex';
 import { useDrag, useDropTarget, STREAM_SOURCE } from '../dnd';
+import { applyFilters, DEFAULT_FILTERS, SORTS } from '../filters';
 import { buildTimeTree, papersUnder, dayShort } from '../timeTree';
 import PaperRow from '../components/PaperRow';
 import {
-    Button, ContextMenu, Empty, Input, Modal, cx, shortDate, useContextMenu,
+    Button, Chip, ContextMenu, Count, Empty, Modal, cx, shortDate, useContextMenu,
 } from '../ui';
 
 const STREAM_ROOT = 'stream:root';
@@ -31,14 +32,21 @@ const SPRING_MS = 300;
  * instead of moving; papers dragged out of the read-only Stream always copy.
  */
 export default function ExplorerView({ selection, setSelection, openId, setOpenId }) {
-    const { folders, papers, paperList, dispatch, notify, states } = usePapers();
+    const { folders, papers, paperList, dispatch, notify, states, topics, followedIds } = usePapers();
     const { startFolderDrag, endDrag, draggingPapers, draggingFolder } = useDrag();
 
     const [selectedId, setSelectedId] = useState(STREAM_ROOT);
     const [expanded, setExpanded] = useState(() => new Set([STREAM_ROOT]));
     const [renaming, setRenaming] = useState(null);
-    const [query, setQuery] = useState('');
     const [importOpen, setImportOpen] = useState(false);
+    const [recursive, setRecursive] = useState(true);
+    const [filters, setFilters] = useState({
+        ...DEFAULT_FILTERS,
+        sort: 'newest',
+        // A file manager shows what is filed; nothing is hidden behind a status here.
+        hideDismissed: false,
+        hideArchived: false,
+    });
     const folderMenu = useContextMenu();
     const paperMenu = useContextMenu();
 
@@ -64,16 +72,22 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
     const selectedFolder = !isStream(selectedId) ? folders.find((f) => f.id === selectedId) : null;
     const crumbs = selectedFolder ? folderPath(folders, selectedFolder.id) : [];
 
-    const visible = useMemo(() => {
-        const list = isStream(selectedId)
-            ? (selectedId === STREAM_ROOT ? paperList : papersUnder(tree, streamKey(selectedId)))
-            : Array.from(papersInFolder(folders, selectedId)).map((id) => papers[id]).filter(Boolean);
-        const needle = query.trim().toLowerCase();
-        return list
-            .filter((p) => !needle || p.title.toLowerCase().includes(needle)
-                || (p.authors || []).some((a) => a.name.toLowerCase().includes(needle)))
-            .sort((a, b) => String(b.published || '').localeCompare(String(a.published || '')));
-    }, [selectedId, tree, folders, papers, paperList, query]);
+    /** The papers the selected node owns, before any filtering. */
+    const scoped = useMemo(() => {
+        if (isStream(selectedId)) {
+            return selectedId === STREAM_ROOT ? paperList : papersUnder(tree, streamKey(selectedId));
+        }
+        return Array.from(papersInFolder(folders, selectedId, { recursive }))
+            .map((id) => papers[id])
+            .filter(Boolean);
+    }, [selectedId, tree, folders, papers, paperList, recursive]);
+
+    // The Explorer runs the same filter engine as the Stream, so `au:`, `ti:`, `tag:`
+    // and `is:` mean the same thing in both places.
+    const visible = useMemo(
+        () => applyFilters(scoped, states, filters, { folders, followedIds }),
+        [scoped, states, filters, folders, followedIds],
+    );
 
     /* ----------------------------------------------------------- actions --- */
 
@@ -221,8 +235,12 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
                 selectedFolder={selectedFolder}
                 crumbs={crumbs}
                 visible={visible}
-                query={query}
-                setQuery={setQuery}
+                filters={filters}
+                setFilters={setFilters}
+                topics={topics}
+                scopedCount={scoped.length}
+                recursive={recursive}
+                setRecursive={setRecursive}
                 selection={selection}
                 setSelection={setSelection}
                 openId={openId}
@@ -465,7 +483,8 @@ function NewFolderDropTarget({ onDrop }) {
 /* ------------------------------------------------------------------ file list */
 
 function FileList({
-    selectedId, selectedFolder, crumbs, visible, query, setQuery, selection, setSelection,
+    selectedId, selectedFolder, crumbs, visible, filters, setFilters, topics, scopedCount,
+    recursive, setRecursive, selection, setSelection,
     openId, setOpenId, onFilePapers, onPaperMenu, onExport, onImport, onSelectFolder,
 }) {
     const { draggingPapers } = useDrag();
@@ -508,10 +527,20 @@ function FileList({
                     </p>
                 </div>
                 <div className="flex-1" />
-                <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter..." className="!w-40 !py-1 !text-[11.5px]" />
                 {selectedFolder && <Button size="sm" onClick={onImport}>Import</Button>}
                 <Button size="sm" onClick={() => onExport('bib', visible, name)}>BibTeX</Button>
             </header>
+
+            <FilterBar
+                filters={filters}
+                setFilters={setFilters}
+                topics={topics}
+                total={scopedCount}
+                shown={visible.length}
+                recursive={recursive}
+                setRecursive={setRecursive}
+                showRecursive={!!selectedFolder}
+            />
 
             {selection.size > 0 && selectedFolder && (
                 <div className="flex flex-none items-center gap-2 border-b border-orange-400/25 bg-orange-400/[0.07] px-5 py-1.5">
@@ -551,13 +580,150 @@ function FileList({
                         ))}
                     </div>
                 ) : (
-                    <Empty icon="◦" title={readOnly ? 'Nothing here yet' : 'This folder is empty'} className="border-slate-800 !py-12">
-                        {readOnly
-                            ? 'Fetch some papers and they appear here by date.'
-                            : 'Drag papers in from the Stream, or from anywhere in this list.'}
+                    <Empty
+                        icon="◦"
+                        title={scopedCount ? 'Nothing matches these filters' : readOnly ? 'Nothing here yet' : 'This folder is empty'}
+                        className="border-slate-800 !py-12"
+                    >
+                        {scopedCount
+                            ? `${scopedCount} paper${scopedCount === 1 ? '' : 's'} here — loosen the filters above to see them.`
+                            : readOnly
+                                ? 'Fetch some papers and they appear here by date.'
+                                : 'Drag papers in from the Stream, or from anywhere in this list.'}
                     </Empty>
                 )}
             </div>
+        </div>
+    );
+}
+
+
+/* ----------------------------------------------------------------- filter bar */
+
+const STATE_CHIPS = [
+    { id: 'unread', label: 'Unread', match: { statuses: ['unread'] } },
+    { id: 'queued', label: 'Queue', match: { statuses: ['queued', 'reading'] } },
+    { id: 'read', label: 'Read', match: { statuses: ['read'] } },
+];
+
+/**
+ * One row: a query box that speaks the same language as the Stream, state and topic
+ * chips, a sort, and a running count. Anything set is one click from being unset.
+ */
+function FilterBar({ filters, setFilters, topics, total, shown, recursive, setRecursive, showRecursive }) {
+    const patch = (p) => setFilters((f) => ({ ...f, ...p }));
+
+    const stateActive = (chip) => chip.match.statuses.every((x) => filters.statuses.includes(x))
+        && filters.statuses.length === chip.match.statuses.length;
+
+    const toggleState = (chip) => patch({ statuses: stateActive(chip) ? [] : chip.match.statuses });
+
+    const toggleTopic = (id) => patch({
+        topicIds: filters.topicIds.includes(id)
+            ? filters.topicIds.filter((t) => t !== id)
+            : [...filters.topicIds, id],
+    });
+
+    const dirty = filters.query.trim() || filters.statuses.length || filters.starredOnly
+        || filters.topicIds.length || filters.tags.length || filters.followedOnly;
+
+    return (
+        <div className="flex flex-none flex-wrap items-center gap-1.5 border-b border-slate-800 px-5 py-2">
+            <div className="relative">
+                <input
+                    value={filters.query}
+                    onChange={(e) => patch({ query: e.target.value })}
+                    placeholder="Filter...  au: ti: tag: is:starred"
+                    aria-label="Filter papers"
+                    data-testid="explorer-filter"
+                    className="w-56 rounded-lg border border-slate-700 bg-slate-950/60 py-1 pl-7 pr-2 text-[11.5px] text-slate-100 placeholder:text-slate-600 outline-none transition focus:w-72 focus:border-orange-400/60"
+                />
+                <span className="pointer-events-none absolute left-2 top-1 text-slate-600">⌕</span>
+            </div>
+
+            {STATE_CHIPS.map((chip) => (
+                <Chip
+                    key={chip.id}
+                    data-testid={`explorer-state-${chip.id}`}
+                    active={stateActive(chip)}
+                    onClick={() => toggleState(chip)}
+                >
+                    {chip.label}
+                </Chip>
+            ))}
+            <Chip
+                data-testid="explorer-state-starred"
+                active={filters.starredOnly}
+                onClick={() => patch({ starredOnly: !filters.starredOnly })}
+            >
+                ★ Starred
+            </Chip>
+            <Chip
+                data-testid="explorer-state-followed"
+                active={filters.followedOnly}
+                onClick={() => patch({ followedOnly: !filters.followedOnly })}
+            >
+                Followed authors
+            </Chip>
+
+            {topics.length > 0 && <span className="mx-0.5 h-4 w-px bg-slate-800" />}
+            {topics.map((t) => (
+                <Chip
+                    key={t.id}
+                    data-testid={`explorer-topic-${t.id}`}
+                    color={filters.topicIds.includes(t.id) ? t.color : undefined}
+                    active={filters.topicIds.includes(t.id)}
+                    onClick={() => toggleTopic(t.id)}
+                >
+                    {t.name}
+                </Chip>
+            ))}
+
+            <div className="flex-1" />
+
+            {showRecursive && (
+                <Chip
+                    data-testid="explorer-recursive"
+                    active={recursive}
+                    onClick={() => setRecursive(!recursive)}
+                    title="Include papers filed in subfolders"
+                >
+                    Subfolders
+                </Chip>
+            )}
+
+            <select
+                value={filters.sort}
+                onChange={(e) => patch({ sort: e.target.value })}
+                aria-label="Sort papers"
+                data-testid="explorer-sort"
+                className="rounded-lg border border-slate-700 bg-slate-950/60 px-2 py-1 text-[11px] text-slate-300 outline-none focus:border-orange-400/60"
+            >
+                {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+            </select>
+
+            <Count data-testid="explorer-count">
+                {shown === total ? `${total}` : `${shown} of ${total}`}
+            </Count>
+
+            {dirty && (
+                <button
+                    type="button"
+                    data-testid="explorer-clear"
+                    onClick={() => setFilters((f) => ({
+                        ...f,
+                        query: '',
+                        statuses: [],
+                        topicIds: [],
+                        tags: [],
+                        starredOnly: false,
+                        followedOnly: false,
+                    }))}
+                    className="text-[10.5px] text-slate-600 transition hover:text-orange-300"
+                >
+                    clear
+                </button>
+            )}
         </div>
     );
 }

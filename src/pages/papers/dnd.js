@@ -15,7 +15,7 @@
  * full-width card following the cursor obscures the very targets you are aiming at.
  */
 
-import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 export const PAPER_MIME = 'application/x-paper-ids';
 export const SOURCE_MIME = 'application/x-paper-source';
@@ -54,6 +54,11 @@ export function DragProvider({ children, onTabHover }) {
     const [shelf, setShelf] = useState([]);
     const springTimer = useRef(null);
 
+    // The same payload in a ref as well as state. State drives what the UI shows;
+    // the ref is what a drop reads, because it is correct immediately — a drop can
+    // land before React has re-rendered from the dragstart.
+    const payload = useRef(null);
+
     /** @param source `STREAM_SOURCE`, a folder id, or undefined. */
     const startPaperDrag = useCallback((event, ids, source = STREAM_SOURCE) => {
         const list = Array.from(new Set(ids)).filter(Boolean);
@@ -63,19 +68,22 @@ export function DragProvider({ children, onTabHover }) {
         event.dataTransfer.setData('text/plain', list.join(','));
         event.dataTransfer.effectAllowed = 'copyMove';
         setDragImage(event, list.length === 1 ? '1 paper' : `${list.length} papers`);
-        setDragging({ kind: 'paper', ids: list, source });
+        payload.current = { kind: 'paper', ids: list, source };
+        setDragging(payload.current);
     }, []);
 
     const startFolderDrag = useCallback((event, id, name = 'folder') => {
         event.dataTransfer.setData(FOLDER_MIME, id);
         event.dataTransfer.effectAllowed = 'move';
         setDragImage(event, `📁 ${name}`);
-        setDragging({ kind: 'folder', ids: [id] });
+        payload.current = { kind: 'folder', ids: [id] };
+        setDragging(payload.current);
     }, []);
 
     const endDrag = useCallback(() => {
         clearTimeout(springTimer.current);
         springTimer.current = null;
+        payload.current = null;
         setDragging(null);
     }, []);
 
@@ -93,11 +101,25 @@ export function DragProvider({ children, onTabHover }) {
         onDrop: () => { clearTimeout(springTimer.current); springTimer.current = null; },
     }), [onTabHover]);
 
+    // dragend fires on the source even after a successful drop, and after a cancelled
+    // one. Listening globally means a drag can never leave the app in a dragging state
+    // just because the source element unmounted mid-gesture.
+    useEffect(() => {
+        if (!dragging) return undefined;
+        const done = () => endDrag();
+        window.addEventListener('dragend', done);
+        window.addEventListener('drop', done);
+        return () => {
+            window.removeEventListener('dragend', done);
+            window.removeEventListener('drop', done);
+        };
+    }, [dragging, endDrag]);
+
     const addToShelf = useCallback((ids) => setShelf((s) => Array.from(new Set([...s, ...ids]))), []);
     const clearShelf = useCallback(() => setShelf([]), []);
 
     const value = useMemo(() => ({
-        dragging, startPaperDrag, startFolderDrag, endDrag, springProps,
+        dragging, payload, startPaperDrag, startFolderDrag, endDrag, springProps,
         shelf, addToShelf, clearShelf,
         draggingPapers: !!(dragging && dragging.kind === 'paper'),
         draggingFolder: !!(dragging && dragging.kind === 'folder'),
@@ -124,8 +146,18 @@ export const readFolderId = (event) => event.dataTransfer.getData(FOLDER_MIME) |
  * out of wherever they already live.
  */
 export function useDropTarget({ onDropPapers, onDropFolder, accept = 'papers', disabled }) {
+    const drag = useContext(DragContext);
+    const dragging = drag ? drag.dragging : null;
+    const live = () => (drag && drag.payload ? drag.payload.current : null);
     const [over, setOver] = useState(false);
     const depth = useRef(0);
+
+    // A drop handled by a nested target never reaches this one, and a cancelled drag
+    // fires no dragleave — either way the highlight would stick on. The drag ending is
+    // the one signal that is always true, so clear on that.
+    useEffect(() => {
+        if (!dragging) { depth.current = 0; setOver(false); }
+    }, [dragging]);
 
     if (disabled) return [false, {}];
 
@@ -142,12 +174,16 @@ export function useDropTarget({ onDropPapers, onDropFolder, accept = 'papers', d
             depth.current = 0;
             setOver(false);
 
-            const folderId = readFolderId(e);
+            // Where the drag started is read from our own state, not from dataTransfer.
+            // Custom MIME types are not carried reliably across browsers — when one is
+            // dropped, getData returns "" and every move would silently become a copy.
+            const held = live();
+            const folderId = (held && held.kind === 'folder' && held.ids[0]) || readFolderId(e);
             if (folderId && onDropFolder && accept !== 'papers') { onDropFolder(folderId); return; }
 
             const ids = readPaperIds(e);
             if (!ids.length || !onDropPapers) return;
-            const source = readPaperSource(e);
+            const source = (held && held.kind === 'paper' && held.source) || readPaperSource(e);
             onDropPapers(ids, { source, copy: wantsCopy(e) || source === STREAM_SOURCE });
         },
     };
