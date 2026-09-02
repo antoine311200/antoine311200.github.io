@@ -189,7 +189,10 @@ test.describe('stream', () => {
         await seed(page, seededStore());
         const before = await page.getByTestId('paper-row').count();
 
-        const row = page.getByTestId('paper-row').first();
+        // Dismissing teaches the ranker, which rescores and can reorder the list,
+        // so hold on to *this* paper rather than to whatever is first.
+        const id = await page.getByTestId('paper-row').first().getAttribute('data-paper-id');
+        const row = page.locator(`[data-paper-id="${id}"]`);
         const title = await row.locator('h3').innerText();
         await row.hover();
         await row.getByRole('button', { name: 'Not interested' }).click();
@@ -242,6 +245,95 @@ test.describe('stream', () => {
 
         const store = await readStore(page);
         expect(Object.values(store.states).filter((s) => s.status === 'queued')).toHaveLength(1);
+    });
+});
+
+/* ------------------------------------------------------------------- feed -- */
+
+test.describe('the prefetched arXiv feed', () => {
+    const entry = (id, title, categories = ['math.OC']) => ({
+        id,
+        version: 1,
+        title,
+        summary: 'We study optimal transport.',
+        authors: [{ name: 'Ada Lovelace', affiliation: null }],
+        categories,
+        primary: categories[0],
+        published: new Date().toISOString(),
+        updated: new Date().toISOString(),
+        comment: null,
+        journalRef: null,
+        doi: null,
+        pdfUrl: `https://arxiv.org/pdf/${id}`,
+        citations: null,
+        source: 'arxiv',
+    });
+
+    const stubFeed = async (page, runs) => {
+        const calls = { runs: [] };
+        await page.route('**/arxiv/index.json', (route) => route.fulfill({
+            contentType: 'application/json',
+            body: JSON.stringify({
+                generatedAt: new Date().toISOString(),
+                runs: runs.map((r) => ({ file: r.file, date: r.file.replace('.json', ''), count: r.entries.length })),
+                topics: [], report: [],
+            }),
+        }));
+        for (const run of runs) {
+            await page.route(`**/arxiv/${run.file}`, (route) => {
+                calls.runs.push(run.file);
+                return route.fulfill({
+                    contentType: 'application/json',
+                    body: JSON.stringify({ generatedAt: new Date().toISOString(), days: 7, entries: run.entries }),
+                });
+            });
+        }
+        return calls;
+    };
+
+    test('reads what CI left, sorts it into topics, and never reads a run twice', async ({ page }) => {
+        const calls = await stubFeed(page, [{
+            file: '2026-09-02.json',
+            entries: [
+                entry('2609.00001', 'Entropic Optimal Transport on Graphs'),
+                entry('2609.00002', 'A Diffusion Model for Images', ['cs.LG']),
+                entry('2609.00003', 'Something about lattices', ['math.NT']),
+            ],
+        }]);
+        await seed(page, makeStore({
+            settings: { source: 'feed', autoFetchOnOpen: false },
+            topics: [
+                makeTopic({ id: 't_ot', name: 'Optimal Transport', terms: ['optimal transport'], categories: ['math.OC'] }),
+                makeTopic({ id: 't_dif', name: 'Diffusion', terms: ['diffusion model'], categories: ['cs.LG'] }),
+            ],
+        }));
+
+        await page.getByTestId('fetch-all').click();
+        await expect(page.getByText('Entropic Optimal Transport on Graphs')).toBeVisible();
+
+        const store = await readStore(page);
+        // The lattice paper answers no topic and is not taken in.
+        expect(Object.keys(store.papers).sort()).toEqual(['2609.00001', '2609.00002']);
+        expect(store.papers['2609.00001'].topicIds).toEqual(['t_ot']);
+        expect(store.papers['2609.00002'].topicIds).toEqual(['t_dif']);
+        expect(store.feedSeen).toEqual(['2026-09-02.json']);
+
+        // The app's oldest promise: a day already read is never read again.
+        await page.getByTestId('fetch-all').click();
+        await expect(page.getByText('Nothing new since the last run of the feed')).toBeVisible();
+        expect(calls.runs).toEqual(['2026-09-02.json']);
+    });
+
+    test('a site with no feed yet says so, and says what to do about it', async ({ page }) => {
+        await page.route('**/arxiv/index.json', (route) => route.fulfill({ status: 404, body: 'not found' }));
+        await seed(page, makeStore({
+            settings: { source: 'feed', autoFetchOnOpen: false },
+            topics: [makeTopic({ id: 't_ot', terms: ['optimal transport'] })],
+        }));
+
+        await page.getByTestId('fetch-all').click();
+        await expect(page.getByText(/No prefetched feed on this site yet/)).toBeVisible();
+        await expect(page.getByText(/Actions tab/)).toBeVisible();
     });
 });
 

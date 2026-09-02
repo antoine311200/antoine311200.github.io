@@ -13,7 +13,10 @@ export const SCHEMA_VERSION = 2;
 export const DEFAULT_SETTINGS = {
     maxResultsPerTopic: 60,
     lookbackDays: 7,          // how far back a first fetch reaches
-    source: 'openalex',       // 'openalex' | 'arxiv' — see openalex.js for why
+    // 'feed'     — arXiv, prefetched by CI into /arxiv and read same-origin
+    // 'openalex' — live, but on a daily allowance; see openalex.js
+    // 'arxiv'    — direct, and blocked by CORS unless a relay answers
+    source: 'feed',
     openAlexMailto: '',       // optional: OpenAlex "polite pool", never auto-filled
     proxy: 'auto',            // arXiv source only: 'auto' | strategy id | 'direct'
     autoFetchOnOpen: true,
@@ -35,6 +38,7 @@ export const emptyStore = () => ({
     feedback: { terms: {} },
     history: [],
     lastVisit: null,
+    feedSeen: [],          // feed runs already taken in, so a day is never read twice
 });
 
 /** Topics offered on a fresh install so the app is useful on first click. */

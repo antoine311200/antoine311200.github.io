@@ -88,6 +88,38 @@ The fetch and the reading surface are the same place, because they are the same 
   nobody asked. They enter under the day you added them, which is what the stream is
   a record of: not when a paper was written, but when it reached you.
 
+### 3.2.0 Where the papers come from
+
+arXiv answers every request happily and sends no `Access-Control-Allow-Origin`
+header on any of them — not the API, not the RSS, not the listing pages. Checked
+from both sides of the wall:
+
+| | server (node) | browser (this app) |
+|---|---|---|
+| `export.arxiv.org/api/query` | 200, Atom | blocked |
+| `rss.arxiv.org/rss/math.OC` | 200, RSS | blocked |
+| `arxiv.org/list/math.OC/recent` | 200, HTML | blocked |
+
+So the difficulty was never arXiv. It is that the app runs *in a browser*, on a
+static site with no server of its own, and the browser will not hand the page a
+cross-origin response the server has not consented to share. The three sources
+are three answers to that one problem:
+
+- **arXiv, prefetched daily** (default). `scripts/fetch-arxiv.mjs`, run by
+  `.github/workflows/arxiv.yml`, fetches arXiv on a GitHub runner — no browser, no
+  rule — and commits the result to `public/arxiv/`, which the site then reads
+  same-origin. No relay, no key, no allowance, and real arXiv categories, which
+  OpenAlex cannot filter on at all. The cost is freshness: the Stream is as current
+  as the last run of the workflow. The job decides only what is *downloaded*;
+  which topic a paper belongs to is decided in the browser against your topics as
+  they are now, so editing a topic re-sorts the corpus already on disk without a CI
+  run or a network call. Export `arxiv.feed.json` from Settings when your topics
+  change, commit it, and the next run follows.
+- **OpenAlex.** Live and reachable from the browser, and it adds citation counts —
+  at the price of a daily allowance (§3.2.1) and no categories.
+- **arXiv direct.** Needs a public CORS relay. They are free, and they are down
+  about as often as they are up.
+
 ### 3.2.1 Adding a paper by hand
 
 Topics sweep on a schedule; **+ Add** in the top bar is the other half — the paper a

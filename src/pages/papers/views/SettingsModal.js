@@ -5,6 +5,7 @@ import { exportStore, download, prune as pruneStore, storeBytes, storageEstimate
 import { STRATEGIES } from '../arxiv';
 import { toBibtexAll, toCsv } from '../bibtex';
 import { getBudget, humanWait } from '../openalex';
+import { feedConfig } from '../feed';
 import { Button, Count, Field, Input, Modal, Toggle, cx } from '../ui';
 
 const fmt = (n) => {
@@ -16,6 +17,16 @@ const fmt = (n) => {
 };
 
 /** Everything you set once and forget, kept out of the way until asked for. */
+const SOURCE_HINTS = {
+    feed: 'A scheduled job fetches arXiv where no browser is in the way and commits the '
+        + 'result to this site, so the app reads it same-origin: no relay, no allowance, and real '
+        + 'arXiv categories. It is as fresh as the last run of the workflow.',
+    openalex: 'OpenAlex indexes arXiv and is reachable straight from the browser, and adds citation '
+        + 'counts — but it bills per request against a daily allowance, and cannot filter by arXiv category.',
+    arxiv: 'arXiv carries categories and versions but sends no CORS headers, so it needs a public relay — '
+        + 'and those are often down.',
+};
+
 /**
  * OpenAlex bills per request against a daily allowance, and the only place that
  * number exists is the last response's headers — so this is blank until
@@ -44,7 +55,7 @@ function BudgetNote() {
 
 export default function SettingsModal({ open, onClose }) {
     const store = usePapers();
-    const { dispatch, settings, counts, paperList, states, notify, raw, resetAll } = store;
+    const { dispatch, settings, counts, paperList, states, notify, raw, resetAll, topics } = store;
     const fileRef = useRef(null);
     const [pending, setPending] = useState(null);
     const [confirmReset, setConfirmReset] = useState(false);
@@ -106,19 +117,35 @@ export default function SettingsModal({ open, onClose }) {
                         <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Fetching</h3>
                         <Field
                             label="Source"
-                            hint={settings.source === 'arxiv'
-                                ? 'arXiv carries categories and versions but sends no CORS headers, so it needs a public relay — and those are often down.'
-                                : 'OpenAlex indexes arXiv, is reachable straight from the browser, and adds citation counts. It cannot filter by arXiv category.'}
+                            hint={SOURCE_HINTS[settings.source] || SOURCE_HINTS.openalex}
                         >
                             <select
                                 value={settings.source}
                                 onChange={(e) => set({ source: e.target.value })}
+                                data-testid="source-select"
                                 className="w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-orange-400/60"
                             >
-                                <option value="openalex">OpenAlex — no relay needed (recommended)</option>
+                                <option value="feed">arXiv, prefetched daily — no limits (recommended)</option>
+                                <option value="openalex">OpenAlex — live, but on a daily allowance</option>
                                 <option value="arxiv">arXiv Atom API — needs a relay</option>
                             </select>
                         </Field>
+
+                        {settings.source === 'feed' && (
+                            <div className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2.5 text-[11.5px] leading-relaxed text-slate-400">
+                                The workflow fetches whatever <span className="font-mono text-slate-300">arxiv.feed.json</span> asks
+                                for. Export it whenever you change your topics, commit it, and the next run follows.
+                                <div className="mt-2">
+                                    <Button
+                                        size="sm"
+                                        data-testid="export-feed-config"
+                                        onClick={() => download('arxiv.feed.json', JSON.stringify(feedConfig(topics), null, 2))}
+                                    >
+                                        Feed config for CI
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
 
                         {settings.source === 'arxiv' && (
                             <Field label="Relay">
@@ -133,9 +160,9 @@ export default function SettingsModal({ open, onClose }) {
                             </Field>
                         )}
 
-                        {settings.source !== 'arxiv' && <BudgetNote />}
+                        {settings.source === 'openalex' && <BudgetNote />}
 
-                        {settings.source !== 'arxiv' && (
+                        {settings.source === 'openalex' && (
                             <Field
                                 label="Email for OpenAlex"
                                 hint="Optional. OpenAlex asks callers to identify themselves for its

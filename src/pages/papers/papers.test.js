@@ -2,6 +2,7 @@ import { buildQuery, parseFeed, splitArxivId } from './arxiv';
 import { scorePaper, learnFrom, buildIndex, similarTo, coauthorGraph, authorStats } from './scoring';
 import { parseQuery, applyFilters, groupByDay, DEFAULT_FILTERS } from './filters';
 import { toBibtex, citeKey, toCsv } from './bibtex';
+import { matchesTopic, sortIntoTopics, feedConfig } from './feed';
 import {
     mergeStores, emptyStore, authorKey, prune, makeTopic, makeFolder,
     folderPath, folderSubtree, papersInFolder, canMoveFolder,
@@ -254,6 +255,71 @@ describe('storage', () => {
         const { store: pruned, removed } = prune(store, { days: 90 });
         expect(removed).toBe(1);
         expect(Object.keys(pruned.papers).sort()).toEqual(['fresh', 'kept']);
+    });
+});
+
+describe('the prefetched feed', () => {
+    const paper = (over = {}) => ({
+        id: '2609.00001',
+        title: 'Entropic Optimal Transport on Graphs',
+        summary: 'We study Sinkhorn iterations.',
+        authors: [{ name: 'Gabriel Peyré' }],
+        categories: ['math.OC', 'stat.ML'],
+        ...over,
+    });
+    const topic = (over = {}) => makeTopic({
+        id: 't_ot', terms: ['optimal transport'], categories: ['math.OC'], ...over,
+    });
+
+    test('a topic claims a paper only if the words and the category both agree', () => {
+        expect(matchesTopic(paper(), topic())).toBe(true);
+        // Right words, wrong section of arXiv.
+        expect(matchesTopic(paper({ categories: ['q-bio.NC'] }), topic())).toBe(false);
+        // Right section, nothing to do with the topic.
+        expect(matchesTopic(paper({ title: 'A note on lattices', summary: 'Nothing here.' }), topic())).toBe(false);
+    });
+
+    test('an exclusion beats a match, and a disabled topic claims nothing', () => {
+        expect(matchesTopic(paper(), topic({ exclude: ['sinkhorn'] }))).toBe(false);
+        expect(matchesTopic(paper(), topic({ enabled: false }))).toBe(false);
+    });
+
+    test('punctuation does not decide whether a paper matches', () => {
+        // arXiv's own search tokenises, so these have to agree with each other.
+        const gw = topic({ terms: ['gromov-wasserstein'], categories: [] });
+        expect(matchesTopic(paper({ title: 'Gromov Wasserstein barycentres' }), gw)).toBe(true);
+        expect(matchesTopic(paper({ title: 'On Gromov–Wasserstein distances' }), gw)).toBe(true);
+    });
+
+    test('an author topic reads the author list', () => {
+        const byName = topic({ terms: [], categories: [], authors: ['peyré'] });
+        expect(matchesTopic(paper(), byName)).toBe(true);
+        expect(matchesTopic(paper({ authors: [{ name: 'Ada Lovelace' }] }), byName)).toBe(false);
+    });
+
+    test('one paper can answer two topics, and unclaimed papers are dropped', () => {
+        const topics = [
+            topic(),
+            makeTopic({ id: 't_ml', terms: ['sinkhorn'], categories: ['stat.ML'] }),
+            makeTopic({ id: 't_fin', terms: ['rough volatility'], categories: ['q-fin.MF'] }),
+        ];
+        const { byTopic, matched, seen } = sortIntoTopics(
+            [paper(), paper({ id: '2609.00002', title: 'Unrelated', summary: 'No.', categories: ['cs.CV'] })],
+            topics,
+        );
+        expect(byTopic.get('t_ot')).toHaveLength(1);
+        expect(byTopic.get('t_ml')).toHaveLength(1);
+        expect(byTopic.get('t_fin')).toHaveLength(0);
+        expect({ matched, seen }).toEqual({ matched: 1, seen: 2 });
+    });
+
+    test('the CI config carries exactly what a query needs', () => {
+        const config = feedConfig([topic({ name: 'Optimal Transport' })]);
+        expect(config).toMatchObject({ days: 7, maxPerTopic: 200 });
+        expect(config.topics[0]).toMatchObject({
+            id: 't_ot', name: 'Optimal Transport', terms: ['optimal transport'],
+            categories: ['math.OC'], enabled: true,
+        });
     });
 });
 

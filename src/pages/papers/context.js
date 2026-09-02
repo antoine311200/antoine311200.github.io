@@ -17,6 +17,7 @@ import {
 } from './storage';
 import { searchTopic as searchArxiv, setPreferredStrategy } from './arxiv';
 import { searchTopic as searchOpenAlex } from './openalex';
+import { loadManifest, loadRun, sortIntoTopics } from './feed';
 import { rescoreAll, learnFrom, buildIndex } from './scoring';
 import { enrichPapers } from './enrich';
 
@@ -131,6 +132,12 @@ function reducer(state, action) {
         }
 
         /* ------------------------------------------------------- reading state */
+
+        case 'FEED_SEEN':
+            return {
+                ...state,
+                feedSeen: Array.from(new Set([...(state.feedSeen || []), ...action.files])).slice(-120),
+            };
 
         case 'PAPER_STATE': {
             const prev = state.states[action.id] || emptyState();
@@ -347,7 +354,74 @@ export function PaperProvider({ children }) {
 
     /* ------------------------------------------------------------- fetching */
 
-    const fetchTopics = useCallback(async (topicIds) => {
+    /**
+     * Take in whatever the scheduled job has left in public/arxiv since last
+     * time. There is no network cost worth speaking of and no allowance to
+     * spend, so the only thing being tracked is which runs have already been
+     * read — the app's oldest promise is that a day is never fetched twice.
+     */
+    const fetchFromFeed = useCallback(async (topicIds) => {
+        const targets = state.topics.filter((t) => (topicIds ? topicIds.includes(t.id) : t.enabled));
+        if (!targets.length) {
+            setError('No enabled topic to sort the feed into. Add one in Topics.');
+            return;
+        }
+
+        setError(null);
+        setFetchState({ running: true, topic: 'the daily feed', done: 0, total: 1, log: [] });
+        const startedAt = Date.now();
+
+        try {
+            const manifest = await loadManifest();
+            const seen = new Set(state.feedSeen || []);
+            const fresh = manifest.runs.filter((r) => !seen.has(r.file));
+
+            if (!fresh.length) {
+                setFetchState({ running: false, topic: null, done: 1, total: 1, log: [] });
+                notify(manifest.runs.length
+                    ? 'Nothing new since the last run of the feed'
+                    : 'The feed is empty — has the workflow run yet?');
+                return;
+            }
+
+            const log = [];
+            let added = 0;
+            for (let i = 0; i < fresh.length; i += 1) {
+                const run = fresh[i];
+                setFetchState((f) => ({ ...f, topic: `feed · ${run.date}`, done: i, total: fresh.length }));
+                try {
+                    const entries = await loadRun(run.file);
+                    const { byTopic, matched, seen: total } = sortIntoTopics(entries, targets);
+                    targets.forEach((topic) => {
+                        const mine = byTopic.get(topic.id) || [];
+                        if (mine.length) dispatch({ type: 'INGEST', entries: mine, topicId: topic.id });
+                    });
+                    added += matched;
+                    log.push({ topic: run.date, ok: true, fetched: total, fresh: matched });
+                } catch (err) {
+                    log.push({ topic: run.date, ok: false, message: err.message });
+                }
+                setFetchState((f) => ({ ...f, log: [...log] }));
+            }
+
+            dispatch({ type: 'FEED_SEEN', files: fresh.map((r) => r.file) });
+
+            const elapsed = Date.now() - startedAt;
+            if (elapsed < 900) await new Promise((r) => setTimeout(r, 900 - elapsed));
+            setFetchState({ running: false, topic: null, done: fresh.length, total: fresh.length, log });
+            notify(added
+                ? `${added} paper${added === 1 ? '' : 's'} from ${fresh.length} feed run${fresh.length === 1 ? '' : 's'}`
+                : 'Nothing in the feed matched your topics');
+        } catch (err) {
+            setFetchState({ running: false, topic: null, done: 0, total: 0, log: [] });
+            setError(err.code === 'NO_FEED'
+                ? 'No prefetched feed on this site yet. It appears once .github/workflows/arxiv.yml has run — '
+                  + 'trigger it by hand from the Actions tab, or switch the source back to OpenAlex in Settings.'
+                : err.message);
+        }
+    }, [state.topics, state.feedSeen, notify]);
+
+    const fetchLive = useCallback(async (topicIds) => {
         const targets = state.topics.filter(
             (t) => (topicIds ? topicIds.includes(t.id) : t.enabled),
         );
@@ -432,6 +506,12 @@ export function PaperProvider({ children }) {
             notify(fresh ? `${fresh} new paper${fresh === 1 ? '' : 's'}` : 'No new papers — you are up to date');
         }
     }, [state.topics, state.settings, state.papers, notify]);
+
+    /* One entry point: which source answers is a setting, not the caller's problem. */
+    const fetchTopics = useCallback(
+        (topicIds) => (state.settings.source === 'feed' ? fetchFromFeed(topicIds) : fetchLive(topicIds)),
+        [state.settings.source, fetchFromFeed, fetchLive],
+    );
 
     const cancelFetch = useCallback(() => {
         if (abortRef.current) abortRef.current.abort();
