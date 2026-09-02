@@ -26,7 +26,7 @@ const VARIANTS = {
     ghost: 'bg-slate-800/50 text-slate-300 hover:bg-slate-800 hover:text-white border-slate-700',
     quiet: 'bg-transparent text-slate-400 hover:text-white hover:bg-white/5 border-transparent',
     danger: 'bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 border-rose-500/40',
-    active: 'bg-orange-400/12 text-orange-200 border-orange-400/40',
+    active: 'bg-orange-400/[0.12] text-orange-200 border-orange-400/40',
 };
 
 const SIZES = {
@@ -60,7 +60,7 @@ export function IconButton({ label, active, tone, className, ...props }) {
             {...props}
             className={cx(
                 'inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors',
-                active ? (tone || 'bg-orange-400/12 text-orange-300') : 'text-slate-500 hover:bg-white/8 hover:text-slate-100',
+                active ? (tone || 'bg-orange-400/[0.12] text-orange-300') : 'text-slate-500 hover:bg-white/[0.08] hover:text-slate-100',
                 className,
             )}
         />
@@ -80,7 +80,7 @@ export function Chip({ color, children, onClick, active, title, className, ...re
             className={cx(
                 'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-medium leading-4',
                 !color && (active
-                    ? 'border-orange-400/40 bg-orange-400/12 text-orange-200'
+                    ? 'border-orange-400/40 bg-orange-400/[0.12] text-orange-200'
                     : 'border-slate-700 bg-slate-800/50 text-slate-400'),
                 onClick && 'cursor-pointer transition hover:brightness-125',
                 className,
@@ -342,8 +342,8 @@ export function ContextMenu({ menu, onClose, items }) {
                             item.disabled
                                 ? 'cursor-default text-slate-600'
                                 : item.danger
-                                    ? 'text-rose-300 hover:bg-rose-500/12'
-                                    : 'text-slate-300 hover:bg-white/6 hover:text-white',
+                                    ? 'text-rose-300 hover:bg-rose-500/[0.12]'
+                                    : 'text-slate-300 hover:bg-white/[0.06] hover:text-white',
                         )}
                     >
                         <span className="w-4 flex-none text-center text-[11px] opacity-70">{item.icon}</span>
@@ -495,7 +495,7 @@ export function Segmented({ options, isActive, onToggle, className }) {
                     className={cx(
                         'rounded-md px-2 py-[3px] text-[11px] font-medium transition-colors',
                         isActive(o)
-                            ? 'bg-orange-400/15 text-orange-200'
+                            ? 'bg-orange-400/[0.15] text-orange-200'
                             : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
                     )}
                 >

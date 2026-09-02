@@ -158,7 +158,25 @@ Two mechanisms, so nobody has to learn one particular gesture:
   Drop papers on it, change tabs at your own pace, then drag them out — or file them
   straight into a folder from its dropdown.
 
-### 3.5 The reading panel
+### 3.5 The paper card
+
+Four actions on every card — **star**, **read later**, **read**, **not interested** —
+each with its own icon. An action you have used stays lit; the rest appear on hover.
+
+**Not interested** does not remove a paper. It fades it in place, strikes the title
+through, and teaches the ranker to down-weight that vocabulary — so you can still see
+what you passed on, and the same button takes it back.
+
+Reading state shows as a **coloured edge** on the card — sky for read later, green for
+read, grey for dismissed — and starred tints the whole border amber. There is no dot
+inside the title: state belongs to the card, not to the sentence.
+
+The number on the right is the **relevance score**: keyword matches weighted by title
+over abstract, plus boosts for followed authors and for vocabulary you have starred
+before, decayed by age. It is why the list is in the order it is, and hovering it
+lists the specific reasons.
+
+### 3.5.1 The reading panel
 
 Slides in beside whatever list you are in rather than taking the tab over, so you keep
 your place. Four tabs: **Overview** (TL;DR, abstract, authors with a follow switch, why

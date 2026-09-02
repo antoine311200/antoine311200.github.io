@@ -170,7 +170,7 @@ function TopBar({ tab, setTab, counts, onFetchAll, running, onSettings }) {
                         {...springProps(t.id)}
                         className={cx(
                             'relative rounded-lg px-3.5 py-1.5 text-[12.5px] font-medium transition-all duration-150',
-                            tab === t.id ? 'bg-orange-400/12 text-orange-200' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
+                            tab === t.id ? 'bg-orange-400/[0.12] text-orange-200' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
                             dragging && tab !== t.id && 'ring-1 ring-inset ring-orange-400/25',
                         )}
                     >

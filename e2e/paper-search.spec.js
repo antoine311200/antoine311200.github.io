@@ -185,6 +185,53 @@ test.describe('stream', () => {
         expect(diffusion).toBeLessThan(all);
     });
 
+    test('"not interested" fades a paper in place instead of removing it', async ({ page }) => {
+        await seed(page, seededStore());
+        const before = await page.getByTestId('paper-row').count();
+
+        const row = page.getByTestId('paper-row').first();
+        const title = await row.locator('h3').innerText();
+        await row.hover();
+        await row.getByRole('button', { name: 'Not interested' }).click();
+
+        // Still there, still findable — just out of the way.
+        await expect(page.getByTestId('paper-row')).toHaveCount(before);
+        await expect(page.getByText(title, { exact: true })).toBeVisible();
+
+        const store = await readStore(page);
+        expect(Object.values(store.states).filter((st) => st.status === 'dismissed')).toHaveLength(1);
+        // And it teaches the ranker, like the context-menu route does.
+        expect(Object.keys(store.feedback.terms).length).toBeGreaterThan(0);
+
+        // The decision is reversible from the same button.
+        await row.hover();
+        await row.getByRole('button', { name: 'Interested after all' }).click();
+        const after = await readStore(page);
+        expect(Object.values(after.states).filter((st) => st.status === 'dismissed')).toHaveLength(0);
+    });
+
+    test('a card carries star, read-later, read and not-interested', async ({ page }) => {
+        await seed(page, seededStore());
+        const row = page.getByTestId('paper-row').first();
+        await row.hover();
+
+        for (const label of ['Star', 'Read later', 'Mark read', 'Not interested']) {
+            await expect(row.getByRole('button', { name: label })).toBeVisible();
+        }
+
+        // Read later is its own state, distinct from read.
+        await row.getByRole('button', { name: 'Read later' }).click();
+        const store = await readStore(page);
+        expect(Object.values(store.states).filter((st) => st.status === 'queued')).toHaveLength(1);
+    });
+
+    test('the score chip explains itself rather than showing a bare number', async ({ page }) => {
+        await seed(page, seededStore());
+        const chip = page.getByTestId('score-chip').first();
+        await expect(chip).toBeVisible();
+        await expect(chip).toHaveAttribute('title', /Relevance \d+/);
+    });
+
     test('right-clicking a paper offers reading actions', async ({ page }) => {
         await seed(page, seededStore());
         await page.getByTestId('paper-row').first().click({ button: 'right' });

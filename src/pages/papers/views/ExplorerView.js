@@ -478,7 +478,7 @@ function TreeNode({
                 style={{ paddingLeft: `${depth * 12 + 6}px` }}
                 className={cx(
                     'group relative flex cursor-pointer items-center gap-1 rounded-md py-[5px] pr-1.5 text-[12.5px] transition',
-                    isSel ? 'bg-orange-400/15 text-orange-100' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
+                    isSel ? 'bg-orange-400/[0.15] text-orange-100' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
                     droppable && !over && 'pr-droppable',
                     over && 'pr-drop-target',
                 )}
@@ -790,7 +790,7 @@ function FilterBar({ filters, setFilters, topics, total, shown, recursive, setRe
                             className={cx(
                                 'flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-medium transition',
                                 filters.topicIds.length || open
-                                    ? 'border-orange-400/40 bg-orange-400/12 text-orange-200'
+                                    ? 'border-orange-400/40 bg-orange-400/[0.12] text-orange-200'
                                     : 'border-slate-700 bg-slate-900/50 text-slate-400 hover:text-slate-200',
                             )}
                         >
@@ -816,7 +816,7 @@ function FilterBar({ filters, setFilters, topics, total, shown, recursive, setRe
                                         onClick={() => toggleTopic(t.id)}
                                         className={cx(
                                             'flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] transition',
-                                            on ? 'bg-orange-400/12 text-orange-100' : 'text-slate-300 hover:bg-white/5',
+                                            on ? 'bg-orange-400/[0.12] text-orange-100' : 'text-slate-300 hover:bg-white/5',
                                         )}
                                     >
                                         <span className="h-2 w-2 flex-none rounded-full" style={{ backgroundColor: t.color }} />
@@ -848,7 +848,7 @@ function FilterBar({ filters, setFilters, topics, total, shown, recursive, setRe
                     className={cx(
                         'rounded-lg border px-2.5 py-1 text-[11px] font-medium transition',
                         recursive
-                            ? 'border-orange-400/40 bg-orange-400/12 text-orange-200'
+                            ? 'border-orange-400/40 bg-orange-400/[0.12] text-orange-200'
                             : 'border-slate-700 bg-slate-900/50 text-slate-400 hover:text-slate-200',
                     )}
                 >

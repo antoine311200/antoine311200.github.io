@@ -44,6 +44,10 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
         unreadOnly: quick === 'unread',
         starredOnly: quick === 'starred',
         statuses: quick === 'queued' ? ['queued', 'reading'] : [],
+        // "Not interested" fades a paper in place rather than removing it — you can
+        // still see what you passed on, and change your mind.
+        hideDismissed: false,
+        hideArchived: false,
     }), [query, topicId, quick]);
 
     const results = useMemo(
@@ -60,7 +64,7 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
         const older = byDay.map((d) => d.iso).filter((iso) => !window.includes(iso));
         return [...window, ...older].sort((a, b) => b.localeCompare(a)).map((iso) => {
             const d = dayIndex.get(iso);
-            const unread = d ? d.papers.filter((p) => !(states[p.id] && states[p.id].status !== 'unread')).length : 0;
+            const unread = d ? d.papers.filter((p) => ((states[p.id] || {}).status || 'unread') === 'unread').length : 0;
             return { iso, count: d ? d.count : 0, unread };
         });
     }, [byDay, dayIndex, states]);
@@ -114,7 +118,7 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
                             className={cx(
                                 'mb-1 flex-none rounded-lg border px-2.5 py-1 text-[11px] font-medium transition',
                                 !day
-                                    ? 'border-orange-400/50 bg-orange-400/12 text-orange-200'
+                                    ? 'border-orange-400/50 bg-orange-400/[0.12] text-orange-200'
                                     : 'border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-300',
                             )}
                         >
@@ -139,7 +143,7 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
                                         disabled={!count}
                                         className={cx(
                                             'group flex w-7 flex-none flex-col items-center gap-1 rounded-md pb-1 pt-1 transition',
-                                            active ? 'bg-orange-400/12' : count ? 'hover:bg-white/5' : 'opacity-40',
+                                            active ? 'bg-orange-400/[0.12]' : count ? 'hover:bg-white/5' : 'opacity-40',
                                         )}
                                     >
                                         <span className="flex h-[34px] w-full items-end justify-center">
@@ -148,7 +152,7 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
                                                 className={cx(
                                                     'w-2.5 rounded-sm transition-all',
                                                     active ? 'bg-orange-400'
-                                                        : unread ? 'bg-orange-400/55 group-hover:bg-orange-400/80'
+                                                        : unread ? 'bg-orange-400/[0.55] group-hover:bg-orange-400/80'
                                                             : count ? 'bg-slate-600 group-hover:bg-slate-500' : 'bg-slate-800',
                                                 )}
                                             />
@@ -241,11 +245,11 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
                         <div className="space-y-6">
                             {shownDays.map((group) => {
                                 const unread = group.papers.filter(
-                                    (p) => !(states[p.id] && states[p.id].status !== 'unread'),
+                                    (p) => ((states[p.id] || {}).status || 'unread') === 'unread',
                                 ).length;
                                 return (
                                     <section key={group.iso} data-testid="day-group">
-                                        <div className="sticky top-0 z-10 -mx-2 mb-2 flex items-baseline gap-2 bg-slate-950/85 px-2 py-1.5 backdrop-blur-md">
+                                        <div className="sticky top-0 z-10 -mx-2 mb-2 flex items-baseline gap-2 bg-slate-950/[0.85] px-2 py-1.5 backdrop-blur-md">
                                             <h2 data-testid="day-heading" className="text-[12.5px] font-semibold text-slate-200">
                                                 {group.label}
                                             </h2>
