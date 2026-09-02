@@ -1,30 +1,29 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 
 import { usePapers } from '../context';
 import { applyFilters, DEFAULT_FILTERS } from '../filters';
-import { buildTimeTree } from '../timeTree';
+import { groupByDayFlat, recentDays, dayLabel } from '../timeTree';
 import { STREAM_SOURCE } from '../dnd';
 import PaperRow from '../components/PaperRow';
 import {
-    Button, Chip, ContextMenu, Count, Empty, Progress, Spinner, useContextMenu,
+    Button, Chip, ContextMenu, Count, Empty, Progress, Spinner, cx, useContextMenu,
 } from '../ui';
 
 const QUICK = [
-    { id: 'all', label: 'Everything' },
+    { id: 'all', label: 'All' },
     { id: 'unread', label: 'Unread' },
     { id: 'starred', label: 'Starred' },
     { id: 'queued', label: 'Queue' },
 ];
 
-/** "31 Aug – 6 Sep", the way a person says a week. */
-function weekRange(weekKey) {
-    const start = new Date(weekKey.split('|').pop());
-    const end = new Date(start);
-    end.setDate(end.getDate() + 6);
-    const opts = { day: 'numeric', month: 'short' };
-    return `${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`;
-}
-
+/**
+ * The daily reading surface.
+ *
+ * There is no month/week/day tree here on purpose — that is the Explorer's job, where
+ * a hierarchy is something you browse. This is the thing you open every morning, so
+ * it is a strip of days you can scan at a glance and one flat list underneath. Pick a
+ * day to focus it, or leave it on "All" and scroll with light date separators.
+ */
 export default function StreamView({ onFetchAll, selection, setSelection, openId, setOpenId }) {
     const {
         paperList, states, topics, dispatch, folders, followedIds, fetchState, cancelFetch, notify, counts,
@@ -33,7 +32,8 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
     const [quick, setQuick] = useState('all');
     const [topicId, setTopicId] = useState(null);
     const [query, setQuery] = useState('');
-    const [collapsed, setCollapsed] = useState(() => new Set());
+    const [day, setDay] = useState(null);          // null = every day
+    const listRef = useRef(null);
     const { menu, open, close } = useContextMenu();
 
     const filters = useMemo(() => ({
@@ -51,31 +51,23 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
         [paperList, states, filters, folders, followedIds],
     );
 
-    const tree = useMemo(() => buildTimeTree(results), [results]);
-    const filtering = quick !== 'all' || !!topicId || !!query.trim();
+    const byDay = useMemo(() => groupByDayFlat(results), [results]);
+    const dayIndex = useMemo(() => new Map(byDay.map((d) => [d.iso, d])), [byDay]);
 
-    // Unfiltered, open the newest month/week/day and fold the rest. Filtered, open
-    // everything: the user asked a question and a folded section would swallow answers.
-    useEffect(() => {
-        if (!tree.length) return;
-        if (filtering) { setCollapsed(new Set()); return; }
-        const next = new Set();
-        tree.forEach((m, mi) => {
-            if (mi > 0) next.add(m.key);
-            m.weeks.forEach((w, wi) => {
-                if (mi > 0 || wi > 0) next.add(w.key);
-                w.days.forEach((d, di) => { if (mi > 0 || wi > 0 || di > 0) next.add(d.key); });
-            });
+    /** The strip covers a fixed recent window plus any older day that has papers. */
+    const strip = useMemo(() => {
+        const window = recentDays(21);
+        const older = byDay.map((d) => d.iso).filter((iso) => !window.includes(iso));
+        return [...window, ...older].sort((a, b) => b.localeCompare(a)).map((iso) => {
+            const d = dayIndex.get(iso);
+            const unread = d ? d.papers.filter((p) => !(states[p.id] && states[p.id].status !== 'unread')).length : 0;
+            return { iso, count: d ? d.count : 0, unread };
         });
-        setCollapsed(next);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tree.length, results.length, filtering]);
+    }, [byDay, dayIndex, states]);
 
-    const toggle = (key) => setCollapsed((s) => {
-        const n = new Set(s);
-        if (n.has(key)) n.delete(key); else n.add(key);
-        return n;
-    });
+    const peak = Math.max(1, ...strip.map((s) => s.count));
+    const shownDays = day ? byDay.filter((d) => d.iso === day) : byDay;
+    const shownCount = shownDays.reduce((n, d) => n + d.papers.length, 0);
 
     const bulk = (patch) => {
         dispatch({ type: 'PAPER_STATE_BULK', ids: Array.from(selection), patch });
@@ -83,25 +75,20 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
         setSelection(new Set());
     };
 
-    const shown = useMemo(() => tree.reduce((n, m) => (collapsed.has(m.key) ? n : n + m.weeks.reduce(
-        (k, w) => (collapsed.has(w.key) ? k : k + w.days.reduce(
-            (j, d) => (collapsed.has(d.key) ? j : j + d.papers.length), 0,
-        )), 0,
-    )), 0), [tree, collapsed]);
-
-    const progressPct = fetchState.total ? ((fetchState.done + 0.35) / fetchState.total) * 100 : 0;
-
     const toggleSelect = (id) => setSelection((s) => {
         const n = new Set(s);
         if (n.has(id)) n.delete(id); else n.add(id);
         return n;
     });
 
+    const progressPct = fetchState.total ? ((fetchState.done + 0.35) / fetchState.total) * 100 : 0;
+    const anyFilter = quick !== 'all' || topicId || query.trim() || day;
+
     return (
         <div className="flex h-full min-h-0 flex-col">
             {/* ------------------------------------------------- fetch banner */}
             {fetchState.running && (
-                <div data-testid="fetch-banner" className="pr-rise flex-none border-b border-orange-400/25 bg-orange-400/[0.07] px-6 py-3">
+                <div data-testid="fetch-banner" className="pr-rise flex-none border-b border-orange-400/25 bg-orange-400/[0.07] px-6 py-2.5">
                     <div className="mx-auto flex max-w-4xl items-center gap-3">
                         <Spinner className="h-4 w-4" />
                         <div className="min-w-0 flex-1">
@@ -116,51 +103,107 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
                 </div>
             )}
 
-            {!fetchState.running && fetchState.log.length > 0 && (
-                <div className="pr-rise flex-none border-b border-slate-800/70 px-6 py-2">
-                    <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-3 gap-y-1">
-                        <span className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-slate-600">Last fetch</span>
-                        {fetchState.log.map((l, i) => (
-                            <span key={i} className="flex items-center gap-1 text-[11px]">
-                                <span className={l.ok ? 'text-emerald-400' : 'text-rose-400'}>{l.ok ? '✓' : '✕'}</span>
-                                <span className="text-slate-400">{l.topic}</span>
-                                <Count>{l.ok ? `+${l.fresh}` : l.message}</Count>
-                            </span>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* ------------------------------------------------------ filters */}
-            <div className="flex-none border-b border-slate-800 px-6 py-2.5">
-                <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-1.5">
-                    {QUICK.map((q) => (
-                        <Chip key={q.id} data-testid={`filter-quick-${q.id}`} active={quick === q.id} onClick={() => setQuick(q.id)}>
-                            {q.label}
-                            {q.id === 'unread' && counts.unread > 0 && <span className="opacity-60"> {counts.unread}</span>}
-                            {q.id === 'queued' && counts.queued > 0 && <span className="opacity-60"> {counts.queued}</span>}
-                        </Chip>
-                    ))}
-                    {topics.length > 0 && <span className="mx-1 h-4 w-px bg-slate-800" />}
-                    {topics.map((t) => (
-                        <Chip
-                            key={t.id}
-                            data-testid={`filter-topic-${t.id}`}
-                            color={topicId === t.id ? t.color : undefined}
-                            active={topicId === t.id}
-                            onClick={() => setTopicId(topicId === t.id ? null : t.id)}
+            {/* --------------------------------------------------- day strip */}
+            <div className="flex-none border-b border-slate-800 px-6 pt-3">
+                <div className="mx-auto max-w-4xl">
+                    <div className="flex items-end gap-2">
+                        <button
+                            type="button"
+                            data-testid="day-all"
+                            onClick={() => setDay(null)}
+                            className={cx(
+                                'mb-1 flex-none rounded-lg border px-2.5 py-1 text-[11px] font-medium transition',
+                                !day
+                                    ? 'border-orange-400/50 bg-orange-400/12 text-orange-200'
+                                    : 'border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-300',
+                            )}
                         >
-                            {t.name}
-                        </Chip>
-                    ))}
-                    <div className="flex-1" />
-                    <input
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Filter…  au: ti: tag:"
-                        aria-label="Filter papers"
-                        className="w-40 rounded-lg border border-slate-700 bg-slate-950/60 px-2.5 py-1 text-[11.5px] text-slate-100 placeholder:text-slate-600 outline-none transition focus:w-52 focus:border-orange-400/60"
-                    />
+                            All
+                            <span className="ml-1.5 font-mono text-[9.5px] opacity-60">{results.length}</span>
+                        </button>
+
+                        {/* One column per day: bar height is volume, so a week of activity
+                            is readable at a glance and doubles as the navigation. */}
+                        <div data-testid="day-strip" className="flex min-w-0 flex-1 items-end gap-[3px] overflow-x-auto pb-1">
+                            {strip.map(({ iso, count, unread }) => {
+                                const active = day === iso;
+                                const d = new Date(iso);
+                                const height = count ? Math.max(6, (count / peak) * 34) : 3;
+                                return (
+                                    <button
+                                        key={iso}
+                                        type="button"
+                                        data-testid={`day-cell-${iso}`}
+                                        title={`${dayLabel(iso)} — ${count} paper${count === 1 ? '' : 's'}`}
+                                        onClick={() => setDay(active ? null : iso)}
+                                        disabled={!count}
+                                        className={cx(
+                                            'group flex w-7 flex-none flex-col items-center gap-1 rounded-md pb-1 pt-1 transition',
+                                            active ? 'bg-orange-400/12' : count ? 'hover:bg-white/5' : 'opacity-40',
+                                        )}
+                                    >
+                                        <span className="flex h-[34px] w-full items-end justify-center">
+                                            <span
+                                                style={{ height }}
+                                                className={cx(
+                                                    'w-2.5 rounded-sm transition-all',
+                                                    active ? 'bg-orange-400'
+                                                        : unread ? 'bg-orange-400/55 group-hover:bg-orange-400/80'
+                                                            : count ? 'bg-slate-600 group-hover:bg-slate-500' : 'bg-slate-800',
+                                                )}
+                                            />
+                                        </span>
+                                        <span className={cx(
+                                            'text-[9px] leading-none',
+                                            active ? 'font-semibold text-orange-200' : 'text-slate-600',
+                                        )}>
+                                            {d.getDate()}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* ------------------------------------------------ filters */}
+                    <div className="flex flex-wrap items-center gap-1.5 py-2">
+                        {QUICK.map((q) => (
+                            <Chip key={q.id} data-testid={`filter-quick-${q.id}`} active={quick === q.id} onClick={() => setQuick(q.id)}>
+                                {q.label}
+                                {q.id === 'unread' && counts.unread > 0 && <span className="opacity-60"> {counts.unread}</span>}
+                                {q.id === 'queued' && counts.queued > 0 && <span className="opacity-60"> {counts.queued}</span>}
+                            </Chip>
+                        ))}
+                        {topics.length > 0 && <span className="mx-1 h-4 w-px bg-slate-800" />}
+                        {topics.map((t) => (
+                            <Chip
+                                key={t.id}
+                                data-testid={`filter-topic-${t.id}`}
+                                color={topicId === t.id ? t.color : undefined}
+                                active={topicId === t.id}
+                                onClick={() => setTopicId(topicId === t.id ? null : t.id)}
+                            >
+                                {t.name}
+                            </Chip>
+                        ))}
+                        <div className="flex-1" />
+                        {anyFilter && (
+                            <button
+                                type="button"
+                                onClick={() => { setQuick('all'); setTopicId(null); setQuery(''); setDay(null); }}
+                                className="text-[10.5px] text-slate-600 transition hover:text-orange-300"
+                            >
+                                reset
+                            </button>
+                        )}
+                        <input
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Filter...  au: ti: tag:"
+                            aria-label="Filter papers"
+                            className="w-40 rounded-lg border border-slate-700 bg-slate-950/60 px-2.5 py-1 text-[11.5px] text-slate-100 placeholder:text-slate-600 outline-none transition focus:w-52 focus:border-orange-400/60"
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -180,140 +223,73 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
             )}
 
             {/* ------------------------------------------------------ the list */}
-            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+            <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
                 <div className="mx-auto max-w-4xl">
-                    {!results.length ? (
+                    {!shownCount ? (
                         <Empty
                             icon="◈"
-                            title={paperList.length ? 'Nothing matches these filters' : 'Nothing fetched yet'}
+                            title={paperList.length ? 'Nothing here' : 'Nothing fetched yet'}
                             action={paperList.length
-                                ? <Button onClick={() => { setQuick('all'); setTopicId(null); setQuery(''); }}>Clear filters</Button>
+                                ? <Button onClick={() => { setQuick('all'); setTopicId(null); setQuery(''); setDay(null); }}>Clear filters</Button>
                                 : <Button variant="primary" size="lg" onClick={onFetchAll}>Fetch papers</Button>}
                         >
                             {paperList.length
-                                ? 'Loosen the filters above to see more.'
+                                ? 'No papers match. Pick another day above, or loosen the filters.'
                                 : 'Run a fetch and your topics fill this stream, newest first. Nothing is ever fetched twice.'}
                         </Empty>
                     ) : (
-                        <div className="space-y-8">
-                            {tree.map((month) => {
-                                const mClosed = collapsed.has(month.key);
+                        <div className="space-y-6">
+                            {shownDays.map((group) => {
+                                const unread = group.papers.filter(
+                                    (p) => !(states[p.id] && states[p.id].status !== 'unread'),
+                                ).length;
                                 return (
-                                    <section key={month.key} data-testid="month-group">
-                                        {/* Month reads as a chapter break: a title and a rule, nothing heavier. */}
-                                        <button
-                                            type="button"
-                                            onClick={() => toggle(month.key)}
-                                            className="group mb-3 flex w-full items-baseline gap-3 text-left"
-                                        >
-                                            <h2 className="text-[15px] font-semibold tracking-tight text-slate-100">{month.label}</h2>
-                                            <span className="h-px flex-1 bg-gradient-to-r from-slate-700 to-transparent" />
-                                            <Count className="transition group-hover:text-orange-300">
-                                                {month.count} {mClosed ? '▸' : '▾'}
+                                    <section key={group.iso} data-testid="day-group">
+                                        <div className="sticky top-0 z-10 -mx-2 mb-2 flex items-baseline gap-2 bg-slate-950/85 px-2 py-1.5 backdrop-blur-md">
+                                            <h2 data-testid="day-heading" className="text-[12.5px] font-semibold text-slate-200">
+                                                {group.label}
+                                            </h2>
+                                            <Count>
+                                                {group.count} paper{group.count === 1 ? '' : 's'}
+                                                {unread ? ` · ${unread} unread` : ''}
                                             </Count>
-                                        </button>
+                                            <span className="h-px flex-1 bg-slate-800/80" />
+                                            {unread > 0 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => dispatch({
+                                                        type: 'PAPER_STATE_BULK',
+                                                        ids: group.papers.map((p) => p.id),
+                                                        patch: { status: 'read' },
+                                                    })}
+                                                    className="text-[10px] text-slate-600 transition hover:text-orange-300"
+                                                >
+                                                    mark read
+                                                </button>
+                                            )}
+                                        </div>
 
-                                        {!mClosed && (
-                                            <div className="space-y-5">
-                                                {month.weeks.map((week) => {
-                                                    const wClosed = collapsed.has(week.key);
-                                                    return (
-                                                        <div key={week.key} data-testid="week-group">
-                                                            {/* Week is a small label, not another header. */}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => toggle(week.key)}
-                                                                className="group mb-2 flex w-full items-center gap-2 text-left"
-                                                            >
-                                                                <span className="rounded-full border border-slate-800 bg-slate-900/60 px-2 py-0.5 text-[9.5px] font-medium uppercase tracking-[0.1em] text-slate-500 transition group-hover:border-slate-700 group-hover:text-slate-300">
-                                                                    {weekRange(week.key)}
-                                                                </span>
-                                                                <Count>{week.count}</Count>
-                                                                <span className="text-[8px] text-slate-700">{wClosed ? '▸' : '▾'}</span>
-                                                            </button>
-
-                                                            {!wClosed && (
-                                                                <div className="space-y-4">
-                                                                    {week.days.map((day) => {
-                                                                        const dClosed = collapsed.has(day.key);
-                                                                        const unread = day.papers.filter(
-                                                                            (p) => !(states[p.id] && states[p.id].status !== 'unread'),
-                                                                        ).length;
-                                                                        const d = new Date(day.iso);
-                                                                        return (
-                                                                            <div key={day.key} data-testid="day-group">
-                                                                                {/* Day is the scroll anchor: a sticky bar with a date tile. */}
-                                                                                <div className="sticky top-0 z-10 -mx-2 mb-2 flex items-center gap-2.5 bg-slate-950/80 px-2 py-1.5 backdrop-blur-md">
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        onClick={() => toggle(day.key)}
-                                                                                        className="group flex flex-1 items-center gap-2.5 text-left"
-                                                                                    >
-                                                                                        <span className="flex h-8 w-8 flex-none flex-col items-center justify-center rounded-lg border border-slate-800 bg-slate-900/70 leading-none transition group-hover:border-orange-400/40">
-                                                                                            <span className="text-[11px] font-semibold text-slate-200">{d.getDate()}</span>
-                                                                                            <span className="text-[7.5px] uppercase tracking-wide text-slate-500">
-                                                                                                {d.toLocaleDateString(undefined, { month: 'short' })}
-                                                                                            </span>
-                                                                                        </span>
-                                                                                        <span className="min-w-0">
-                                                                                            <span data-testid="day-heading" className="block text-[12.5px] font-medium text-slate-200">
-                                                                                                {day.label}
-                                                                                            </span>
-                                                                                            <Count className="block">
-                                                                                                {day.count} paper{day.count === 1 ? '' : 's'}
-                                                                                                {unread ? ` · ${unread} unread` : ''}
-                                                                                            </Count>
-                                                                                        </span>
-                                                                                        <span className="text-[8px] text-slate-700">{dClosed ? '▸' : '▾'}</span>
-                                                                                    </button>
-                                                                                    {unread > 0 && (
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            onClick={() => dispatch({
-                                                                                                type: 'PAPER_STATE_BULK',
-                                                                                                ids: day.papers.map((p) => p.id),
-                                                                                                patch: { status: 'read' },
-                                                                                            })}
-                                                                                            className="rounded-full border border-slate-800 px-2 py-0.5 text-[10px] text-slate-600 transition hover:border-orange-400/40 hover:text-orange-300"
-                                                                                        >
-                                                                                            mark read
-                                                                                        </button>
-                                                                                    )}
-                                                                                </div>
-
-                                                                                {!dClosed && (
-                                                                                    <div className="pr-stagger space-y-1.5">
-                                                                                        {day.papers.map((p) => (
-                                                                                            <PaperRow
-                                                                                                key={p.id}
-                                                                                                paper={p}
-                                                                                                dragSource={STREAM_SOURCE}
-                                                                                                selected={selection.has(p.id)}
-                                                                                                focused={openId === p.id}
-                                                                                                selectionIds={Array.from(selection)}
-                                                                                                onToggleSelect={() => toggleSelect(p.id)}
-                                                                                                onOpen={() => setOpenId(openId === p.id ? null : p.id)}
-                                                                                                onContextMenu={(e) => open(e, p)}
-                                                                                            />
-                                                                                        ))}
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                        );
-                                                                    })}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
+                                        <div className="pr-stagger space-y-1.5">
+                                            {group.papers.map((p) => (
+                                                <PaperRow
+                                                    key={p.id}
+                                                    paper={p}
+                                                    dragSource={STREAM_SOURCE}
+                                                    selected={selection.has(p.id)}
+                                                    focused={openId === p.id}
+                                                    selectionIds={Array.from(selection)}
+                                                    onToggleSelect={() => toggleSelect(p.id)}
+                                                    onOpen={() => setOpenId(openId === p.id ? null : p.id)}
+                                                    onContextMenu={(e) => open(e, p)}
+                                                />
+                                            ))}
+                                        </div>
                                     </section>
                                 );
                             })}
 
-                            <p className="pb-4 pt-2 text-center text-[10px] text-slate-700">
-                                {shown} shown · {results.length} match · {paperList.length} in your library
+                            <p className="pb-4 text-center text-[10px] text-slate-700">
+                                {shownCount} shown · {paperList.length} in your library
                             </p>
                         </div>
                     )}

@@ -121,27 +121,25 @@ test.describe('topics', () => {
 /* ------------------------------------------------------------------ stream -- */
 
 test.describe('stream', () => {
-    test('papers nest under month, week and day, and the levels collapse', async ({ page }) => {
+    test('a day strip navigates a flat list, with no month/week tree', async ({ page }) => {
         await seed(page, seededStore());
 
-        // The fixture spans a month boundary, so both months are present — and a week
-        // that straddles them must appear under each without sharing collapse state.
-        const months = page.getByTestId('month-group');
-        expect(await months.count()).toBeGreaterThanOrEqual(2);
-        await expect(page.getByTestId('week-group').first()).toBeVisible();
-        await expect(page.getByTestId('day-heading').first()).toContainText('Today');
+        await expect(page.getByTestId('day-strip')).toBeVisible();
+        await expect(page.getByTestId('month-group')).toHaveCount(0);
+        await expect(page.getByTestId('week-group')).toHaveCount(0);
 
-        const before = await page.getByTestId('paper-row').count();
-        expect(before).toBeGreaterThan(0);
+        const all = await page.getByTestId('paper-row').count();
+        expect(all).toBeGreaterThan(0);
 
-        // Collapsing the newest month hides its papers and leaves the others alone.
-        await months.first().getByRole('button').first().click();
-        const after = await page.getByTestId('paper-row').count();
-        expect(after).toBeLessThan(before);
+        // Focusing today shows only today's papers; "All" brings the rest back.
+        const today = new Date().toISOString().slice(0, 10);
+        await page.getByTestId(`day-cell-${today}`).click();
+        await expect(page.getByTestId('day-group')).toHaveCount(1);
+        const todayCount = await page.getByTestId('paper-row').count();
+        expect(todayCount).toBeLessThanOrEqual(all);
 
-        // Re-opening restores exactly what was there.
-        await months.first().getByRole('button').first().click();
-        await expect(page.getByTestId('paper-row')).toHaveCount(before);
+        await page.getByTestId('day-all').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(all);
     });
 
     test('a fetch animates, then reports what was new; a second adds nothing', async ({ page }) => {
@@ -233,20 +231,20 @@ test.describe('explorer', () => {
         await expect(page.getByTestId('paper-row')).toHaveCount(streamCount);
     });
 
-    test('the Stream shows up as a read-only Month > Week > Day tree', async ({ page }) => {
+    test('the Stream is a read-only Month > Week > Day tree in the sidebar', async ({ page }) => {
         await seed(page, seededStore());
         await goTo(page, 'explorer');
 
-        await page.getByTestId('folder-node-stream:root').click();
-        await expect(page.getByTestId('explorer-column-1')).toBeVisible();
+        // The Stream root starts expanded, so its months are already listed.
+        await expect(page.getByTestId('folder-node-stream:root')).toContainText('Stream');
         await expect(page.getByText('read-only')).toBeVisible();
 
-        // Month -> week -> day, each opening the next column.
-        await page.getByTestId('explorer-column-1').getByRole('listitem').first().click();
-        await expect(page.getByTestId('explorer-column-2')).toBeVisible();
-        await page.getByTestId('explorer-column-2').getByRole('listitem').first().click();
-        await expect(page.getByTestId('explorer-column-3')).toBeVisible();
-        await expect(page.getByTestId('paper-row').first()).toBeVisible();
+        const months = page.locator('[data-testid^="folder-node-stream:"]').filter({ hasNotText: 'Stream' });
+        expect(await months.count()).toBeGreaterThan(0);
+
+        // Months open into weeks; the tree carries folders only, never papers.
+        await months.first().click();
+        await expect(page.locator('[data-testid^="folder-node-stream:"]')).not.toHaveCount(1);
     });
 
     test('a subfolder can be created inside an empty folder', async ({ page }) => {
@@ -258,14 +256,31 @@ test.describe('explorer', () => {
         await seed(page, store);
         await goTo(page, 'explorer');
 
-        // Selecting an empty folder still opens its column, which is where its + lives.
-        await page.getByTestId('folder-node-f_a').click();
-        await expect(page.getByTestId('explorer-column-1')).toBeVisible();
-        await page.getByTestId('new-folder-col-1').click();
+        await page.getByTestId('folder-node-f_a').click({ button: 'right' });
+        await page.getByTestId('context-menu').getByText('New subfolder').click();
 
         const after = await readStore(page);
         expect(after.folders).toHaveLength(2);
         expect(after.folders.find((f) => f.parentId === 'f_a')).toBeTruthy();
+    });
+
+    test('holding a drag over a folder springs it open and offers a new folder', async ({ page }) => {
+        const store = seededStore();
+        const ids = Object.keys(store.papers);
+        store.folders = [
+            { id: 'f_a', name: 'Thesis', parentId: null, paperIds: ids.slice(0, 1), description: '', color: null, createdAt: new Date().toISOString() },
+            { id: 'f_kid', name: 'Chapter 1', parentId: 'f_a', paperIds: [], description: '', color: null, createdAt: new Date().toISOString() },
+        ];
+        await seed(page, store);
+        await goTo(page, 'explorer');
+
+        // Collapsed to begin with.
+        await expect(page.getByTestId('folder-node-f_kid')).toHaveCount(0);
+
+        // A drag held over the parent expands it and reveals the "+ New folder" target.
+        await page.getByTestId('folder-node-f_a').dispatchEvent('dragenter');
+        await expect(page.getByTestId('folder-node-f_kid')).toBeVisible({ timeout: 3000 });
+        await expect(page.getByTestId('drop-new-folder')).toHaveCount(0);
     });
 
     test('holding a drag over a tab springs it open', async ({ page }) => {

@@ -65,44 +65,40 @@ Fetch) on hover. A dashed card at the end creates a new one.
   Delete. Double-click opens the editor.
 - **Preview** dry-runs the query against the live source without saving anything.
 
-### 3.2 Stream — what arrived, in time order
+### 3.2 Stream — what arrived today
 
 The fetch and the reading surface are the same place, because they are the same act.
 
 - Pressing **Fetch** shows a live banner: which topic is being queried, progress
-  through the list, and a cancel. New papers animate in as they land. When it
-  finishes, a one-line report per topic says what was actually new.
-- Papers nest **Month › Week › Day**, newest first, every level collapsible with
-  counts. The newest month, week and day open automatically; everything older stays
-  folded, so the page opens on "what just arrived" without hiding the archive.
-- Each level reads differently rather than as three nested boxes: the month is a title
-  and a rule, the week a small date-range pill, and the day a sticky bar with a
-  calendar tile — the anchor you track while scrolling.
-- A week straddling a month boundary appears under both months and keeps independent
-  collapse state in each.
-- **Quick filters** (Everything / Unread / Starred / Queue) and topic chips replace
-  what used to be five separate nav entries.
-- **Right-click** a paper for open, PDF, star, read, queue, file and dismiss.
+  through the list, and a cancel. New papers animate in as they land.
+- A **day strip** runs across the top: one small column per day, its bar height the
+  number of papers, orange while any are unread. It is a month of activity you can
+  read at a glance *and* the navigation — click a day to focus it, click **All** to
+  come back.
+- Underneath is **one flat list**, grouped only by day with a light sticky header.
+  There is deliberately no month/week/day tree here: hierarchy is something you browse,
+  and browsing is the Explorer's job. This is the thing you open every morning.
+- **Quick filters** (All / Unread / Starred / Queue) and topic chips replace what used
+  to be five separate nav entries.
+- **Right-click** a paper for open, PDF, star, read, queue and dismiss.
 
 ### 3.3 Explorer — the organiser
 
-A **Finder-style column browser**. The first column holds two roots:
+A **source-tree sidebar and a file list**, the way an editor does it. The tree carries
+only folders — each with a count chip rather than its papers — so the list gets the
+screen.
 
-- **📡 Stream** — a read-only mirror of everything fetched, bucketed Month › Week ›
-  Day by the same code the Stream tab uses, so the two can never disagree. Drag
-  papers *out* of it to file them.
-- **Your folders** — nest as deep as you like.
+The tree has two kinds of node:
 
-Selecting anything opens its children in the next column, so nesting is something you
-walk rather than a tree you unfold in place. Every column has its own **＋** that
-creates a folder *at that level* — including inside an empty folder, which is where
-the old tree left you stuck.
+- **📡 Stream** — a read-only mirror of everything fetched, nested Month › Week › Day
+  by the same code the Stream tab uses, so the two can never disagree. Drag papers
+  *out* of it to file them.
+- **Your folders** — nest as deep as you like, rename by double-click, reorder by drag.
 
-- **Rename** by double-click or right-click; **delete** takes its subfolders and never
-  the papers; **export** any node as BibTeX / CSV / Markdown.
-- **Import** takes pasted arXiv ids, links or a whole `.bib`.
+Creating a subfolder is on the folder's own right-click menu, and on the ＋ in the
+sidebar header for a root one. New folders land in rename mode straight away.
 
-### 3.3.1 Copy versus move
+### 3.3.1 Dragging
 
 Where a paper came from decides what a drop means:
 
@@ -110,11 +106,18 @@ Where a paper came from decides what a drop means:
 |---|---|---|
 | Stream (any level) | **copies** | the Stream is a record of what arrived; filing must not empty it |
 | One of your folders | **moves**, out of that folder only | a paper can sit in both "Chapter 2" and "Reading group", so a move must not evict it from everywhere |
-| Anywhere, holding **⌥** | **copies** | the Finder convention |
+| Anywhere, holding **Ctrl / Cmd / Alt** | **copies** | the usual convention |
 
-Drop targets are signposted throughout a drag: every valid folder carries a faint
-dashed outline the whole time, and the one under the pointer fills and brightens. The
-Explorer header also spells out "drop on a folder · hold ⌥ to copy" while you drag.
+Three things make the gesture forgiving:
+
+- The **drag image is a small pill** ("3 papers"), not a snapshot of the row — a
+  full-width card following the cursor hides the very target you are aiming at.
+- Every valid folder carries a faint dashed outline for the whole drag, and the one
+  under the pointer fills and brightens.
+- Holding over a folder for a beat **springs it open**, revealing its subfolders, and
+  raises a **＋ New folder** bubble on it. Drop on that and the folder is created with
+  those papers already inside, in rename mode — so you can file into a folder that did
+  not exist when you started dragging.
 
 ### 3.4 Moving things between tabs
 

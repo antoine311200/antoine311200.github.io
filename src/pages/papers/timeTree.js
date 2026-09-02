@@ -100,3 +100,31 @@ export function papersUnder(tree, key) {
     });
     return out;
 }
+
+/**
+ * A flat day-by-day grouping, newest first.
+ *
+ * The Stream reads as a daily ritual, not an archive, so it groups only by day —
+ * months and weeks are the Explorer's job, where a tree earns its keep.
+ */
+export function groupByDayFlat(papers) {
+    const days = new Map();
+    papers.forEach((p) => {
+        const iso = String(p.firstSeen || p.published || '').slice(0, 10);
+        if (!iso) return;
+        if (!days.has(iso)) days.set(iso, { iso, label: dayLabel(iso), papers: [] });
+        days.get(iso).papers.push(p);
+    });
+    return Array.from(days.values())
+        .sort((a, b) => b.iso.localeCompare(a.iso))
+        .map((d) => ({ ...d, count: d.papers.length }));
+}
+
+/** A contiguous run of days ending today, for the Stream's timeline strip. */
+export function recentDays(span = 30) {
+    const out = [];
+    for (let i = 0; i < span; i += 1) {
+        out.push(new Date(Date.now() - i * 864e5).toISOString().slice(0, 10));
+    }
+    return out;
+}

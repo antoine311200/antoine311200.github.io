@@ -68,12 +68,22 @@ test('opens on the Stream tab with three sections and no sidebar', async () => {
     expect(screen.getAllByRole('tab')).toHaveLength(3);
 });
 
-test('the stream nests papers under month, week and day', async () => {
+test('the stream is a day strip over a flat list, with no month/week tree', async () => {
     await draw(seeded());
-    expect(screen.getByTestId('month-group')).toBeInTheDocument();
-    expect(screen.getByTestId('week-group')).toBeInTheDocument();
+    expect(screen.getByTestId('day-strip')).toBeInTheDocument();
     expect(screen.getByTestId('day-heading')).toHaveTextContent('Today');
     expect(screen.getByText('Entropic Optimal Transport at Scale')).toBeInTheDocument();
+    // The hierarchy lives in the Explorer now, not here.
+    expect(screen.queryByTestId('month-group')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('week-group')).not.toBeInTheDocument();
+});
+
+test('a day cell in the strip focuses that day', async () => {
+    await draw(seeded());
+    const today = new Date().toISOString().slice(0, 10);
+    fireEvent.click(screen.getByTestId(`day-cell-${today}`));
+    expect(screen.getByTestId('day-group')).toBeInTheDocument();
+    expect(screen.getByTestId('day-heading')).toHaveTextContent('Today');
 });
 
 test('clicking a paper opens the detail panel beside the list', async () => {
@@ -83,7 +93,7 @@ test('clicking a paper opens the detail panel beside the list', async () => {
     expect(within(panel).getByText('Abstract')).toBeInTheDocument();
     expect(within(panel).getByText('matches optimal transport')).toBeInTheDocument();
     // The list is still there — the panel does not take over the tab.
-    expect(screen.getByTestId('month-group')).toBeInTheDocument();
+    expect(screen.getByTestId('day-group')).toBeInTheDocument();
 });
 
 test('the Topics tab shows a card per topic plus the create affordance', async () => {
@@ -103,7 +113,7 @@ test('right-clicking a topic opens a context menu', async () => {
     });
 });
 
-test('the Explorer opens a column per level, Finder style', async () => {
+test('the Explorer is a folder tree with count chips, no papers in it', async () => {
     const store = seeded();
     store.folders = [
         makeFolder({ id: 'f_root', name: 'Thesis' }),
@@ -112,15 +122,13 @@ test('the Explorer opens a column per level, Finder style', async () => {
     await draw(store);
     fireEvent.click(screen.getByTestId('tab-explorer'));
 
-    // One column to start: the Stream root plus the user's root folders.
-    expect(screen.getByTestId('explorer-column-0')).toBeInTheDocument();
-    expect(screen.queryByTestId('explorer-column-1')).not.toBeInTheDocument();
-    // The parent holds nothing directly but reports its subtree's one paper.
-    expect(screen.getByTestId('folder-node-f_root')).toHaveTextContent('1');
+    // The parent holds nothing directly but its chip reports the subtree's one paper.
+    const root = screen.getByTestId('folder-node-f_root');
+    expect(root).toHaveTextContent('1');
+    // Children are hidden until the node is expanded.
+    expect(screen.queryByTestId('folder-node-f_kid')).not.toBeInTheDocument();
 
-    // Selecting it opens its children in a second column.
-    fireEvent.click(screen.getByTestId('folder-node-f_root'));
-    expect(screen.getByTestId('explorer-column-1')).toBeInTheDocument();
+    fireEvent.click(root);
     expect(screen.getByTestId('folder-node-f_kid')).toHaveTextContent('Chapter 1');
 });
 
@@ -130,23 +138,26 @@ test('the Stream appears in the Explorer as a read-only date tree', async () => 
 
     const stream = screen.getByTestId('folder-node-stream:root');
     expect(stream).toHaveTextContent('Stream');
-    fireEvent.click(stream);
-
-    // Drilling in gives months, and the contents pane says it cannot be edited.
-    expect(screen.getByTestId('explorer-column-1')).toBeInTheDocument();
+    // It starts expanded, so its months are already in the tree.
     expect(screen.getByText('read-only')).toBeInTheDocument();
+    const monthNodes = screen.getAllByTestId(/^folder-node-stream:\d{4}-\d{2}$/);
+    expect(monthNodes.length).toBeGreaterThan(0);
+
+    // Months open into weeks, weeks into days — all read-only.
+    fireEvent.click(monthNodes[0]);
+    expect(screen.getAllByTestId(/^folder-node-stream:\d{4}-\d{2}\|/).length).toBeGreaterThan(0);
 });
 
-test('every column offers a way to add a folder at that level', async () => {
+test('a subfolder can be created from the folder context menu', async () => {
     const store = seeded();
     store.folders = [makeFolder({ id: 'f_root', name: 'Thesis' })];
     await draw(store);
     fireEvent.click(screen.getByTestId('tab-explorer'));
 
-    expect(screen.getByTestId('new-folder-col-0')).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('folder-node-f_root'));
-    // The second column can create a subfolder of Thesis — no right-click needed.
-    expect(screen.getByTestId('new-folder-col-1')).toBeInTheDocument();
+    fireEvent.contextMenu(screen.getByTestId('folder-node-f_root'));
+    fireEvent.click(within(screen.getByTestId('context-menu')).getByText('New subfolder'));
+    // The new child is created and put straight into rename mode.
+    expect(screen.getByDisplayValue('New folder')).toBeInTheDocument();
 });
 
 test('the detail panel has a PDF tab', async () => {

@@ -9,7 +9,10 @@
  *     change for anyone who does not want one continuous gesture.
  *  3. Source-aware drops — a paper dragged out of the read-only Stream is *copied*
  *     into your folder; one dragged between your own folders is *moved*. Holding
- *     Alt forces a copy either way, as Finder does.
+ *     Ctrl (or Cmd, or Alt) forces a copy either way.
+ *
+ * The drag image is a small pill rather than a snapshot of the row, because a
+ * full-width card following the cursor obscures the very targets you are aiming at.
  */
 
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
@@ -24,6 +27,28 @@ export const STREAM_SOURCE = 'stream';
 const DragContext = createContext(null);
 export const useDrag = () => useContext(DragContext);
 
+/**
+ * Replace the browser's snapshot-of-the-element drag image with a small pill.
+ * The node has to be in the document when `setDragImage` runs, then thrown away.
+ */
+function setDragImage(event, label) {
+    if (!event.dataTransfer.setDragImage) return;
+    const el = document.createElement('div');
+    el.textContent = label;
+    el.style.cssText = [
+        'position:fixed', 'top:-1000px', 'left:-1000px', 'padding:5px 11px',
+        'border-radius:9999px', 'background:#fb923c', 'color:#0f172a',
+        'font:600 11.5px system-ui,sans-serif', 'white-space:nowrap',
+        'box-shadow:0 8px 24px rgba(0,0,0,.45)', 'pointer-events:none',
+    ].join(';');
+    document.body.appendChild(el);
+    event.dataTransfer.setDragImage(el, 14, 14);
+    setTimeout(() => el.remove(), 0);
+}
+
+/** Ctrl, Cmd or Alt all mean "copy, do not move". */
+export const wantsCopy = (event) => !!(event.ctrlKey || event.metaKey || event.altKey);
+
 export function DragProvider({ children, onTabHover }) {
     const [dragging, setDragging] = useState(null);   // { kind, ids, source } | null
     const [shelf, setShelf] = useState([]);
@@ -37,12 +62,14 @@ export function DragProvider({ children, onTabHover }) {
         event.dataTransfer.setData(SOURCE_MIME, source);
         event.dataTransfer.setData('text/plain', list.join(','));
         event.dataTransfer.effectAllowed = 'copyMove';
+        setDragImage(event, list.length === 1 ? '1 paper' : `${list.length} papers`);
         setDragging({ kind: 'paper', ids: list, source });
     }, []);
 
-    const startFolderDrag = useCallback((event, id) => {
+    const startFolderDrag = useCallback((event, id, name = 'folder') => {
         event.dataTransfer.setData(FOLDER_MIME, id);
         event.dataTransfer.effectAllowed = 'move';
+        setDragImage(event, `📁 ${name}`);
         setDragging({ kind: 'folder', ids: [id] });
     }, []);
 
@@ -106,7 +133,7 @@ export function useDropTarget({ onDropPapers, onDropFolder, accept = 'papers', d
         onDragEnter: (e) => { e.preventDefault(); depth.current += 1; setOver(true); },
         onDragOver: (e) => {
             e.preventDefault();
-            e.dataTransfer.dropEffect = e.altKey ? 'copy' : 'move';
+            e.dataTransfer.dropEffect = wantsCopy(e) ? 'copy' : 'move';
         },
         onDragLeave: () => { depth.current -= 1; if (depth.current <= 0) { depth.current = 0; setOver(false); } },
         onDrop: (e) => {
@@ -121,7 +148,7 @@ export function useDropTarget({ onDropPapers, onDropFolder, accept = 'papers', d
             const ids = readPaperIds(e);
             if (!ids.length || !onDropPapers) return;
             const source = readPaperSource(e);
-            onDropPapers(ids, { source, copy: e.altKey || source === STREAM_SOURCE });
+            onDropPapers(ids, { source, copy: wantsCopy(e) || source === STREAM_SOURCE });
         },
     };
     return [over, props];
