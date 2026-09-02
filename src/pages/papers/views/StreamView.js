@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { usePapers } from '../context';
 import { applyFilters, DEFAULT_FILTERS } from '../filters';
@@ -6,7 +6,7 @@ import { groupByDayFlat, recentDays, dayLabel } from '../timeTree';
 import { STREAM_SOURCE } from '../dnd';
 import PaperRow from '../components/PaperRow';
 import {
-    Button, Chip, ContextMenu, Count, Empty, Progress, Spinner, cx, useContextMenu,
+    Button, Chip, ContextMenu, Count, Empty, Progress, Spinner, cx, useContextMenu, useScrollAnchor,
 } from '../ui';
 
 const QUICK = [
@@ -33,8 +33,9 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
     const [topicId, setTopicId] = useState(null);
     const [query, setQuery] = useState('');
     const [day, setDay] = useState(null);          // null = every day
-    const listRef = useRef(null);
     const { menu, open, close } = useContextMenu();
+    // Opening the panel narrows this column and re-wraps every card; hold the reader's place.
+    const [listRef, holdScroll] = useScrollAnchor(openId);
 
     const filters = useMemo(() => ({
         ...DEFAULT_FILTERS,
@@ -283,7 +284,7 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
                                                     focused={openId === p.id}
                                                     selectionIds={Array.from(selection)}
                                                     onToggleSelect={() => toggleSelect(p.id)}
-                                                    onOpen={() => setOpenId(openId === p.id ? null : p.id)}
+                                                    onOpen={() => { holdScroll(); setOpenId(openId === p.id ? null : p.id); }}
                                                     onContextMenu={(e) => open(e, p)}
                                                 />
                                             ))}

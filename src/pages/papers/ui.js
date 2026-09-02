@@ -505,3 +505,80 @@ export function Segmented({ options, isActive, onToggle, className }) {
         </div>
     );
 }
+
+
+/* ------------------------------------------------------------ scroll anchor */
+
+/**
+ * Keep the reader's place across a layout change.
+ *
+ * Opening the detail panel narrows the list, so every card re-wraps and the scroll
+ * offset — a pixel count — no longer points at the same paper. Capture the row at the
+ * top edge before the change, then put it back where it was afterwards.
+ *
+ * Restoring happens in a layout effect, so it lands before the browser paints and the
+ * list never appears to jump.
+ *
+ * @param dep the value whose change triggers the reflow (the open paper's id).
+ * @returns [ref for the scroll container, capture() to call just before the change]
+ */
+export function useScrollAnchor(dep) {
+    const scrollRef = useRef(null);
+    const anchor = useRef(null);
+
+    // Offsets are measured against the container's own top edge, never the
+    // viewport: the header above it can change height too, and that movement
+    // must not be mistaken for the list having scrolled.
+    const offsetOf = (el, node) => node.getBoundingClientRect().top - el.getBoundingClientRect().top;
+
+    const capture = useCallback(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const rows = el.querySelectorAll('[data-paper-id]');
+        anchor.current = null;
+        for (let i = 0; i < rows.length; i += 1) {
+            // The first row still showing below the top edge is what the eye is on.
+            if (rows[i].getBoundingClientRect().bottom > el.getBoundingClientRect().top + 4) {
+                anchor.current = { id: rows[i].dataset.paperId, offset: offsetOf(el, rows[i]) };
+                return;
+            }
+        }
+    }, []);
+
+    useLayoutEffect(() => {
+        const el = scrollRef.current;
+        const held = anchor.current;
+        anchor.current = null;
+        if (!el || !held) return undefined;
+
+        const apply = () => {
+            const node = el.querySelector(`[data-paper-id="${held.id}"]`);
+            if (!node) return;
+            const drift = offsetOf(el, node) - held.offset;
+            if (Math.abs(drift) > 0.5) el.scrollTop += drift;
+        };
+        apply();
+
+        // Opening the panel halves the column, and the titles rewrap over the
+        // next few frames rather than all at once, so one correction is not
+        // enough: keep the row pinned until the reflow settles, and step aside
+        // the moment the reader scrolls for themselves.
+        const inner = el.firstElementChild;
+        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(apply);
+        let timer = null;
+        const stop = () => {
+            if (observer) observer.disconnect();
+            if (timer) clearTimeout(timer);
+            timer = null;
+            el.removeEventListener('wheel', stop);
+            el.removeEventListener('touchstart', stop);
+        };
+        if (observer && inner) observer.observe(inner);
+        el.addEventListener('wheel', stop, { passive: true });
+        el.addEventListener('touchstart', stop, { passive: true });
+        timer = setTimeout(stop, 700);
+        return stop;
+    }, [dep]);
+
+    return [scrollRef, capture];
+}

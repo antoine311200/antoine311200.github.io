@@ -8,7 +8,8 @@ import { applyFilters, DEFAULT_FILTERS, SORTS } from '../filters';
 import { buildTimeTree, papersUnder, dayShort } from '../timeTree';
 import PaperRow from '../components/PaperRow';
 import {
-    Button, ContextMenu, Count, Empty, Modal, Popover, Segmented, cx, shortDate, useContextMenu,
+    Button, ContextMenu, Count, Empty, Modal, Popover, Segmented, cx, shortDate,
+    useContextMenu, useScrollAnchor,
 } from '../ui';
 
 const STREAM_ROOT = 'stream:root';
@@ -606,6 +607,8 @@ function FileList({
 }) {
     const { draggingPapers } = useDrag();
     const readOnly = !selectedFolder;
+    // Same reflow as the Stream when the detail panel opens beside this list.
+    const [listRef, holdScroll] = useScrollAnchor(openId);
 
     const [over, dropProps] = useDropTarget({
         disabled: readOnly,
@@ -672,6 +675,7 @@ function FileList({
 
             <div
                 {...dropProps}
+                ref={listRef}
                 data-testid="folder-drop-pane"
                 className={cx(
                     'min-h-0 flex-1 overflow-y-auto px-5 py-3',
@@ -694,7 +698,7 @@ function FileList({
                                     if (n.has(p.id)) n.delete(p.id); else n.add(p.id);
                                     return n;
                                 })}
-                                onOpen={() => setOpenId(openId === p.id ? null : p.id)}
+                                onOpen={() => { holdScroll(); setOpenId(openId === p.id ? null : p.id); }}
                                 onContextMenu={(e) => onPaperMenu(e, p)}
                             />
                         ))}

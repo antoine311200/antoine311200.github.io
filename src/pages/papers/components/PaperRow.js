@@ -46,6 +46,42 @@ const EDGE = {
     dismissed: 'bg-slate-700',
 };
 
+
+/**
+ * How well this paper matches what you asked for.
+ *
+ * The raw score is only meaningful next to the other papers in the list, so the bars
+ * carry the comparison and the number is there for anyone who wants it. The tooltip
+ * spells out the actual reasons.
+ */
+function MatchMeter({ score, title }) {
+    const level = score >= 60 ? 3 : score >= 30 ? 2 : score > 0 ? 1 : 0;
+    const tone = level === 3 ? 'text-orange-200 border-orange-400/40 bg-orange-400/10'
+        : level === 2 ? 'text-slate-300 border-slate-700 bg-slate-800/50'
+            : 'text-slate-500 border-slate-800 bg-slate-900/60';
+    const bar = level === 3 ? 'bg-orange-300' : level === 2 ? 'bg-slate-400' : 'bg-slate-600';
+
+    return (
+        <span
+            title={title}
+            data-testid="score-chip"
+            className={cx('inline-flex cursor-help items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px]', tone)}
+        >
+            <span className="flex items-end gap-[1.5px]" aria-hidden>
+                {[3, 5, 7].map((h, i) => (
+                    <span
+                        key={h}
+                        style={{ height: `${h}px` }}
+                        className={cx('w-[2px] rounded-[1px]', i < level ? bar : 'bg-slate-700/70')}
+                    />
+                ))}
+            </span>
+            <span className="font-mono tabular-nums">{score}</span>
+            <span className="opacity-70">match</span>
+        </span>
+    );
+}
+
 /**
  * One paper in a list. Draggable everywhere, so the same row works in the Stream,
  * in a folder, and on the shelf.
@@ -161,6 +197,7 @@ export default function PaperRow({
 
                     {!dense && (
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            <MatchMeter score={paper.score || 0} title={scoreTitle} />
                             <span className="font-mono text-[10px] text-slate-600">{shortDate(paper.published)}</span>
                             {topicChips.map((t) => <Chip key={t.id} color={t.color}>{t.name}</Chip>)}
                             {citations > 0 && <Chip title="Citations, via OpenAlex">{citations} cites</Chip>}
@@ -173,19 +210,6 @@ export default function PaperRow({
                 </div>
 
                 <div className="flex flex-none items-center gap-0.5 self-start">
-                    <span
-                        title={scoreTitle}
-                        data-testid="score-chip"
-                        className={cx(
-                            'mr-1 cursor-help rounded-full border px-1.5 py-0.5 font-mono text-[10px] tabular-nums',
-                            (paper.score || 0) >= 60
-                                ? 'border-orange-400/40 bg-orange-400/10 text-orange-200'
-                                : 'border-slate-800 bg-slate-900/60 text-slate-500',
-                        )}
-                    >
-                        {paper.score || 0}
-                    </span>
-
                     <IconButton
                         label={st.starred ? 'Unstar' : 'Star'}
                         active={st.starred}

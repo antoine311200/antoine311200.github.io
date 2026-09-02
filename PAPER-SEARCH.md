@@ -171,15 +171,20 @@ Reading state shows as a **coloured edge** on the card — sky for read later, g
 read, grey for dismissed — and starred tints the whole border amber. There is no dot
 inside the title: state belongs to the card, not to the sentence.
 
-The number on the right is the **relevance score**: keyword matches weighted by title
-over abstract, plus boosts for followed authors and for vocabulary you have starred
-before, decayed by age. It is why the list is in the order it is, and hovering it
-lists the specific reasons.
+The **relevance score** reads as a small three-bar meter at the head of the metadata
+line — `▂▄▆ 78 match`, next to the date and the authors, where the rest of the card's
+facts are — rather than floating alone on the right where it looked like a count of
+something. Keyword matches weighted by title over abstract, plus boosts for followed
+authors and for vocabulary you have starred before, decayed by age. It is why the list
+is in the order it is, and hovering it lists the specific reasons.
 
 ### 3.5.1 The reading panel
 
 Slides in beside whatever list you are in rather than taking the tab over, so you keep
-your place. Four tabs: **Overview** (TL;DR, abstract, authors with a follow switch, why
+your place — literally: the panel halves the width of the list, which rewraps every
+title over the following few frames, so both lists anchor on the paper at their top
+edge and re-pin it as the reflow settles (`useScrollAnchor`). Clicking a card now
+leaves the list exactly where it was, and the anchor lets go the moment you scroll. Four tabs: **Overview** (TL;DR, abstract, authors with a follow switch, why
 it surfaced, every outbound link, BibTeX), **PDF** (the arXiv PDF filling the panel,
 with an escape hatch to a real tab for browsers that refuse to frame it), **Notes**
 (tags, markdown notes, folder membership) and **Related** (TF-IDF neighbours).
