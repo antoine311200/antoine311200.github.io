@@ -81,6 +81,38 @@ The fetch and the reading surface are the same place, because they are the same 
 - **Quick filters** (All / Unread / Starred / Queue) and topic chips replace what used
   to be five separate nav entries.
 - **Right-click** a paper for open, PDF, star, read, queue and dismiss.
+- A **+ Added** chip appears once anything has been added by hand, because those
+  papers answer to no topic and would otherwise be the one thing in the stream you
+  could not filter down to. They also carry a **+ added** chip on the card in place of
+  the relevance meter — a meter there would be scoring the paper against a question
+  nobody asked. They enter under the day you added them, which is what the stream is
+  a record of: not when a paper was written, but when it reached you.
+
+### 3.2.1 Adding a paper by hand
+
+Topics sweep on a schedule; **+ Add** in the top bar is the other half — the paper a
+colleague just mentioned, the one in a bibliography, the one you half-remember. Search
+by title, abstract or author, or paste an arXiv id, an abs/pdf URL or a DOI; tick what
+you want and it joins the corpus with everything else.
+
+Three things this had to get right, each found by running it against the live index:
+
+- **A published paper is still a preprint.** OpenAlex files a paper that made it into a
+  journal under the journal, with the arXiv copy further down its `locations`. Reading
+  only the primary location hid exactly the famous papers people search for by name, so
+  every location is now read before a work is dismissed as not-on-arXiv.
+- **One question is not enough.** A text query is asked three ways at once — against the
+  whole index, against arXiv alone, and as an author name — and merged in that order. The
+  open index ranks a well-known title first; the arXiv-only pass rescues queries like
+  "Yang Song diffusion", where the open index answers with fifty papers that have no
+  preprint; the author pass is there because a name is as likely a way in as a title.
+- **arXiv ids do not resolve by DOI.** Only newer preprints carry a `10.48550` DOI, so an
+  id is looked up through its landing page (`http://`, not `https://` — that is how they
+  are stored), with the DOI as fallback.
+
+Titles and names arrive carrying arXiv's LaTeX — `Sinkhorn\n Divergences`,
+`S\'ejourn\'e`, `Fran\c{c}ois` — so they are put back into readable text on the way
+in, for topic fetches as much as for this.
 
 ### 3.3 Explorer — the organiser
 

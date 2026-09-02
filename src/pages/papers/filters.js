@@ -86,6 +86,7 @@ const cmpDate = (a, b) => String(a.published || '').localeCompare(String(b.publi
 export const DEFAULT_FILTERS = {
     query: '',
     topicIds: [],
+    origins: [],         // 'topic' | 'search'
     statuses: [],
     categories: [],
     tags: [],
@@ -119,6 +120,7 @@ export function applyFilters(paperList, states, filters, { folders = [], followe
         if (filters.followedOnly && !followedIds.has(p.id)) return false;
         if (folderSet && !folderSet.has(p.id)) return false;
         if (filters.topicIds.length && !(p.topicIds || []).some((t) => filters.topicIds.includes(t))) return false;
+        if (filters.origins.length && !filters.origins.includes(p.origin || 'topic')) return false;
         if (filters.categories.length && !(p.categories || []).some((c) => filters.categories.includes(c))) return false;
         if (filters.tags.length && !(st.tags || []).some((t) => filters.tags.includes(t))) return false;
         if (filters.minScore != null && (p.score || 0) < filters.minScore) return false;

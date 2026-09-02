@@ -96,6 +96,8 @@ export default function PaperRow({
 
     const patch = (p) => dispatch({ type: 'PAPER_STATE', id: paper.id, patch: p });
     const topicChips = (paper.topicIds || []).map((id) => topics.find((t) => t.id === id)).filter(Boolean);
+    // Only until a topic catches up with it — then the topic's chips say more.
+    const byHand = paper.origin === 'search' && topicChips.length === 0;
     const followed = new Set(
         (paper.authors || [])
             .filter((a) => { const r = authors[authorKey(a.name)]; return r && r.followedAt; })
@@ -197,7 +199,19 @@ export default function PaperRow({
 
                     {!dense && (
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                            <MatchMeter score={paper.score || 0} title={scoreTitle} />
+                            {/* A hand-added paper answers to no topic, so a relevance
+                                meter would be scoring it against a question nobody
+                                asked. It says where it came from instead. */}
+                            {byHand
+                                ? (
+                                    <Chip
+                                        title="You added this one by hand from a search"
+                                        className="!border-sky-400/30 !bg-sky-500/10 !text-sky-300"
+                                    >
+                                        + added
+                                    </Chip>
+                                )
+                                : <MatchMeter score={paper.score || 0} title={scoreTitle} />}
                             <span className="font-mono text-[10px] text-slate-600">{shortDate(paper.published)}</span>
                             {topicChips.map((t) => <Chip key={t.id} color={t.color}>{t.name}</Chip>)}
                             {citations > 0 && <Chip title="Citations, via OpenAlex">{citations} cites</Chip>}

@@ -20,7 +20,7 @@ const API = 'https://api.openalex.org/works';
 
 const FIELDS = [
     'id', 'doi', 'title', 'publication_date', 'abstract_inverted_index',
-    'authorships', 'cited_by_count', 'primary_location', 'type',
+    'authorships', 'cited_by_count', 'primary_location', 'locations', 'type',
 ].join(',');
 
 /** OpenAlex stores abstracts as {word: [positions]}; put them back in order. */
@@ -33,15 +33,28 @@ export function reconstructAbstract(index) {
     return words.join(' ').replace(/\s+/g, ' ').trim();
 }
 
-/** "https://doi.org/10.48550/arxiv.2608.28262" -> "2608.28262" */
+/**
+ * "https://doi.org/10.48550/arxiv.2608.28262" -> "2608.28262".
+ *
+ * A paper that went on to be published has the journal as its primary location
+ * and the preprint further down the `locations` list, so every location is
+ * worth reading before giving up — otherwise the best-known papers in a field
+ * are exactly the ones that look like they are not on arXiv.
+ */
 export function arxivIdFromWork(work) {
-    const doi = String(work.doi || '');
-    const m = doi.match(/10\.48550\/arxiv\.(.+)$/i);
-    if (m) return m[1].replace(/v\d+$/i, '');
+    const places = [
+        work.doi,
+        ...[work.primary_location, ...(work.locations || [])].filter(Boolean)
+            .flatMap((l) => [l.landing_page_url, l.pdf_url]),
+    ].filter(Boolean);
 
-    const landing = (work.primary_location && work.primary_location.landing_page_url) || '';
-    const abs = landing.match(/arxiv\.org\/abs\/(.+?)(?:v\d+)?$/i);
-    if (abs) return abs[1];
+    for (let i = 0; i < places.length; i += 1) {
+        const url = String(places[i]);
+        const doi = url.match(/10\.48550\/arxiv\.(.+?)(?:v\d+)?$/i);
+        if (doi) return doi[1];
+        const abs = url.match(/arxiv\.org\/(?:abs|pdf)\/(.+?)(?:v\d+)?$/i);
+        if (abs) return abs[1];
+    }
     return null;
 }
 
@@ -77,13 +90,39 @@ export function buildFilter(topic, { sinceDays = 30 } = {}) {
     return { filter: clauses.join(','), ignoredCategories: topic.categories || [] };
 }
 
+/* ------------------------------------------------------------------- LaTeX */
+
+/* OpenAlex passes arXiv's LaTeX straight through, so titles arrive carrying
+   "Sinkhorn\n Divergences" and authors as "S\'ejourn\'e" or "Fran\c{c}ois". */
+const ACCENTS = {
+    "'": { a: 'á', e: 'é', i: 'í', o: 'ó', u: 'ú', y: 'ý', c: 'ć', n: 'ń', s: 'ś', z: 'ź', A: 'Á', E: 'É', I: 'Í', O: 'Ó', U: 'Ú' },
+    '`': { a: 'à', e: 'è', i: 'ì', o: 'ò', u: 'ù', A: 'À', E: 'È', I: 'Ì', O: 'Ò', U: 'Ù' },
+    '"': { a: 'ä', e: 'ë', i: 'ï', o: 'ö', u: 'ü', y: 'ÿ', A: 'Ä', E: 'Ë', O: 'Ö', U: 'Ü' },
+    '^': { a: 'â', e: 'ê', i: 'î', o: 'ô', u: 'û', A: 'Â', E: 'Ê', I: 'Î', O: 'Ô', U: 'Û' },
+    '~': { a: 'ã', n: 'ñ', o: 'õ', A: 'Ã', N: 'Ñ', O: 'Õ' },
+    c: { c: 'ç', s: 'ş', C: 'Ç', S: 'Ş' },
+    v: { c: 'č', s: 'š', z: 'ž', r: 'ř', e: 'ě', C: 'Č', S: 'Š', Z: 'Ž' },
+    '.': { z: 'ż', Z: 'Ż' },
+};
+
+/** Turn a TeX-flavoured string back into something a person can read. */
+export function deTex(raw) {
+    let out = String(raw || '').replace(/\\n/g, ' ');   // a literal backslash-n, not a newline
+    out = out.replace(/\\([`'"^~vc.])\s*\{?([A-Za-z])\}?/g, (m, mark, ch) => (ACCENTS[mark] || {})[ch] || ch);
+    out = out.replace(/\\ss/g, 'ß').replace(/\\o\b/g, 'ø').replace(/\\aa\b/g, 'å').replace(/\\&/g, '&');
+    // Anything left keeps its name rather than vanishing: \alpha reads better as
+    // "alpha" than as the hole it would leave in "$\alpha$-divergence".
+    out = out.replace(/\\([a-zA-Z]+)/g, '$1');
+    return out.replace(/[{}$\\]/g, '').replace(/\s+/g, ' ').trim();
+}
+
 /** Map an OpenAlex work onto the same entry shape the arXiv parser produces. */
 function toEntry(work) {
     const id = arxivIdFromWork(work);
     if (!id) return null;
 
     const authors = (work.authorships || []).map((a) => ({
-        name: (a.author && a.author.display_name) || '',
+        name: deTex((a.author && a.author.display_name) || ''),
         affiliation: (a.institutions && a.institutions[0] && a.institutions[0].display_name) || null,
     })).filter((a) => a.name);
 
@@ -92,8 +131,8 @@ function toEntry(work) {
     return {
         id,
         version: 1,                       // OpenAlex does not track arXiv versions
-        title: String(work.title || '').replace(/\s+/g, ' ').trim(),
-        summary: reconstructAbstract(work.abstract_inverted_index),
+        title: deTex(work.title),
+        summary: deTex(reconstructAbstract(work.abstract_inverted_index)),
         authors,
         categories: [],                   // not carried by OpenAlex
         primary: null,
@@ -143,6 +182,115 @@ export async function searchTopic(topic, { max = 60, sinceDays = 30, signal, mai
         strategy: 'openalex',
         ignoredCategories,
     };
+}
+
+/* ------------------------------------------------------------ direct lookup */
+
+const NEW_ID = /(?:^|arxiv[:/]|abs\/|pdf\/)(\d{4}\.\d{4,5})(?:v\d+)?/i;
+const OLD_ID = /(?:^|arxiv[:/]|abs\/|pdf\/)([a-z-]+(?:\.[A-Z]{2})?\/\d{7})(?:v\d+)?/i;
+const DOI = /\b(10\.\d{4,9}\/[^\s"'<>]+)/i;
+
+/** Pull an arXiv id out of an id, an abs/pdf URL, or an `arXiv:` citation string. */
+export function arxivIdFromInput(raw) {
+    const text = String(raw || '').trim();
+    const hit = text.match(NEW_ID) || text.match(OLD_ID);
+    return hit ? hit[1] : null;
+}
+
+/* A comma or a colon would be read as filter syntax rather than as words. */
+const searchable = (s) => String(s).replace(/[,:|]/g, ' ').replace(/\s+/g, ' ').trim();
+
+/**
+ * One-off lookup behind "add a paper": free text, an arXiv id, a DOI, or a
+ * pasted arXiv URL. Unlike a topic fetch there is no date window — you are
+ * usually after one specific thing, and it is usually not from this week.
+ *
+ * Text search is deliberately *not* pinned to the arXiv source: a paper that
+ * was later published lists the journal as its primary source, and pinning
+ * would hide the very papers most likely to be asked for by name. Anything
+ * with no arXiv copy at all is dropped, and counted, so the modal can say so.
+ */
+export async function searchFreeText(input, { max = 25, mailto, signal } = {}) {
+    const raw = String(input || '').trim();
+    if (!raw) return { entries: [], total: 0, exact: false, skipped: 0 };
+
+    const run = async (filter, perPage) => {
+        const params = new URLSearchParams({ filter, select: FIELDS });
+        params.set('per-page', String(Math.min(perPage, 50)));
+        if (mailto) params.set('mailto', mailto);
+
+        const res = await fetch(`${API}?${params.toString()}`, { signal });
+        if (res.status === 429) throw new Error('OpenAlex is rate-limiting — wait a minute and retry');
+        if (!res.ok) throw new Error(`OpenAlex returned HTTP ${res.status}`);
+        const json = await res.json();
+        const works = json.results || [];
+
+        // OpenAlex sometimes holds two records for one preprint; the first is
+        // the better-ranked, so later duplicates only top up the citations.
+        const byId = new Map();
+        works.forEach((w) => {
+            const entry = toEntry(w);
+            if (!entry) return;
+            const prev = byId.get(entry.id);
+            if (!prev) byId.set(entry.id, entry);
+            else if ((entry.citations || 0) > (prev.citations || 0)) prev.citations = entry.citations;
+        });
+        return {
+            entries: Array.from(byId.values()).slice(0, max),
+            total: json.meta ? json.meta.count : null,
+            skipped: works.length - byId.size,
+        };
+    };
+
+    const arxivId = arxivIdFromInput(raw);
+    const doi = arxivId ? null : (raw.match(DOI) || [])[1];
+
+    /* OpenAlex cannot OR across fields in one filter, so a text query is three
+       questions asked at once and merged in order of how likely each is to hold
+       the paper being looked for:
+         1. the whole index — where a famous paper ranks first, preprint or not;
+         2. the same words pinned to arXiv — which is all that is left when the
+            open index answers with fifty chemistry papers and no preprints;
+         3. the words as an author name — because a name is as likely a way in
+            as a title. */
+    const byText = async () => {
+        const words = searchable(raw);
+        const spare = { entries: [], skipped: 0 };
+        const [wide, onArxiv, byAuthor] = await Promise.all([
+            run(`title_and_abstract.search:${words}`, 50),
+            run(`primary_location.source.id:${ARXIV_SOURCE},title_and_abstract.search:${words}`, 25).catch(() => spare),
+            run(`raw_author_name.search:${words}`, 25).catch(() => spare),
+        ]);
+        const seen = new Set();
+        const merged = [];
+        [wide, onArxiv, byAuthor].forEach(({ entries }) => entries.forEach((e) => {
+            if (seen.has(e.id)) return;
+            seen.add(e.id);
+            merged.push(e);
+        }));
+        return {
+            entries: merged.slice(0, max),
+            total: wide.total,
+            // Only worth mentioning what was dropped if nothing replaced it.
+            skipped: merged.length ? 0 : wide.skipped,
+        };
+    };
+
+    if (arxivId) {
+        // The preprint is listed under http, not https, in OpenAlex's locations.
+        const hit = await run(`locations.landing_page_url:http://arxiv.org/abs/${arxivId}`, 5);
+        if (hit.entries.length) return { ...hit, exact: true };
+        const viaDoi = await run(`doi:10.48550/arxiv.${arxivId.toLowerCase()}`, 5);
+        if (viaDoi.entries.length) return { ...viaDoi, exact: true };
+        return { ...(await byText()), exact: false };
+    }
+
+    if (doi) {
+        const hit = await run(`doi:${doi.replace(/[.,;]+$/, '')}`, 5);
+        if (hit.entries.length) return { ...hit, exact: true };
+    }
+
+    return { ...(await byText()), exact: false };
 }
 
 /** Free-form probe used by the topic preview. */

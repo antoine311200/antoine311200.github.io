@@ -245,6 +245,57 @@ test.describe('stream', () => {
     });
 });
 
+/* -------------------------------------------------------------- adding by hand -- */
+
+test.describe('adding a paper by hand', () => {
+    test('search, tick, and it lands in the stream marked as added', async ({ page }) => {
+        const calls = await stubOpenAlex(page, [
+            { arxivId: '2608.70001', title: 'A paper someone mentioned', citations: 12 },
+            { arxivId: '2608.70002', title: 'Another from the same search' },
+        ]);
+        await seed(page, makeStore({ topics: [makeTopic({ id: 't_ot', name: 'Optimal Transport' })] }));
+
+        await page.getByTestId('open-search').click();
+        await page.getByTestId('search-input').fill('a paper someone mentioned');
+        await page.getByTestId('run-search').click();
+
+        await expect(page.getByTestId('search-result')).toHaveCount(2);
+        expect(calls.count).toBeGreaterThan(0);
+
+        // Nothing is added until something is ticked.
+        await expect(page.getByTestId('add-selected')).toBeDisabled();
+        await page.getByTestId('search-result').first().click();
+        await page.getByTestId('add-selected').click();
+
+        const store = await readStore(page);
+        expect(store.papers['2608.70001'].origin).toBe('search');
+        expect(store.papers['2608.70001'].topicIds).toEqual([]);
+        expect(store.papers['2608.70002']).toBeUndefined();
+
+        // And the stream can single it out, since it answers to no topic.
+        await goTo(page, 'stream');
+        await expect(page.getByText('A paper someone mentioned')).toBeVisible();
+        await page.getByTestId('filter-added').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(1);
+    });
+
+    test('a paper already held is offered but cannot be added twice', async ({ page }) => {
+        const store = seededStore();
+        const held = Object.keys(store.papers)[0];
+        await stubOpenAlex(page, [{ arxivId: held, title: store.papers[held].title }]);
+        await seed(page, store);
+
+        await page.getByTestId('open-search').click();
+        await page.getByTestId('search-input').fill(held);
+        await page.getByTestId('run-search').click();
+
+        const row = page.getByTestId('search-result').first();
+        await expect(row).toBeDisabled();
+        await expect(row.getByText('in library')).toBeVisible();
+        await expect(page.getByTestId('add-selected')).toBeDisabled();
+    });
+});
+
 /* ---------------------------------------------------------------- explorer -- */
 
 test.describe('explorer', () => {

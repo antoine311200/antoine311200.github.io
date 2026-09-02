@@ -8,6 +8,7 @@ import TopicsView from './views/TopicsView';
 import StreamView from './views/StreamView';
 import ExplorerView from './views/ExplorerView';
 import SettingsModal from './views/SettingsModal';
+import SearchModal from './views/SearchModal';
 import PaperPanel from './components/PaperPanel';
 import { Button, Count, PAGE_BACKGROUND, ResizeHandle, Spinner, cx, useResizable } from './ui';
 
@@ -28,6 +29,7 @@ function Shell({ tab, setTab }) {
     const [openId, setOpenId] = useState(null);
     const [selection, setSelection] = useState(() => new Set());
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
 
     // The reading panel keeps the width you last dragged it to. The ceiling is
     // whatever leaves the list still readable beside it.
@@ -95,6 +97,7 @@ function Shell({ tab, setTab }) {
                 onFetchAll={fetchAll}
                 running={fetchState.running}
                 onSettings={() => setSettingsOpen(true)}
+                onSearch={() => setSearchOpen(true)}
             />
 
             {error && (
@@ -159,13 +162,14 @@ function Shell({ tab, setTab }) {
             )}
 
             <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+            <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
         </div>
     );
 }
 
 /* ------------------------------------------------------------------ top bar */
 
-function TopBar({ tab, setTab, counts, onFetchAll, running, onSettings }) {
+function TopBar({ tab, setTab, counts, onFetchAll, running, onSettings, onSearch }) {
     const { springProps, dragging } = useDrag();
 
     return (
@@ -207,6 +211,20 @@ function TopBar({ tab, setTab, counts, onFetchAll, running, onSettings }) {
             <div className="flex-1" />
 
             <Count className="hidden sm:block">{counts.total.toLocaleString()} papers</Count>
+
+            {/* Topics sweep on a schedule; this is for the one paper you were told
+                about five minutes ago. */}
+            <Button
+                size="md"
+                onClick={onSearch}
+                data-testid="open-search"
+                title="Add a paper by searching arXiv"
+                className="!px-2.5"
+                aria-label="Add a paper"
+            >
+                <span className="text-[15px] leading-none">+</span>
+                <span className="hidden md:inline">Add</span>
+            </Button>
 
             <Button variant="primary" size="md" onClick={onFetchAll} disabled={running} data-testid="fetch-all">
                 {running ? <><Spinner className="!border-slate-800 !border-t-slate-950" /> Fetching</> : 'Fetch'}

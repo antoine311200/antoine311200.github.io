@@ -31,6 +31,7 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
 
     const [quick, setQuick] = useState('all');
     const [topicId, setTopicId] = useState(null);
+    const [addedOnly, setAddedOnly] = useState(false);
     const [query, setQuery] = useState('');
     const [day, setDay] = useState(null);          // null = every day
     const { menu, open, close } = useContextMenu();
@@ -42,6 +43,7 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
         query,
         sort: 'relevance',
         topicIds: topicId ? [topicId] : [],
+        origins: addedOnly ? ['search'] : [],
         unreadOnly: quick === 'unread',
         starredOnly: quick === 'starred',
         statuses: quick === 'queued' ? ['queued', 'reading'] : [],
@@ -49,12 +51,16 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
         // still see what you passed on, and change your mind.
         hideDismissed: false,
         hideArchived: false,
-    }), [query, topicId, quick]);
+    }), [query, topicId, quick, addedOnly]);
 
     const results = useMemo(
         () => applyFilters(paperList, states, filters, { folders, followedIds }),
         [paperList, states, filters, folders, followedIds],
     );
+
+    // Papers that came in by hand belong to no topic, so without a chip of their
+    // own they would be the only thing in the stream you cannot filter down to.
+    const addedCount = useMemo(() => paperList.filter((p) => p.origin === 'search').length, [paperList]);
 
     const byDay = useMemo(() => groupByDayFlat(results), [results]);
     const dayIndex = useMemo(() => new Map(byDay.map((d) => [d.iso, d])), [byDay]);
@@ -87,7 +93,7 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
     });
 
     const progressPct = fetchState.total ? ((fetchState.done + 0.35) / fetchState.total) * 100 : 0;
-    const anyFilter = quick !== 'all' || topicId || query.trim() || day;
+    const anyFilter = quick !== 'all' || topicId || query.trim() || day || addedOnly;
 
     return (
         <div className="flex h-full min-h-0 flex-col">
@@ -191,11 +197,21 @@ export default function StreamView({ onFetchAll, selection, setSelection, openId
                                 {t.name}
                             </Chip>
                         ))}
+                        {addedCount > 0 && (
+                            <Chip
+                                data-testid="filter-added"
+                                active={addedOnly}
+                                title="Papers you looked up and added by hand"
+                                onClick={() => setAddedOnly((v) => !v)}
+                            >
+                                + Added<span className="opacity-60"> {addedCount}</span>
+                            </Chip>
+                        )}
                         <div className="flex-1" />
                         {anyFilter && (
                             <button
                                 type="button"
-                                onClick={() => { setQuick('all'); setTopicId(null); setQuery(''); setDay(null); }}
+                                onClick={() => { setQuick('all'); setTopicId(null); setQuery(''); setDay(null); setAddedOnly(false); }}
                                 className="text-[10.5px] text-slate-600 transition hover:text-orange-300"
                             >
                                 reset

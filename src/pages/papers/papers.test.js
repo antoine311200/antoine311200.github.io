@@ -6,7 +6,7 @@ import {
     mergeStores, emptyStore, authorKey, prune, makeTopic, makeFolder,
     folderPath, folderSubtree, papersInFolder, canMoveFolder,
 } from './storage';
-import { buildFilter, reconstructAbstract, arxivIdFromWork } from './openalex';
+import { buildFilter, reconstructAbstract, arxivIdFromWork, arxivIdFromInput, deTex } from './openalex';
 
 const ATOM = `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:arxiv="http://arxiv.org/schemas/atom"
@@ -271,6 +271,37 @@ describe('openalex', () => {
         })).toBe('2401.05555');
         // A non-arXiv work has no id we can key on and must be skipped.
         expect(arxivIdFromWork({ doi: 'https://doi.org/10.1000/other' })).toBeNull();
+    });
+
+    test('finds the preprint even when the journal is the primary location', () => {
+        // The best-known papers are exactly the ones that were later published,
+        // so refusing to look past primary_location would hide them.
+        expect(arxivIdFromWork({
+            doi: 'https://doi.org/10.1109/some.conference',
+            primary_location: { landing_page_url: 'https://ieeexplore.ieee.org/x' },
+            locations: [
+                { landing_page_url: 'https://ieeexplore.ieee.org/x' },
+                { landing_page_url: 'http://arxiv.org/abs/1706.03762', pdf_url: null },
+            ],
+        })).toBe('1706.03762');
+    });
+
+    test('reads an arXiv id out of whatever was pasted', () => {
+        expect(arxivIdFromInput('2301.12345')).toBe('2301.12345');
+        expect(arxivIdFromInput('arXiv:2301.12345v3')).toBe('2301.12345');
+        expect(arxivIdFromInput('https://arxiv.org/abs/1706.03762')).toBe('1706.03762');
+        expect(arxivIdFromInput('https://arxiv.org/pdf/math/0211159')).toBe('math/0211159');
+        expect(arxivIdFromInput('entropic optimal transport')).toBeNull();
+    });
+
+    test('puts arXiv LaTeX back into readable text', () => {
+        expect(deTex(String.raw`Sinkhorn\n Divergences`)).toBe('Sinkhorn Divergences');
+        expect(deTex(String.raw`S\'ejourn\'e`)).toBe('Séjourné');
+        expect(deTex(String.raw`Fran\c{c}ois-Xavier`)).toBe('François-Xavier');
+        expect(deTex('Harnack and $W$-entropy')).toBe('Harnack and W-entropy');
+        // An unknown command keeps its name rather than leaving a hole.
+        expect(deTex(String.raw`$\alpha$-divergence`)).toBe('alpha-divergence');
+        expect(deTex('An ordinary title')).toBe('An ordinary title');
     });
 
     test('builds a filter scoped to arXiv with OR-ed phrases and exclusions', () => {

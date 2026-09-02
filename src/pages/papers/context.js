@@ -99,7 +99,15 @@ function reducer(state, action) {
                     };
                 } else {
                     added += 1;
-                    papers[entry.id] = { ...entry, firstSeen: at, topicIds: [action.topicId].filter(Boolean) };
+                    papers[entry.id] = {
+                        ...entry,
+                        firstSeen: at,
+                        topicIds: [action.topicId].filter(Boolean),
+                        // How it first arrived: swept up by a topic, or looked up
+                        // by hand. A paper a topic later matches keeps this, but
+                        // gains the topic's chips, which is the honest account.
+                        origin: action.origin || 'topic',
+                    };
                 }
             });
 
