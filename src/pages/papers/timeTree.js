@@ -36,15 +36,23 @@ export const dayShort = (iso) => {
 };
 
 /**
+ * @param by which date to bucket on.
+ *   `firstSeen` — when the paper reached your library. Right for the Stream tab,
+ *   which answers "what arrived today" and must stay stable.
+ *   `published` — when the paper was written. Right for the Explorer, where you are
+ *   looking something up months later and remember its publication date; bucketing an
+ *   archive by fetch date would file a fortnight of reading under a single day just
+ *   because you were away.
+ *
  * @returns months, newest first, each with weeks, each with days.
  * Keys are scoped by their parent: a week straddling a month boundary appears under
  * both months and must not share collapse state or selection with its twin.
  */
-export function buildTimeTree(papers) {
+export function buildTimeTree(papers, by = 'firstSeen') {
     const months = new Map();
 
     papers.forEach((p) => {
-        const iso = String(p.firstSeen || p.published || '');
+        const iso = String((by === 'published' ? p.published : p.firstSeen) || p.published || p.firstSeen || '');
         if (!iso) return;
         const d = new Date(iso);
         if (Number.isNaN(d.getTime())) return;

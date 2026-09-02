@@ -12,7 +12,26 @@ import {
 } from '../ui';
 
 const STREAM_ROOT = 'stream:root';
+const STARRED_ROOT = 'smart:starred';
+const LATER_ROOT = 'smart:later';
 const isStream = (id) => typeof id === 'string' && id.startsWith('stream:');
+const isSmart = (id) => typeof id === 'string' && id.startsWith('smart:');
+const isVirtual = (id) => isStream(id) || isSmart(id);
+
+/** Read/unread/starred for a set of papers, for the chips on a tree row. */
+function statsFor(list, states) {
+    let unread = 0;
+    let read = 0;
+    let starred = 0;
+    list.forEach((p) => {
+        const st = states[p.id] || {};
+        const status = st.status || 'unread';
+        if (status === 'unread') unread += 1;
+        if (status === 'read') read += 1;
+        if (st.starred) starred += 1;
+    });
+    return { total: list.length, unread, read, starred };
+}
 
 // Time-tree keys ("2026-09") carry no namespace of their own, so the Explorer adds
 // one — otherwise a month id is indistinguishable from a folder id.
@@ -50,7 +69,8 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
     const folderMenu = useContextMenu();
     const paperMenu = useContextMenu();
 
-    const tree = useMemo(() => buildTimeTree(paperList), [paperList]);
+    // The archive is bucketed by when papers were written, not when they arrived.
+    const tree = useMemo(() => buildTimeTree(paperList, 'published'), [paperList]);
 
     const childrenOfFolder = useMemo(() => {
         const map = new Map();
@@ -63,24 +83,22 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
         return map;
     }, [folders]);
 
-    const folderCounts = useMemo(() => {
-        const m = new Map();
-        folders.forEach((f) => m.set(f.id, papersInFolder(folders, f.id).size));
-        return m;
-    }, [folders]);
-
-    const selectedFolder = !isStream(selectedId) ? folders.find((f) => f.id === selectedId) : null;
+    const selectedFolder = !isVirtual(selectedId) ? folders.find((f) => f.id === selectedId) : null;
     const crumbs = selectedFolder ? folderPath(folders, selectedFolder.id) : [];
 
     /** The papers the selected node owns, before any filtering. */
     const scoped = useMemo(() => {
+        if (selectedId === STARRED_ROOT) return paperList.filter((p) => (states[p.id] || {}).starred);
+        if (selectedId === LATER_ROOT) {
+            return paperList.filter((p) => ['queued', 'reading'].includes((states[p.id] || {}).status));
+        }
         if (isStream(selectedId)) {
             return selectedId === STREAM_ROOT ? paperList : papersUnder(tree, streamKey(selectedId));
         }
         return Array.from(papersInFolder(folders, selectedId, { recursive }))
             .map((id) => papers[id])
             .filter(Boolean);
-    }, [selectedId, tree, folders, papers, paperList, recursive]);
+    }, [selectedId, tree, folders, papers, paperList, states, recursive]);
 
     // The Explorer runs the same filter engine as the Stream, so `au:`, `ti:`, `tag:`
     // and `is:` mean the same thing in both places.
@@ -143,15 +161,19 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
     const streamNodes = () => tree.map((m) => ({
         id: streamId(m.key),
         name: m.label,
-        count: m.count,
+        stats: statsFor(m.weeks.flatMap((w) => w.days.flatMap((d) => d.papers)), states),
         readOnly: true,
         children: () => m.weeks.map((w) => ({
             id: streamId(w.key),
             name: w.label,
-            count: w.count,
+            stats: statsFor(w.days.flatMap((d) => d.papers), states),
             readOnly: true,
             children: () => w.days.map((d) => ({
-                id: streamId(d.key), name: dayShort(d.iso), count: d.count, readOnly: true, children: null,
+                id: streamId(d.key),
+                name: dayShort(d.iso),
+                stats: statsFor(d.papers, states),
+                readOnly: true,
+                children: null,
             })),
         })),
     }));
@@ -159,15 +181,41 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
     const folderNodes = (parentId) => (childrenOfFolder.get(parentId || '__root__') || []).map((f) => ({
         id: f.id,
         name: f.name,
-        count: folderCounts.get(f.id) || 0,
+        stats: statsFor(
+            Array.from(papersInFolder(folders, f.id)).map((id) => papers[id]).filter(Boolean),
+            states,
+        ),
         readOnly: false,
         children: () => folderNodes(f.id),
     }));
 
+    const starred = paperList.filter((p) => (states[p.id] || {}).starred);
+    const later = paperList.filter((p) => ['queued', 'reading'].includes((states[p.id] || {}).status));
+
     const rootNodes = [
-        { id: STREAM_ROOT, name: 'Stream', count: paperList.length, readOnly: true, icon: '\u{1F4E1}', children: streamNodes },
+        {
+            id: STREAM_ROOT,
+            name: 'Stream',
+            hint: 'by publication date',
+            stats: statsFor(paperList, states),
+            readOnly: true,
+            icon: '\u{1F4E1}',
+            children: streamNodes,
+        },
+        // Smart folders are a view of reading state, not a second place a paper lives —
+        // dropping on one sets the state rather than filing a copy.
+        { id: STARRED_ROOT, name: 'Starred', stats: statsFor(starred, states), readOnly: true, smart: true, icon: '★' },
+        { id: LATER_ROOT, name: 'Read later', stats: statsFor(later, states), readOnly: true, smart: true, icon: '\u{1F553}' },
         ...folderNodes(null),
     ];
+
+    /** Dropping on a smart folder applies its meaning to the papers. */
+    const applySmart = (nodeId, ids) => {
+        const patch = nodeId === STARRED_ROOT ? { starred: true } : { status: 'queued' };
+        dispatch({ type: 'PAPER_STATE_BULK', ids, patch });
+        notify(`${ids.length} paper${ids.length === 1 ? '' : 's'} ${nodeId === STARRED_ROOT ? 'starred' : 'queued'}`);
+        setSelection(new Set());
+    };
 
     const [rootOver, rootDropProps] = useDropTarget({
         accept: 'all',
@@ -214,6 +262,7 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
                             dispatch={dispatch}
                             onFilePapers={fileInto}
                             onFileIntoNew={fileIntoNew}
+                            onApplySmart={applySmart}
                             draggingPapers={draggingPapers}
                             draggingFolder={draggingFolder}
                             startFolderDrag={startFolderDrag}
@@ -258,6 +307,16 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
                 onClose={folderMenu.close}
                 items={(node) => {
                     if (!node) return [{ label: 'New folder', icon: '+', onSelect: () => newFolder(null) }];
+                    if (node.smart) {
+                        const list = node.id === STARRED_ROOT
+                            ? paperList.filter((p) => (states[p.id] || {}).starred)
+                            : paperList.filter((p) => ['queued', 'reading'].includes((states[p.id] || {}).status));
+                        return [
+                            { label: `Export ${list.length} as BibTeX`, icon: '⇩', onSelect: () => exportAs('bib', list, node.name) },
+                            { separator: true },
+                            { label: 'Updates itself from your reading', icon: '★', disabled: true, onSelect: () => {} },
+                        ];
+                    }
                     if (node.readOnly) {
                         const list = node.id === STREAM_ROOT ? paperList : papersUnder(tree, streamKey(node.id));
                         return [
@@ -297,19 +356,41 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
             <ContextMenu
                 menu={paperMenu.menu}
                 onClose={paperMenu.close}
-                items={(paper) => [
-                    { label: 'Open details', icon: '◉', onSelect: () => setOpenId(paper.id) },
-                    { label: 'Open on arXiv', icon: '↗', onSelect: () => window.open(`https://arxiv.org/abs/${paper.id}`, '_blank', 'noreferrer') },
-                    ...(selectedFolder ? [
+                items={(paper) => {
+                    // The same reading actions as the Stream — triage should not depend
+                    // on which tab you happen to be looking at the paper from.
+                    const st = states[paper.id] || {};
+                    return [
+                        { label: 'Open details', icon: '◉', onSelect: () => setOpenId(paper.id) },
+                        { label: 'Open on arXiv', icon: '↗', onSelect: () => window.open(`https://arxiv.org/abs/${paper.id}`, '_blank', 'noreferrer') },
+                        { label: 'Open PDF', icon: '▤', onSelect: () => window.open(`https://arxiv.org/pdf/${paper.id}`, '_blank', 'noreferrer') },
                         { separator: true },
                         {
-                            label: 'Remove from folder',
-                            icon: '⊘',
-                            danger: true,
-                            onSelect: () => dispatch({ type: 'FOLDER_REMOVE_PAPERS', id: selectedFolder.id, paperIds: [paper.id] }),
+                            label: st.starred ? 'Unstar' : 'Star',
+                            icon: '★',
+                            onSelect: () => dispatch({ type: 'PAPER_STATE', id: paper.id, patch: { starred: !st.starred } }),
                         },
-                    ] : []),
-                ]}
+                        {
+                            label: st.status === 'read' ? 'Mark unread' : 'Mark read',
+                            icon: '✓',
+                            onSelect: () => dispatch({ type: 'PAPER_STATE', id: paper.id, patch: { status: st.status === 'read' ? 'unread' : 'read' } }),
+                        },
+                        {
+                            label: st.status === 'queued' ? 'Remove from queue' : 'Read later',
+                            icon: '🕓',
+                            onSelect: () => dispatch({ type: 'PAPER_STATE', id: paper.id, patch: { status: st.status === 'queued' ? 'unread' : 'queued' } }),
+                        },
+                        ...(selectedFolder ? [
+                            { separator: true },
+                            {
+                                label: 'Remove from folder',
+                                icon: '⊘',
+                                danger: true,
+                                onSelect: () => dispatch({ type: 'FOLDER_REMOVE_PAPERS', id: selectedFolder.id, paperIds: [paper.id] }),
+                            },
+                        ] : []),
+                    ];
+                }}
             />
 
             <ImportModal
@@ -327,27 +408,30 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
 
 function TreeNode({
     node, depth, expanded, onToggle, onExpand, selectedId, onSelect, onOpenMenu,
-    renaming, setRenaming, dispatch, onFilePapers, onFileIntoNew,
+    renaming, setRenaming, dispatch, onFilePapers, onFileIntoNew, onApplySmart,
     draggingPapers, draggingFolder, startFolderDrag, endDrag,
 }) {
     const isOpen = expanded.has(node.id);
     const isSel = selectedId === node.id;
+    const stats = node.stats || { total: 0, unread: 0, read: 0, starred: 0 };
     const kids = node.children ? node.children() : null;
     const hasKids = !!(kids && kids.length);
     const springTimer = useRef(null);
     const [sprung, setSprung] = useState(false);
 
+    // Smart folders accept papers even though they are read-only in every other sense:
+    // the drop sets state rather than filing.
     const [over, dropProps] = useDropTarget({
-        accept: 'all',
-        disabled: node.readOnly,
-        onDropPapers: (ids, meta) => onFilePapers(node.id, ids, meta),
+        accept: node.smart ? 'papers' : 'all',
+        disabled: node.readOnly && !node.smart,
+        onDropPapers: (ids, meta) => (node.smart ? onApplySmart(node.id, ids) : onFilePapers(node.id, ids, meta)),
         onDropFolder: (id) => dispatch({ type: 'FOLDER_MOVE', id, parentId: node.id }),
     });
 
     // Hovering a folder mid-drag opens it after a beat, and reveals a target for
     // filing into a folder that does not exist yet.
     const armSpring = () => {
-        if (springTimer.current || node.readOnly) return;
+        if (springTimer.current || node.readOnly || node.smart) return;
         springTimer.current = setTimeout(() => {
             springTimer.current = null;
             if (hasKids) onExpand(node.id);
@@ -360,7 +444,7 @@ function TreeNode({
         setSprung(false);
     };
 
-    const droppable = !node.readOnly && (draggingPapers || draggingFolder);
+    const droppable = (node.smart && draggingPapers) || (!node.readOnly && (draggingPapers || draggingFolder));
 
     return (
         <div>
@@ -374,7 +458,7 @@ function TreeNode({
                 onDragLeave={(e) => { if (dropProps.onDragLeave) dropProps.onDragLeave(e); disarmSpring(); }}
                 onDrop={(e) => { if (dropProps.onDrop) dropProps.onDrop(e); disarmSpring(); }}
                 onClick={() => { onSelect(node.id); if (hasKids) onToggle(node.id); }}
-                onDoubleClick={() => !node.readOnly && setRenaming(node.id)}
+                onDoubleClick={() => !node.readOnly && !node.smart && setRenaming(node.id)}
                 onContextMenu={(e) => onOpenMenu(e, node)}
                 style={{ paddingLeft: `${depth * 12 + 6}px` }}
                 className={cx(
@@ -415,15 +499,32 @@ function TreeNode({
                         className="min-w-0 flex-1 rounded border border-orange-400/60 bg-slate-950 px-1 text-[12.5px] text-slate-100 outline-none"
                     />
                 ) : (
-                    <span className="min-w-0 flex-1 truncate">{node.name}</span>
+                    <span className="min-w-0 flex-1 truncate">
+                        {node.name}
+                        {node.hint && <span className="ml-1.5 text-[9px] text-slate-600">{node.hint}</span>}
+                    </span>
                 )}
 
-                {/* The chip is the count of papers, never the papers themselves. */}
-                <span className={cx(
-                    'flex-none rounded-full px-1.5 py-px font-mono text-[9.5px] tabular-nums',
-                    isSel ? 'bg-orange-400/20 text-orange-100' : 'bg-slate-800/80 text-slate-500',
-                )}>
-                    {node.count}
+                {/* Chips count papers, never list them. The unread pill only appears when
+                    there is something left to do, so a finished folder reads as quiet. */}
+                <span
+                    className="flex flex-none items-center gap-1"
+                    title={`${stats.total} paper${stats.total === 1 ? '' : 's'} · ${stats.read} read · ${stats.unread} unread · ${stats.starred} starred`}
+                >
+                    {stats.unread > 0 && (
+                        <span
+                            data-testid={`unread-chip-${node.id}`}
+                            className="rounded-full bg-orange-400/20 px-1.5 py-px font-mono text-[9.5px] tabular-nums text-orange-200"
+                        >
+                            {stats.unread}
+                        </span>
+                    )}
+                    <span className={cx(
+                        'rounded-full px-1.5 py-px font-mono text-[9.5px] tabular-nums',
+                        isSel ? 'bg-orange-400/20 text-orange-100' : 'bg-slate-800/80 text-slate-500',
+                    )}>
+                        {stats.total}
+                    </span>
                 </span>
 
                 {sprung && draggingPapers && (
@@ -449,6 +550,7 @@ function TreeNode({
                             dispatch={dispatch}
                             onFilePapers={onFilePapers}
                             onFileIntoNew={onFileIntoNew}
+                            onApplySmart={onApplySmart}
                             draggingPapers={draggingPapers}
                             draggingFolder={draggingFolder}
                             startFolderDrag={startFolderDrag}
@@ -495,7 +597,10 @@ function FileList({
         onDropPapers: (ids, meta) => onFilePapers(selectedFolder.id, ids, meta),
     });
 
-    const name = selectedFolder ? selectedFolder.name : 'Stream';
+    const name = selectedFolder ? selectedFolder.name
+        : selectedId === STARRED_ROOT ? 'Starred'
+            : selectedId === LATER_ROOT ? 'Read later'
+                : 'Stream';
 
     return (
         <div className="flex min-w-0 flex-1 flex-col">

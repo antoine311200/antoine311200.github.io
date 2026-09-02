@@ -88,12 +88,24 @@ A **source-tree sidebar and a file list**, the way an editor does it. The tree c
 only folders — each with a count chip rather than its papers — so the list gets the
 screen.
 
-The tree has two kinds of node:
+The tree has three kinds of node:
 
-- **📡 Stream** — a read-only mirror of everything fetched, nested Month › Week › Day
-  by the same code the Stream tab uses, so the two can never disagree. Drag papers
-  *out* of it to file them.
+- **📡 Stream** — a read-only mirror of everything fetched, nested Month › Week › Day.
+  It buckets on **publication date**, not fetch date: this is the archive you come
+  back to months later, and you remember when a paper was *written*. Bucketing it by
+  arrival would file a fortnight of literature under a single day just because you
+  were away. (The Stream *tab* still buckets on arrival — it answers a different
+  question, "what came in today", and the row is labelled so the difference is
+  visible rather than silent.)
+- **★ Starred** and **🕓 Read later** — smart folders. They are a view of reading
+  state, not a second place a paper lives, so they can never drift out of sync with
+  the stars and queue you set elsewhere. Dropping a paper on one *sets* that state;
+  the paper stays wherever it was filed.
 - **Your folders** — nest as deep as you like, rename by double-click, reorder by drag.
+
+Every row carries its paper count, and an orange **unread** chip beside it when there
+is anything left to do — so a folder you have finished reads as quiet. The tooltip
+gives the full breakdown: total, read, unread, starred.
 
 Creating a subfolder is on the folder's own right-click menu, and on the ＋ in the
 sidebar header for a root one. New folders land in rename mode straight away.

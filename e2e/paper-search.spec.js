@@ -303,6 +303,64 @@ test.describe('explorer', () => {
         await expect(page.locator('[data-testid^="folder-node-stream:"]')).not.toHaveCount(1);
     });
 
+    test('Starred and Read later are smart folders driven by reading state', async ({ page }) => {
+        const store = seededStore();
+        const ids = Object.keys(store.papers);
+        ids.slice(0, 2).forEach((id) => { store.states[id].starred = true; });
+        store.states[ids[5]].status = 'queued';
+        await seed(page, store);
+        await goTo(page, 'explorer');
+
+        await page.getByTestId('folder-node-smart:starred').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(2);
+
+        await page.getByTestId('folder-node-smart:later').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(1);
+    });
+
+    test('dropping on a smart folder sets the state rather than filing a copy', async ({ page }) => {
+        const store = seededStore();
+        const ids = Object.keys(store.papers);
+        store.folders = [{
+            id: 'f_a', name: 'Inbox', parentId: null, paperIds: ids.slice(0, 2),
+            description: '', color: null, createdAt: new Date().toISOString(),
+        }];
+        await seed(page, store);
+        await goTo(page, 'explorer');
+        await page.getByTestId('folder-node-f_a').click();
+
+        await page.getByTestId('paper-row').first().dragTo(page.getByTestId('folder-node-smart:starred'));
+
+        const after = await readStore(page);
+        const nowStarred = Object.entries(after.states).filter(([, st]) => st.starred).map(([id]) => id);
+        expect(nowStarred).toHaveLength(1);
+        // It stays where it was filed — a smart folder is a view, not a location.
+        expect(after.folders.find((f) => f.id === 'f_a').paperIds).toHaveLength(2);
+    });
+
+    test('tree rows carry an unread chip beside the total', async ({ page }) => {
+        const store = seededStore();
+        const ids = Object.keys(store.papers);
+        store.folders = [{
+            id: 'f_a', name: 'Inbox', parentId: null, paperIds: ids.slice(0, 3),
+            description: '', color: null, createdAt: new Date().toISOString(),
+        }];
+        ids.slice(0, 2).forEach((id) => { store.states[id].status = 'read'; });
+        await seed(page, store);
+        await goTo(page, 'explorer');
+
+        const row = page.getByTestId('folder-node-f_a');
+        await expect(row).toContainText('3');
+        // Three filed, two read, so exactly one is still outstanding.
+        await expect(page.getByTestId('unread-chip-f_a')).toHaveText('1');
+
+        // Reading the last one retires the chip entirely.
+        await row.click();
+        await page.getByTestId('paper-row').last().click({ button: 'right' });
+        await page.getByTestId('context-menu').getByText('Mark read').click();
+        await expect(page.getByTestId('unread-chip-f_a')).toHaveCount(0);
+    });
+
     test('a subfolder can be created inside an empty folder', async ({ page }) => {
         const store = seededStore();
         store.folders = [{
