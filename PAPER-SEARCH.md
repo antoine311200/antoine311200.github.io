@@ -86,7 +86,10 @@ The fetch and the reading surface are the same place, because they are the same 
 
 A **source-tree sidebar and a file list**, the way an editor does it. The tree carries
 only folders — each with a count chip rather than its papers — so the list gets the
-screen.
+screen. Drag its right edge to set how much, and `«` folds it down to a rail when you
+want the list alone; the rail springs back open while a drag is in flight, because you
+cannot file a paper into folders you cannot see. Width and folded state are remembered
+per device (localStorage, not the store, so they never travel with an export).
 
 The tree runs saved views, then the archive, then your folders — the two things you
 cannot edit sit together above everything that is yours, with rules between the groups:
@@ -180,8 +183,10 @@ is in the order it is, and hovering it lists the specific reasons.
 
 ### 3.5.1 The reading panel
 
-Slides in beside whatever list you are in rather than taking the tab over, so you keep
-your place — literally: the panel halves the width of the list, which rewraps every
+Slides in beside whatever list you are in rather than taking the tab over, and you set
+how wide by dragging its left edge — double-click that edge to go back to the default.
+It will not eat the list: the ceiling always leaves the cards readable, and a narrowed
+window pulls the panel back in. So you keep your place — literally: the panel halves the width of the list, which rewraps every
 title over the following few frames, so both lists anchor on the paper at their top
 edge and re-pin it as the reflow settles (`useScrollAnchor`). Clicking a card now
 leaves the list exactly where it was, and the anchor lets go the moment you scroll. Four tabs: **Overview** (TL;DR, abstract, authors with a follow switch, why

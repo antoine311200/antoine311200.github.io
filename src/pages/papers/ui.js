@@ -522,6 +522,132 @@ export function Segmented({ options, isActive, onToggle, className }) {
  * @param dep the value whose change triggers the reflow (the open paper's id).
  * @returns [ref for the scroll container, capture() to call just before the change]
  */
+/* ------------------------------------------------------------- layout prefs */
+
+/* Pane widths and collapsed panels are per-device habits, not part of the
+   library, so they stay in localStorage and never travel with an export. */
+const PREFS_KEY = 'paper-radar:layout';
+
+function readPrefs() {
+    try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch { return {}; }
+}
+
+function writePref(key, value) {
+    try {
+        const all = readPrefs();
+        all[key] = value;
+        localStorage.setItem(PREFS_KEY, JSON.stringify(all));
+    } catch { /* private mode, or a full disk: the layout simply will not stick */ }
+}
+
+/** A remembered piece of layout state — a collapsed sidebar, say. */
+export function usePref(key, initial) {
+    const [value, setValue] = useState(() => {
+        const stored = readPrefs()[key];
+        return stored === undefined ? initial : stored;
+    });
+    useEffect(() => { writePref(key, value); }, [key, value]);
+    return [value, setValue];
+}
+
+const clampWidth = (px, min, max) => Math.min(Math.max(px, min), typeof max === 'function' ? max() : max);
+
+/**
+ * A pane the reader sizes by dragging its edge. `edge` says which side the
+ * handle sits on, so dragging always moves the border under the cursor. The
+ * width is written once on release rather than on every frame of the drag.
+ */
+export function useResizable({ key, initial, min, max, edge = 'right' }) {
+    const [width, setWidth] = useState(() => clampWidth(readPrefs()[key] ?? initial, min, max));
+    const [dragging, setDragging] = useState(false);
+    const latest = useRef(width);
+    latest.current = width;
+
+    const set = useCallback((px) => setWidth(clampWidth(px, min, max)), [min, max]);
+
+    // A window narrow enough to swallow the list wins over a remembered width.
+    useEffect(() => {
+        const onResize = () => set(latest.current);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, [set]);
+
+    const onPointerDown = useCallback((e) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        const startX = e.clientX;
+        const startWidth = latest.current;
+        const direction = edge === 'left' ? -1 : 1;
+        setDragging(true);
+        // The cursor has to survive leaving the handle, or a fast drag flickers.
+        const previousCursor = document.body.style.cursor;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+
+        const move = (ev) => set(startWidth + direction * (ev.clientX - startX));
+        const up = () => {
+            window.removeEventListener('pointermove', move);
+            document.body.style.cursor = previousCursor;
+            document.body.style.userSelect = '';
+            setDragging(false);
+            writePref(key, latest.current);
+        };
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', up, { once: true });
+    }, [edge, key, set]);
+
+    const onKeyDown = useCallback((e) => {
+        const step = e.shiftKey ? 64 : 16;
+        const direction = edge === 'left' ? -1 : 1;
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            const next = latest.current + direction * step * (e.key === 'ArrowRight' ? 1 : -1);
+            set(next);
+            writePref(key, clampWidth(next, min, max));
+        }
+    }, [edge, key, max, min, set]);
+
+    const reset = useCallback(() => { set(initial); writePref(key, clampWidth(initial, min, max)); }, [initial, key, max, min, set]);
+
+    return {
+        width,
+        dragging,
+        reset,
+        handleProps: {
+            onPointerDown,
+            onKeyDown,
+            onDoubleClick: reset,
+            role: 'separator',
+            'aria-orientation': 'vertical',
+            'aria-label': 'Resize pane',
+            tabIndex: 0,
+        },
+    };
+}
+
+/** The grab strip itself: a wide hit area, a hairline that only shows on approach. */
+export function ResizeHandle({ side = 'right', dragging, className, ...props }) {
+    return (
+        <div
+            {...props}
+            data-testid="resize-handle"
+            className={cx(
+                'group absolute inset-y-0 z-20 w-2 cursor-col-resize touch-none outline-none',
+                side === 'right' ? '-right-1' : '-left-1',
+                className,
+            )}
+        >
+            <span
+                aria-hidden
+                className={cx(
+                    'pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 transition-colors',
+                    dragging ? 'bg-orange-400' : 'bg-transparent group-hover:bg-orange-400/60 group-focus:bg-orange-400/60',
+                )}
+            />
+        </div>
+    );
+}
+
 export function useScrollAnchor(dep) {
     const scrollRef = useRef(null);
     const anchor = useRef(null);

@@ -8,8 +8,8 @@ import { applyFilters, DEFAULT_FILTERS, SORTS } from '../filters';
 import { buildTimeTree, papersUnder, dayShort } from '../timeTree';
 import PaperRow from '../components/PaperRow';
 import {
-    Button, ContextMenu, Count, Empty, Modal, Popover, Segmented, cx, shortDate,
-    useContextMenu, useScrollAnchor,
+    Button, ContextMenu, Count, Empty, IconButton, Modal, Popover, ResizeHandle, Segmented, cx, shortDate,
+    useContextMenu, usePref, useResizable, useScrollAnchor,
 } from '../ui';
 
 const STREAM_ROOT = 'stream:root';
@@ -56,6 +56,8 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
     const { startFolderDrag, endDrag, draggingPapers, draggingFolder } = useDrag();
 
     const [selectedId, setSelectedId] = useState(STREAM_ROOT);
+    const [collapsed, setCollapsed] = usePref('explorerSidebarCollapsed', false);
+    const sidebar = useResizable({ key: 'explorerSidebarWidth', initial: 256, min: 180, max: 460, edge: 'right' });
     const [expanded, setExpanded] = useState(() => new Set([STREAM_ROOT]));
     const [renaming, setRenaming] = useState(null);
     const [importOpen, setImportOpen] = useState(false);
@@ -249,10 +251,54 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
         />
     );
 
+    const dragInFlight = !!(draggingPapers || draggingFolder);
+    const hideTree = collapsed && !dragInFlight;
+
     return (
         <div className="flex h-full min-h-0">
             {/* ---------------------------------------------------- sidebar */}
-            <aside className="flex w-64 flex-none flex-col border-r border-slate-800 bg-slate-950/30">
+            {/* Collapsed, the tree keeps a rail so the tab still looks like a
+                file explorer — and a drag springs it open, because you cannot
+                file a paper into folders you cannot see. */}
+            {hideTree ? (
+                <aside
+                    data-testid="folder-rail"
+                    className="flex w-9 flex-none flex-col items-center gap-2 border-r border-slate-800 bg-slate-950/30 py-2"
+                >
+                    <IconButton
+                        label="Show folders"
+                        data-testid="show-sidebar"
+                        onClick={() => setCollapsed(false)}
+                        className="text-[13px] leading-none"
+                    >
+                        »
+                    </IconButton>
+                    <IconButton
+                        label="New folder"
+                        onClick={() => { setCollapsed(false); newFolder(null); }}
+                        className="text-[13px] leading-none"
+                    >
+                        +
+                    </IconButton>
+                    <button
+                        type="button"
+                        onClick={() => setCollapsed(false)}
+                        className="mt-1 rotate-180 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-slate-600 transition-colors hover:text-slate-300 [writing-mode:vertical-rl]"
+                    >
+                        Folders
+                    </button>
+                </aside>
+            ) : (
+            <aside
+                style={{ '--tree-w': `${sidebar.width}px` }}
+                className="relative flex w-[var(--tree-w)] flex-none flex-col border-r border-slate-800 bg-slate-950/30"
+            >
+                <ResizeHandle
+                    side="right"
+                    dragging={sidebar.dragging}
+                    title="Drag to resize · double-click to reset"
+                    {...sidebar.handleProps}
+                />
                 <div className="flex flex-none items-center gap-1 px-3 py-2">
                     <h2 className="flex-1 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                         Folders
@@ -265,6 +311,15 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
                         className="rounded px-1 text-[13px] leading-none text-slate-500 transition hover:bg-white/5 hover:text-orange-300"
                     >
                         +
+                    </button>
+                    <button
+                        type="button"
+                        title="Hide folders"
+                        data-testid="hide-sidebar"
+                        onClick={() => setCollapsed(true)}
+                        className="rounded px-1 text-[13px] leading-none text-slate-500 transition hover:bg-white/5 hover:text-orange-300"
+                    >
+                        «
                     </button>
                 </div>
 
@@ -285,12 +340,13 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
                     {userRoots.map(renderRoot)}
                 </div>
 
-                {(draggingPapers || draggingFolder) && (
+                {dragInFlight && (
                     <div className="flex-none border-t border-slate-800 px-3 py-2 text-[10px] leading-relaxed text-orange-300/80">
                         Hold over a folder to open it &middot; <kbd className="font-mono">Ctrl</kbd> to copy
                     </div>
                 )}
             </aside>
+            )}
 
             {/* ------------------------------------------------------- files */}
             <FileList

@@ -9,7 +9,7 @@ import StreamView from './views/StreamView';
 import ExplorerView from './views/ExplorerView';
 import SettingsModal from './views/SettingsModal';
 import PaperPanel from './components/PaperPanel';
-import { Button, Count, PAGE_BACKGROUND, Spinner, cx } from './ui';
+import { Button, Count, PAGE_BACKGROUND, ResizeHandle, Spinner, cx, useResizable } from './ui';
 
 const TABS = [
     { id: 'topics', label: 'Topics' },
@@ -28,6 +28,16 @@ function Shell({ tab, setTab }) {
     const [openId, setOpenId] = useState(null);
     const [selection, setSelection] = useState(() => new Set());
     const [settingsOpen, setSettingsOpen] = useState(false);
+
+    // The reading panel keeps the width you last dragged it to. The ceiling is
+    // whatever leaves the list still readable beside it.
+    const panel = useResizable({
+        key: 'panelWidth',
+        initial: 520,
+        min: 360,
+        max: () => Math.max(360, window.innerWidth - 460),
+        edge: 'left',
+    });
 
     /* Once-a-day background fetch, if enabled. */
     useEffect(() => {
@@ -118,7 +128,17 @@ function Shell({ tab, setTab }) {
                 </div>
 
                 {openPaper && (
-                    <div className="w-[40%] min-w-[23rem] max-w-[44rem] flex-none max-lg:fixed max-lg:inset-0 max-lg:z-50 max-lg:w-full max-lg:max-w-none">
+                    <div
+                        style={{ '--panel-w': `${panel.width}px` }}
+                        className="relative w-[var(--panel-w)] flex-none max-lg:fixed max-lg:inset-0 max-lg:z-50 max-lg:w-full"
+                    >
+                        <ResizeHandle
+                            side="left"
+                            dragging={panel.dragging}
+                            title="Drag to resize · double-click to reset"
+                            className="max-lg:hidden"
+                            {...panel.handleProps}
+                        />
                         <PaperPanel paper={openPaper} onClose={() => setOpenId(null)} onOpenPaper={setOpenId} />
                     </div>
                 )}
