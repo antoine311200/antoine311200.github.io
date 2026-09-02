@@ -106,6 +106,17 @@ Three things this had to get right, each found by running it against the live in
   open index ranks a well-known title first; the arXiv-only pass rescues queries like
   "Yang Song diffusion", where the open index answers with fifty papers that have no
   preprint; the author pass is there because a name is as likely a way in as a title.
+- **Requests are a budget.** OpenAlex bills per call against a free allowance of
+  ~1000 a day per IP, reset at midnight UTC and reported on every response in
+  `x-ratelimit-*`. Spend it and everything 429s for the rest of the day with a
+  `retry-after` measured in hours, which is why the old "rate-limited, wait a minute"
+  advice was wrong twice over. So: a short wait is a burst limit and is retried; a
+  long one is the day's allowance, and the app stops, says when it comes back, and
+  answers every later call from that knowledge instead of the network — three
+  searches against a spent allowance now cost one request rather than twelve. The
+  fallback passes above only run when the first comes back thin, repeat searches are
+  cached for ten minutes, and Settings shows what is left. Identifying yourself with
+  an email buys a steadier queue, not a bigger allowance.
 - **arXiv ids do not resolve by DOI.** Only newer preprints carry a `10.48550` DOI, so an
   id is looked up through its landing page (`http://`, not `https://` — that is how they
   are stored), with the DOI as fallback.

@@ -12,7 +12,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { usePapers } from '../context';
-import { searchFreeText } from '../openalex';
+import { getBudget, humanWait, searchFreeText } from '../openalex';
 import { Button, Chip, Count, Empty, Modal, Spinner, cx, shortDate } from '../ui';
 
 const MAX = 25;
@@ -25,6 +25,7 @@ export default function SearchModal({ open, onClose }) {
     const [chosen, setChosen] = useState(() => new Set());
     const [running, setRunning] = useState(false);
     const [error, setError] = useState(null);
+    const [budget, setBudget] = useState(null);
     const abort = useRef(null);
     const inputRef = useRef(null);
 
@@ -65,6 +66,7 @@ export default function SearchModal({ open, onClose }) {
             if (err.name !== 'AbortError') setError(err.message);
         } finally {
             setRunning(false);
+            setBudget(getBudget());
         }
     }, [query, settings.openAlexMailto, papers]);
 
@@ -126,6 +128,16 @@ export default function SearchModal({ open, onClose }) {
             {error && (
                 <p className="mt-3 rounded-lg border border-rose-500/25 bg-rose-500/[0.08] px-3 py-2 text-[11.5px] text-rose-200">
                     {error}
+                </p>
+            )}
+
+            {/* Every search spends from a daily allowance, so it is worth saying
+                when there is little of it left — before it runs out mid-thought. */}
+            {budget && budget.limit && budget.remaining != null
+                && !budget.blocked && budget.remaining < budget.limit * 0.1 && (
+                <p className="mt-2 text-[10.5px] text-orange-300/70">
+                    {budget.remaining} OpenAlex request{budget.remaining === 1 ? '' : 's'} left today
+                    {budget.resetAt && <> · resets in {humanWait(budget.resetAt - Date.now())}</>}
                 </p>
             )}
 

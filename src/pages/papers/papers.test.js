@@ -6,7 +6,9 @@ import {
     mergeStores, emptyStore, authorKey, prune, makeTopic, makeFolder,
     folderPath, folderSubtree, papersInFolder, canMoveFolder,
 } from './storage';
-import { buildFilter, reconstructAbstract, arxivIdFromWork, arxivIdFromInput, deTex } from './openalex';
+import {
+    buildFilter, reconstructAbstract, arxivIdFromWork, arxivIdFromInput, deTex, searchFreeText,
+} from './openalex';
 
 const ATOM = `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:arxiv="http://arxiv.org/schemas/atom"
@@ -302,6 +304,110 @@ describe('openalex', () => {
         // An unknown command keeps its name rather than leaving a hole.
         expect(deTex(String.raw`$\alpha$-divergence`)).toBe('alpha-divergence');
         expect(deTex('An ordinary title')).toBe('An ordinary title');
+    });
+
+    describe('the daily allowance', () => {
+        /* OpenAlex bills per request against a daily budget, so the module holds
+           state about it; each test gets its own copy of the module. */
+        const load = () => { jest.resetModules(); return require('./openalex'); };
+
+        const reply = (status, { retryAfter, remaining, limit = 1000, body = {} } = {}) => {
+            const headers = {
+                'retry-after': retryAfter == null ? null : String(retryAfter),
+                'x-ratelimit-limit': String(limit),
+                'x-ratelimit-remaining': remaining == null ? null : String(remaining),
+                'x-ratelimit-reset': retryAfter == null ? null : String(retryAfter),
+            };
+            return {
+                status,
+                ok: status >= 200 && status < 300,
+                headers: { get: (h) => headers[h.toLowerCase()] ?? null },
+                json: async () => body,
+            };
+        };
+        const found = {
+            results: [{
+                doi: 'https://doi.org/10.48550/arxiv.2401.00001',
+                title: 'A paper',
+                publication_date: '2024-01-01',
+                authorships: [],
+                cited_by_count: 3,
+                primary_location: { landing_page_url: 'http://arxiv.org/abs/2401.00001' },
+            }],
+            meta: { count: 1 },
+        };
+
+        afterEach(() => { delete global.fetch; });
+
+        test('a brief throttle is waited out rather than shown to anyone', async () => {
+            const { searchFreeText } = load();
+            global.fetch = jest.fn()
+                .mockResolvedValueOnce(reply(429, { retryAfter: 0.001 }))
+                .mockResolvedValue(reply(200, { body: found, remaining: 900 }));
+
+            const { entries } = await searchFreeText('2401.00001');
+            expect(entries).toHaveLength(1);
+            expect(global.fetch).toHaveBeenCalledTimes(2);
+        });
+
+        test('a spent allowance is reported at once, not retried for nine hours', async () => {
+            const { searchFreeText } = load();
+            // What OpenAlex actually sends: retry at midnight UTC.
+            global.fetch = jest.fn().mockResolvedValue(reply(429, { retryAfter: 32206, remaining: 0 }));
+
+            await expect(searchFreeText('2401.00001')).rejects.toThrow(/allowance of 1000 requests a day is spent/);
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+        });
+
+        test('once it is spent, later calls cost nothing at all', async () => {
+            const { searchFreeText, getBudget } = load();
+            global.fetch = jest.fn().mockResolvedValue(reply(429, { retryAfter: 32206, remaining: 0 }));
+
+            await expect(searchFreeText('2401.00001')).rejects.toThrow(/resets at midnight UTC/);
+            await expect(searchFreeText('something else')).rejects.toThrow(/resets at midnight UTC/);
+            await expect(searchFreeText('a third thing')).rejects.toThrow(/resets at midnight UTC/);
+            // Only the first one ever reached the network.
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(getBudget().blocked).toBe(true);
+        });
+
+        test('what is left of the allowance is read off every response', async () => {
+            const { searchFreeText, getBudget, humanWait } = load();
+            global.fetch = jest.fn().mockResolvedValue(reply(200, { body: found, remaining: 42, retryAfter: 3600 }));
+
+            await searchFreeText('2401.00001');
+            const budget = getBudget();
+            expect(budget).toMatchObject({ limit: 1000, remaining: 42, blocked: false });
+            expect(humanWait(budget.resetAt - Date.now())).toMatch(/^(59m|1h 0m)$/);
+        });
+
+        test('an ordinary search spends one request, not three', async () => {
+            const { searchFreeText } = load();
+            const many = { results: new Array(8).fill(found.results[0]).map((w, i) => ({
+                ...w,
+                doi: `https://doi.org/10.48550/arxiv.2401.0000${i}`,
+                primary_location: { landing_page_url: `http://arxiv.org/abs/2401.0000${i}` },
+            })), meta: { count: 8 } };
+            global.fetch = jest.fn().mockResolvedValue(reply(200, { body: many, remaining: 900 }));
+
+            const { entries } = await searchFreeText('optimal transport');
+            expect(entries.length).toBeGreaterThanOrEqual(5);
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+        });
+
+        test('a thin first pass is worth two more questions', async () => {
+            const { searchFreeText } = load();
+            global.fetch = jest.fn().mockResolvedValue(reply(200, { body: { results: [], meta: { count: 0 } }, remaining: 900 }));
+
+            await searchFreeText('yang song diffusion');
+            expect(global.fetch).toHaveBeenCalledTimes(3);
+        });
+
+        test('a real failure is still a failure', async () => {
+            const { searchFreeText } = load();
+            global.fetch = jest.fn().mockResolvedValue(reply(500));
+            await expect(searchFreeText('2401.00001')).rejects.toThrow(/HTTP 500/);
+        });
     });
 
     test('builds a filter scoped to arXiv with OR-ed phrases and exclusions', () => {

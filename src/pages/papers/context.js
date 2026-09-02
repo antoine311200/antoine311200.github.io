@@ -416,11 +416,18 @@ export function PaperProvider({ children }) {
         const failed = log.filter((l) => !l.ok);
         setFetchState({ running: false, topic: null, done: targets.length, total: targets.length, log });
         if (failed.length === targets.length) {
-            const hint = useOpenAlex
-                ? 'Check your connection, or switch the source in Settings.'
-                : 'arXiv sends no CORS headers to browsers and the public relays are unreliable — '
-                  + 'switch the source back to OpenAlex in Settings.';
-            setError(`Every topic failed. ${failed[0].message}. ${hint}`);
+            const first = String(failed[0].message || '').replace(/\.$/, '');
+            // A spent allowance already explains itself and says when it comes
+            // back; telling someone to check their connection on top of that
+            // sends them looking for a fault that is not there.
+            const explained = /allowance|resets at midnight/i.test(first);
+            const hint = explained
+                ? ''
+                : useOpenAlex
+                    ? ' Check your connection, or switch the source in Settings.'
+                    : ' arXiv sends no CORS headers to browsers and the public relays are unreliable — '
+                      + 'switch the source back to OpenAlex in Settings.';
+            setError(`${explained ? '' : 'Every topic failed. '}${first}.${hint}`);
         } else {
             notify(fresh ? `${fresh} new paper${fresh === 1 ? '' : 's'}` : 'No new papers — you are up to date');
         }

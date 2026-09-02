@@ -23,6 +23,161 @@ const FIELDS = [
     'authorships', 'cited_by_count', 'primary_location', 'locations', 'type',
 ].join(',');
 
+/* ------------------------------------------------------------- the wire */
+
+/*
+ * OpenAlex bills by the request: a free allowance of ~1000 a day per IP, reset
+ * at midnight UTC, reported on every response in `x-ratelimit-*`. Spend it and
+ * every call 429s for the rest of the day, with a `retry-after` measured in
+ * hours — so retrying a 429 blindly is not resilience, it is a nine-hour loop
+ * against a wall. Two rules follow:
+ *
+ *   - a short wait is a burst limit and is worth retrying;
+ *   - a long one is the daily allowance, and the only honest thing to do is
+ *     stop, say so, and say when it comes back.
+ *
+ * The queue is here for the same reason: requests are a budget to be spent
+ * sparingly, not a resource to be hammered.
+ */
+const MAX_IN_FLIGHT = 2;
+const MIN_GAP_MS = 120;
+const BACKOFF_MS = [400, 1200, 3000];
+const WORTH_RETRYING_MS = 20000;
+
+let inFlight = 0;
+let lastStart = 0;
+const waiting = [];
+
+/** What OpenAlex last told us about the day's allowance. */
+const budget = { limit: null, remaining: null, resetAt: null, blockedUntil: 0 };
+
+export function getBudget() {
+    return { ...budget, blocked: Date.now() < budget.blockedUntil };
+}
+
+/** "8h 56m", "45s" — how long until it is worth asking again. */
+export function humanWait(ms) {
+    const total = Math.max(0, Math.round(ms / 1000));
+    if (total < 90) return `${total}s`;
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.round((total % 3600) / 60);
+    return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
+
+const sleep = (ms, signal) => new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+        if (signal) signal.removeEventListener('abort', onAbort);
+        resolve();
+    }, ms);
+    function onAbort() {
+        clearTimeout(timer);
+        const err = new Error('aborted');
+        err.name = 'AbortError';
+        reject(err);
+    }
+    if (signal) {
+        if (signal.aborted) { onAbort(); return; }
+        signal.addEventListener('abort', onAbort, { once: true });
+    }
+});
+
+function pump() {
+    if (!waiting.length || inFlight >= MAX_IN_FLIGHT) return;
+    const gap = Math.max(0, MIN_GAP_MS - (Date.now() - lastStart));
+    setTimeout(() => {
+        const next = waiting.shift();
+        if (!next) return;
+        inFlight += 1;
+        lastStart = Date.now();
+        next();
+    }, gap);
+}
+
+/** Wait for a slot in the queue; resolves with the function that frees it. */
+function slot() {
+    return new Promise((resolve) => {
+        waiting.push(() => resolve(() => { inFlight -= 1; pump(); }));
+        pump();
+    });
+}
+
+function readBudget(res) {
+    const num = (name) => {
+        const value = Number(res.headers.get(name));
+        return Number.isFinite(value) && res.headers.get(name) !== null ? value : null;
+    };
+    const limit = num('x-ratelimit-limit');
+    const remaining = num('x-ratelimit-remaining');
+    const reset = num('x-ratelimit-reset');
+    if (limit != null) budget.limit = limit;
+    if (remaining != null) budget.remaining = remaining;
+    if (reset != null) budget.resetAt = Date.now() + reset * 1000;
+}
+
+function spentError() {
+    const left = budget.blockedUntil - Date.now();
+    const when = budget.limit
+        ? `OpenAlex's free allowance of ${budget.limit} requests a day is spent.`
+        : 'OpenAlex has cut this connection off for the day.';
+    return new Error(`${when} It resets at midnight UTC — in ${humanWait(left)}.`);
+}
+
+/** Milliseconds OpenAlex asked us to wait, from its own headers. */
+function waitFrom(res, attempt) {
+    const header = Number(res.headers.get('retry-after'));
+    if (Number.isFinite(header) && header > 0) return header * 1000;
+    const reset = Number(res.headers.get('x-ratelimit-reset'));
+    if (Number.isFinite(reset) && reset > 0) return reset * 1000;
+    return BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)];
+}
+
+/* Repeating a search should not cost a second request. */
+const CACHE_TTL_MS = 10 * 60 * 1000;
+const cache = new Map();
+
+/** One OpenAlex call: paced, cached, and honest about the day's allowance. */
+async function apiFetch(params, { signal, mailto, cacheable = false } = {}) {
+    // OpenAlex asks callers to identify themselves for its "polite pool". It
+    // buys a steadier queue, not a bigger allowance, so it stays opt-in.
+    if (mailto) params.set('mailto', mailto);
+    const url = `${API}?${params.toString()}`;
+
+    if (cacheable) {
+        const hit = cache.get(url);
+        if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.json;
+    }
+
+    for (let attempt = 0; ; attempt += 1) {
+        // Nothing is gained by asking again before the allowance comes back.
+        if (Date.now() < budget.blockedUntil) throw spentError();
+
+        const release = await slot();
+        let res;
+        try {
+            res = await fetch(url, { signal });
+        } finally {
+            release();
+        }
+        readBudget(res);
+
+        if (res.status === 429 || res.status === 503) {
+            const wait = waitFrom(res, attempt);
+            if (wait > WORTH_RETRYING_MS || attempt >= BACKOFF_MS.length) {
+                budget.blockedUntil = Date.now() + wait;
+                throw spentError();
+            }
+            await sleep(wait, signal);
+            continue;
+        }
+
+        if (!res.ok) throw new Error(`OpenAlex returned HTTP ${res.status}`);
+        budget.blockedUntil = 0;
+        const json = await res.json();
+        if (cacheable) cache.set(url, { at: Date.now(), json });
+        return json;
+    }
+}
+
 /** OpenAlex stores abstracts as {word: [positions]}; put them back in order. */
 export function reconstructAbstract(index) {
     if (!index) return '';
@@ -165,15 +320,7 @@ export async function searchTopic(topic, { max = 60, sinceDays = 30, signal, mai
         'per-page': String(Math.min(max, 200)),
         select: FIELDS,
     });
-    // OpenAlex's "polite pool" is faster, but it means handing them an address, so it
-    // is opt-in from Settings and never filled in automatically.
-    if (mailto) params.set('mailto', mailto);
-
-    const res = await fetch(`${API}?${params.toString()}`, { signal });
-    if (res.status === 429) throw new Error('OpenAlex is rate-limiting — wait a minute and retry');
-    if (!res.ok) throw new Error(`OpenAlex returned HTTP ${res.status}`);
-
-    const json = await res.json();
+    const json = await apiFetch(params, { signal, mailto });
     const entries = (json.results || []).map(toEntry).filter(Boolean);
     return {
         entries,
@@ -217,12 +364,8 @@ export async function searchFreeText(input, { max = 25, mailto, signal } = {}) {
     const run = async (filter, perPage) => {
         const params = new URLSearchParams({ filter, select: FIELDS });
         params.set('per-page', String(Math.min(perPage, 50)));
-        if (mailto) params.set('mailto', mailto);
 
-        const res = await fetch(`${API}?${params.toString()}`, { signal });
-        if (res.status === 429) throw new Error('OpenAlex is rate-limiting — wait a minute and retry');
-        if (!res.ok) throw new Error(`OpenAlex returned HTTP ${res.status}`);
-        const json = await res.json();
+        const json = await apiFetch(params, { signal, mailto, cacheable: true });
         const works = json.results || [];
 
         // OpenAlex sometimes holds two records for one preprint; the first is
@@ -245,19 +388,25 @@ export async function searchFreeText(input, { max = 25, mailto, signal } = {}) {
     const arxivId = arxivIdFromInput(raw);
     const doi = arxivId ? null : (raw.match(DOI) || [])[1];
 
-    /* OpenAlex cannot OR across fields in one filter, so a text query is three
-       questions asked at once and merged in order of how likely each is to hold
-       the paper being looked for:
+    /* OpenAlex cannot OR across fields in one filter, so there are three ways to
+       ask a text question, in descending order of how often they are the right
+       one:
          1. the whole index — where a famous paper ranks first, preprint or not;
          2. the same words pinned to arXiv — which is all that is left when the
             open index answers with fifty chemistry papers and no preprints;
          3. the words as an author name — because a name is as likely a way in
-            as a title. */
+            as a title.
+       Asking all three every time costs three of the day's requests to answer
+       one question, so the fallbacks only run when the first pass came back
+       thin — which, for an ordinary title search, it does not. */
+    const ENOUGH = 5;
     const byText = async () => {
         const words = searchable(raw);
+        const wide = await run(`title_and_abstract.search:${words}`, 50);
+        if (wide.entries.length >= ENOUGH) return { ...wide, skipped: 0 };
+
         const spare = { entries: [], skipped: 0 };
-        const [wide, onArxiv, byAuthor] = await Promise.all([
-            run(`title_and_abstract.search:${words}`, 50),
+        const [onArxiv, byAuthor] = await Promise.all([
             run(`primary_location.source.id:${ARXIV_SOURCE},title_and_abstract.search:${words}`, 25).catch(() => spare),
             run(`raw_author_name.search:${words}`, 25).catch(() => spare),
         ]);

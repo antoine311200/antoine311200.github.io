@@ -4,7 +4,8 @@ import { usePapers } from '../context';
 import { exportStore, download, prune as pruneStore, storeBytes, storageEstimate } from '../storage';
 import { STRATEGIES } from '../arxiv';
 import { toBibtexAll, toCsv } from '../bibtex';
-import { Button, Field, Input, Modal, Toggle, cx } from '../ui';
+import { getBudget, humanWait } from '../openalex';
+import { Button, Count, Field, Input, Modal, Toggle, cx } from '../ui';
 
 const fmt = (n) => {
     if (n == null) return '—';
@@ -15,6 +16,32 @@ const fmt = (n) => {
 };
 
 /** Everything you set once and forget, kept out of the way until asked for. */
+/**
+ * OpenAlex bills per request against a daily allowance, and the only place that
+ * number exists is the last response's headers — so this is blank until
+ * something has been fetched, which is honest about what we actually know.
+ */
+function BudgetNote() {
+    const { limit, remaining, resetAt, blocked } = getBudget();
+    if (remaining == null || !limit) return null;
+
+    const left = resetAt ? Math.max(0, resetAt - Date.now()) : null;
+    const low = remaining < limit * 0.1;
+    return (
+        <div className={cx(
+            'rounded-lg border px-3 py-2 text-[11.5px] leading-relaxed',
+            blocked || low
+                ? 'border-orange-400/40 bg-orange-400/[0.07] text-orange-100'
+                : 'border-slate-800 bg-slate-900/40 text-slate-400',
+        )}>
+            {blocked
+                ? <>Today&rsquo;s OpenAlex allowance is spent.</>
+                : <><span className="font-mono">{remaining}</span> of {limit} OpenAlex requests left today.</>}
+            {left != null && <Count className="ml-1.5">resets in {humanWait(left)}</Count>}
+        </div>
+    );
+}
+
 export default function SettingsModal({ open, onClose }) {
     const store = usePapers();
     const { dispatch, settings, counts, paperList, states, notify, raw, resetAll } = store;
@@ -103,6 +130,25 @@ export default function SettingsModal({ open, onClose }) {
                                     <option value="auto">Auto — try each in turn</option>
                                     {STRATEGIES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
                                 </select>
+                            </Field>
+                        )}
+
+                        {settings.source !== 'arxiv' && <BudgetNote />}
+
+                        {settings.source !== 'arxiv' && (
+                            <Field
+                                label="Email for OpenAlex"
+                                hint="Optional. OpenAlex asks callers to identify themselves for its
+                                      “polite pool”, which buys a steadier queue — not a larger daily
+                                      allowance."
+                            >
+                                <Input
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    data-testid="openalex-mailto"
+                                    value={settings.openAlexMailto || ''}
+                                    onChange={(e) => set({ openAlexMailto: e.target.value.trim() })}
+                                />
                             </Field>
                         )}
 
