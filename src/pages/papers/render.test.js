@@ -103,19 +103,60 @@ test('right-clicking a topic opens a context menu', async () => {
     });
 });
 
-test('the Explorer rolls subfolder counts up into the parent', async () => {
+test('the Explorer opens a column per level, Finder style', async () => {
     const store = seeded();
     store.folders = [
         makeFolder({ id: 'f_root', name: 'Thesis' }),
         makeFolder({ id: 'f_kid', name: 'Chapter 1', parentId: 'f_root', paperIds: ['2608.11111'] }),
     ];
     await draw(store);
-
     fireEvent.click(screen.getByTestId('tab-explorer'));
-    // The parent holds nothing directly but must report its subtree's one paper.
+
+    // One column to start: the Stream root plus the user's root folders.
+    expect(screen.getByTestId('explorer-column-0')).toBeInTheDocument();
+    expect(screen.queryByTestId('explorer-column-1')).not.toBeInTheDocument();
+    // The parent holds nothing directly but reports its subtree's one paper.
     expect(screen.getByTestId('folder-node-f_root')).toHaveTextContent('1');
+
+    // Selecting it opens its children in a second column.
     fireEvent.click(screen.getByTestId('folder-node-f_root'));
-    expect(screen.getByRole('heading', { name: 'Thesis' })).toBeInTheDocument();
+    expect(screen.getByTestId('explorer-column-1')).toBeInTheDocument();
+    expect(screen.getByTestId('folder-node-f_kid')).toHaveTextContent('Chapter 1');
+});
+
+test('the Stream appears in the Explorer as a read-only date tree', async () => {
+    await draw(seeded());
+    fireEvent.click(screen.getByTestId('tab-explorer'));
+
+    const stream = screen.getByTestId('folder-node-stream:root');
+    expect(stream).toHaveTextContent('Stream');
+    fireEvent.click(stream);
+
+    // Drilling in gives months, and the contents pane says it cannot be edited.
+    expect(screen.getByTestId('explorer-column-1')).toBeInTheDocument();
+    expect(screen.getByText('read-only')).toBeInTheDocument();
+});
+
+test('every column offers a way to add a folder at that level', async () => {
+    const store = seeded();
+    store.folders = [makeFolder({ id: 'f_root', name: 'Thesis' })];
+    await draw(store);
+    fireEvent.click(screen.getByTestId('tab-explorer'));
+
+    expect(screen.getByTestId('new-folder-col-0')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('folder-node-f_root'));
+    // The second column can create a subfolder of Thesis — no right-click needed.
+    expect(screen.getByTestId('new-folder-col-1')).toBeInTheDocument();
+});
+
+test('the detail panel has a PDF tab', async () => {
+    await draw(seeded());
+    fireEvent.click(screen.getByText('Entropic Optimal Transport at Scale'));
+    const panel = screen.getByTestId('paper-panel');
+    // Both the header shortcut and the tab say "PDF"; the tab is the second.
+    fireEvent.click(within(panel).getAllByRole('button', { name: 'PDF' })[1]);
+    expect(screen.getByTestId('pdf-pane')).toBeInTheDocument();
+    expect(screen.getByTitle(/PDF of Entropic/)).toHaveAttribute('src', expect.stringContaining('arxiv.org/pdf'));
 });
 
 test('settings live in a modal, not a tab', async () => {

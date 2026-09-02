@@ -171,7 +171,7 @@ function reducer(state, action) {
         case 'FOLDER_ADD':
             return {
                 ...state,
-                folders: [...state.folders, makeFolder({
+                folders: [...state.folders, action.folder ? makeFolder(action.folder) : makeFolder({
                     name: action.name,
                     parentId: action.parentId || null,
                     paperIds: action.paperIds || [],
@@ -211,15 +211,26 @@ function reducer(state, action) {
                 }),
             };
 
-        /** Move papers into a folder, removing them from any other folder first. */
-        case 'FOLDER_MOVE_PAPERS': {
+        /**
+         * File papers into a folder.
+         *
+         * `from` names the folder they were dragged out of, and only that folder loses
+         * them — a paper can legitimately sit in both "Chapter 2" and "Reading group",
+         * so a move must not evict it from everywhere. Omit `from` (a copy, or a drag
+         * out of the read-only Stream) and nothing is removed.
+         */
+        case 'FOLDER_FILE_PAPERS': {
             const moving = new Set(action.paperIds);
             return {
                 ...state,
                 folders: state.folders.map((c) => {
-                    const without = c.paperIds.filter((p) => !moving.has(p));
-                    if (c.id !== action.id) return without.length === c.paperIds.length ? c : { ...c, paperIds: without };
-                    return { ...c, paperIds: Array.from(new Set([...without, ...action.paperIds])) };
+                    if (c.id === action.id) {
+                        return { ...c, paperIds: Array.from(new Set([...c.paperIds, ...action.paperIds])) };
+                    }
+                    if (action.from && c.id === action.from) {
+                        return { ...c, paperIds: c.paperIds.filter((p) => !moving.has(p)) };
+                    }
+                    return c;
                 }),
             };
         }

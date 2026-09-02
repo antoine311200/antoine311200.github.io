@@ -269,7 +269,8 @@ function Shelf({ folders, dispatch, notify, papers, onGoExplorer }) {
                             defaultValue=""
                             onChange={(e) => {
                                 if (!e.target.value) return;
-                                dispatch({ type: 'FOLDER_MOVE_PAPERS', id: e.target.value, paperIds: shelf });
+                                // Shelf papers came from the read-only Stream, so filing them is a copy.
+                                dispatch({ type: 'FOLDER_FILE_PAPERS', id: e.target.value, paperIds: shelf });
                                 notify(`${shelf.length} filed`);
                                 clearShelf();
                                 onGoExplorer();

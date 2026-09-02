@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { usePapers } from '../context';
-import { useDrag } from '../dnd';
+import { useDrag, STREAM_SOURCE } from '../dnd';
 import { authorKey } from '../storage';
 import { Chip, IconButton, cx, shortDate } from '../ui';
 
@@ -31,6 +31,7 @@ const Icon = {
  */
 export default function PaperRow({
     paper, selected, focused, onOpen, onToggleSelect, onContextMenu, selectionIds, dense,
+    dragSource = STREAM_SOURCE,
 }) {
     const { dispatch, stateOf, topics, authors } = usePapers();
     const { startPaperDrag, endDrag, dragging } = useDrag();
@@ -54,7 +55,11 @@ export default function PaperRow({
             data-testid="paper-row"
             data-paper-id={paper.id}
             draggable
-            onDragStart={(e) => startPaperDrag(e, selected && selectionIds && selectionIds.length ? selectionIds : [paper.id])}
+            onDragStart={(e) => startPaperDrag(
+                e,
+                selected && selectionIds && selectionIds.length ? selectionIds : [paper.id],
+                dragSource,
+            )}
             onDragEnd={endDrag}
             onClick={onOpen}
             onContextMenu={onContextMenu}

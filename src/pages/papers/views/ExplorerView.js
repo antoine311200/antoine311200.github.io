@@ -1,33 +1,70 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { usePapers } from '../context';
-import { folderPath, folderSubtree, papersInFolder, download } from '../storage';
+import { folderPath, folderSubtree, papersInFolder, download, makeFolder } from '../storage';
 import { toBibtexAll, toCsv, toMarkdown } from '../bibtex';
-import { useDrag, useDropTarget } from '../dnd';
+import { useDrag, useDropTarget, STREAM_SOURCE } from '../dnd';
+import { buildTimeTree, papersUnder, dayShort } from '../timeTree';
 import PaperRow from '../components/PaperRow';
 import {
     Button, ContextMenu, Count, Empty, Input, Modal, cx, shortDate, useContextMenu,
 } from '../ui';
 
+const STREAM_ROOT = 'stream:root';
+const isStream = (id) => typeof id === 'string' && id.startsWith('stream:');
+
+// Time-tree keys ("2026-09", "2026-09|2026-08-31") carry no namespace of their own, so
+// the Explorer prefixes them. Without this a month id looks exactly like a folder id
+// and the column browser treats it as one.
+const streamId = (key) => `stream:${key}`;
+const streamKey = (id) => String(id).slice('stream:'.length);
+
 /**
- * The organiser. A folder tree you can drag anything onto, and a contents pane that
- * is itself a drop target — so a paper dragged from the Stream lands wherever the
- * pointer is, not wherever a modal decided.
+ * A Finder-style column browser.
+ *
+ * The left-most column holds two roots: **Stream**, a read-only mirror of everything
+ * fetched, bucketed Month › Week › Day, and **My folders**, which you own. Selecting
+ * a folder opens its children in the next column, so nesting is something you can see
+ * and walk rather than a tree you have to unfold in place.
+ *
+ * Dragging out of the Stream copies; dragging between your own folders moves.
  */
 export default function ExplorerView({ selection, setSelection, openId, setOpenId }) {
-    const { folders, papers, dispatch, notify, states, paperList } = usePapers();
-    const { startFolderDrag, endDrag } = useDrag();
+    const { folders, papers, paperList, dispatch, notify, states } = usePapers();
+    const { startFolderDrag, endDrag, draggingPapers, draggingFolder } = useDrag();
 
-    const [selectedId, setSelectedId] = useState(() => (folders.find((f) => !f.parentId) || {}).id || null);
-    const [expanded, setExpanded] = useState(() => new Set(folders.filter((f) => !f.parentId).map((f) => f.id)));
+    // The path of selected nodes, one per column. `[]` means only the roots show.
+    const [path, setPath] = useState([]);
     const [renaming, setRenaming] = useState(null);
     const [query, setQuery] = useState('');
-    const [recursive, setRecursive] = useState(true);
     const [importOpen, setImportOpen] = useState(false);
+    const columnsRef = useRef(null);
     const folderMenu = useContextMenu();
     const paperMenu = useContextMenu();
 
-    const childrenOf = useMemo(() => {
+    const tree = useMemo(() => buildTimeTree(paperList), [paperList]);
+
+    /* --------------------------------------------------------- the model --- */
+
+    const streamChildren = useMemo(() => {
+        const byKey = new Map();
+        byKey.set(STREAM_ROOT, tree.map((m) => ({
+            id: streamId(m.key), name: m.label, count: m.count, kind: 'stream', hasChildren: true,
+        })));
+        tree.forEach((m) => {
+            byKey.set(streamId(m.key), m.weeks.map((w) => ({
+                id: streamId(w.key), name: w.label, count: w.count, kind: 'stream', hasChildren: true,
+            })));
+            m.weeks.forEach((w) => {
+                byKey.set(streamId(w.key), w.days.map((d) => ({
+                    id: streamId(d.key), name: dayShort(d.iso), count: d.count, kind: 'stream', hasChildren: false,
+                })));
+            });
+        });
+        return byKey;
+    }, [tree]);
+
+    const userChildren = useMemo(() => {
         const map = new Map();
         folders.forEach((f) => {
             const key = f.parentId || '__root__';
@@ -38,289 +75,209 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
         return map;
     }, [folders]);
 
-    const counts = useMemo(() => {
+    const folderCounts = useMemo(() => {
         const m = new Map();
         folders.forEach((f) => m.set(f.id, papersInFolder(folders, f.id).size));
         return m;
     }, [folders]);
 
-    const selected = folders.find((f) => f.id === selectedId) || null;
-    const crumbs = selected ? folderPath(folders, selected.id) : [];
+    /** Entries for a column, given the node selected in the column before it. */
+    const childrenOf = (nodeId) => {
+        if (nodeId === null) {
+            return [
+                { id: STREAM_ROOT, name: 'Stream', count: paperList.length, kind: 'stream', hasChildren: tree.length > 0, root: true },
+                ...(userChildren.get('__root__') || []).map((f) => ({
+                    id: f.id, name: f.name, count: folderCounts.get(f.id) || 0, kind: 'folder',
+                    hasChildren: (userChildren.get(f.id) || []).length > 0,
+                })),
+            ];
+        }
+        if (isStream(nodeId)) return streamChildren.get(nodeId) || [];
+        return (userChildren.get(nodeId) || []).map((f) => ({
+            id: f.id, name: f.name, count: folderCounts.get(f.id) || 0, kind: 'folder',
+            hasChildren: (userChildren.get(f.id) || []).length > 0,
+        }));
+    };
+
+    // One column per level, plus a trailing column for the current selection's children.
+    const columns = useMemo(() => {
+        const cols = [{ parent: null, items: childrenOf(null) }];
+        path.forEach((nodeId) => {
+            const items = childrenOf(nodeId);
+            // A folder of your own always gets a column even when empty — that column
+            // is where its "＋ new subfolder" lives. Stream leaves (days) do not.
+            const ownFolder = !isStream(nodeId);
+            if (items.length || ownFolder) cols.push({ parent: nodeId, items });
+        });
+        return cols;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [path, userChildren, streamChildren, folderCounts, paperList.length, tree.length]);
+
+    useEffect(() => {
+        // Keep the newest column in view as the user drills down.
+        const el = columnsRef.current;
+        if (el) el.scrollLeft = el.scrollWidth;
+    }, [columns.length]);
+
+    const selectedId = path.length ? path[path.length - 1] : null;
+    const selectedFolder = selectedId && !isStream(selectedId)
+        ? folders.find((f) => f.id === selectedId)
+        : null;
+
+    const select = (depth, nodeId) => setPath([...path.slice(0, depth), nodeId]);
+
+    /* ---------------------------------------------------------- contents --- */
 
     const visible = useMemo(() => {
-        if (!selected) return [];
-        const ids = papersInFolder(folders, selected.id, { recursive });
+        if (!selectedId) return [];
+        const list = isStream(selectedId)
+            ? (selectedId === STREAM_ROOT ? paperList : papersUnder(tree, streamKey(selectedId)))
+            : Array.from(papersInFolder(folders, selectedId)).map((id) => papers[id]).filter(Boolean);
+
         const needle = query.trim().toLowerCase();
-        return Array.from(ids).map((id) => papers[id]).filter(Boolean)
+        return list
             .filter((p) => !needle || p.title.toLowerCase().includes(needle)
                 || (p.authors || []).some((a) => a.name.toLowerCase().includes(needle)))
             .sort((a, b) => String(b.published || '').localeCompare(String(a.published || '')));
-    }, [selected, folders, papers, recursive, query]);
+    }, [selectedId, tree, folders, papers, paperList, query]);
+
+    const crumbs = selectedFolder ? folderPath(folders, selectedFolder.id) : [];
+
+    /* ----------------------------------------------------------- actions --- */
 
     const newFolder = (parentId = null) => {
-        const base = 'New folder';
-        let name = base;
-        let n = 2;
         const taken = new Set(folders.map((f) => f.name));
-        while (taken.has(name)) { name = `${base} ${n}`; n += 1; }
-        dispatch({ type: 'FOLDER_ADD', name, parentId });
-        if (parentId) setExpanded((e) => new Set(e).add(parentId));
-        // The new folder is the last one added; rename it immediately, Finder-style.
-        setTimeout(() => {
-            const created = (JSON.parse(JSON.stringify(folders)), null);
-            void created;
-        }, 0);
-        notify('Folder created — double-click its name to rename');
+        let name = 'New folder';
+        let n = 2;
+        while (taken.has(name)) { name = `New folder ${n}`; n += 1; }
+        const folder = makeFolder({ name, parentId });
+        dispatch({ type: 'FOLDER_ADD', topicless: true, folder });
+        setRenaming(folder.id);
+        if (parentId) setPath((p) => (p.includes(parentId) ? p : [...p, parentId]));
     };
 
-    const fileInto = (folderId, ids) => {
-        dispatch({ type: 'FOLDER_MOVE_PAPERS', id: folderId, paperIds: ids });
+    const fileInto = (folderId, ids, { source, copy }) => {
+        dispatch({
+            type: 'FOLDER_FILE_PAPERS',
+            id: folderId,
+            paperIds: ids,
+            from: copy || source === STREAM_SOURCE ? null : source,
+        });
         const name = (folders.find((f) => f.id === folderId) || {}).name;
-        notify(`${ids.length} paper${ids.length === 1 ? '' : 's'} → ${name}`);
+        notify(`${ids.length} paper${ids.length === 1 ? '' : 's'} ${copy ? 'copied' : 'moved'} → ${name}`);
         setSelection(new Set());
     };
 
-    /* ------------------------------------------------------------ tree node */
-
-    function Node({ folder, depth }) {
-        const kids = childrenOf.get(folder.id) || [];
-        const isOpen = expanded.has(folder.id);
-        const isSel = selectedId === folder.id;
-
-        const [over, dropProps] = useDropTarget({
-            accept: 'all',
-            onDropPapers: (ids) => fileInto(folder.id, ids),
-            onDropFolder: (id) => dispatch({ type: 'FOLDER_MOVE', id, parentId: folder.id }),
-        });
-
-        return (
-            <li>
-                <div
-                    {...dropProps}
-                    data-testid={`folder-node-${folder.id}`}
-                    draggable
-                    onDragStart={(e) => startFolderDrag(e, folder.id)}
-                    onDragEnd={endDrag}
-                    onClick={() => setSelectedId(folder.id)}
-                    onContextMenu={(e) => folderMenu.open(e, folder)}
-                    style={{ paddingLeft: `${depth * 14 + 8}px` }}
-                    className={cx(
-                        'group flex cursor-pointer items-center gap-1.5 rounded-lg py-1.5 pr-2 text-[12.5px] transition',
-                        isSel ? 'bg-orange-400/12 text-orange-100' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
-                        over && 'pr-drop-target',
-                    )}
-                >
-                    <button
-                        type="button"
-                        aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${folder.name}`}
-                        data-testid={`folder-toggle-${folder.id}`}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setExpanded((s) => { const n = new Set(s); if (n.has(folder.id)) n.delete(folder.id); else n.add(folder.id); return n; });
-                        }}
-                        className={cx('w-3 flex-none text-[9px] text-slate-600 transition hover:text-orange-300', !kids.length && 'invisible')}
-                    >
-                        {isOpen ? '▾' : '▸'}
-                    </button>
-                    <span className="flex-none text-[12px]">{isOpen && kids.length ? '📂' : '📁'}</span>
-
-                    {renaming === folder.id ? (
-                        <input
-                            autoFocus
-                            defaultValue={folder.name}
-                            onClick={(e) => e.stopPropagation()}
-                            onBlur={(e) => {
-                                const v = e.target.value.trim();
-                                if (v) dispatch({ type: 'FOLDER_UPDATE', id: folder.id, patch: { name: v } });
-                                setRenaming(null);
-                            }}
-                            onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') setRenaming(null); }}
-                            className="min-w-0 flex-1 rounded border border-orange-400/60 bg-slate-950 px-1 text-[12.5px] text-slate-100 outline-none"
-                        />
-                    ) : (
-                        <span className="min-w-0 flex-1 truncate" onDoubleClick={(e) => { e.stopPropagation(); setRenaming(folder.id); }}>
-                            {folder.name}
-                        </span>
-                    )}
-
-                    <Count>{counts.get(folder.id) || 0}</Count>
-                </div>
-                {isOpen && kids.length > 0 && (
-                    <ul>{kids.map((k) => <Node key={k.id} folder={k} depth={depth + 1} />)}</ul>
-                )}
-            </li>
-        );
-    }
-
-    const roots = childrenOf.get('__root__') || [];
-    const [rootOver, rootDropProps] = useDropTarget({
-        accept: 'all',
-        onDropFolder: (id) => dispatch({ type: 'FOLDER_MOVE', id, parentId: null }),
-    });
-
-    const [paneOver, paneDropProps] = useDropTarget({
-        onDropPapers: (ids) => { if (selected) fileInto(selected.id, ids); },
-    });
-
-    const exportAs = (fmt) => {
-        if (!visible.length) { notify('Nothing to export'); return; }
-        const stamp = selected.name.replace(/[^\w-]+/g, '-').toLowerCase();
-        if (fmt === 'bib') download(`${stamp}.bib`, toBibtexAll(visible), 'text/plain');
-        if (fmt === 'csv') download(`${stamp}.csv`, toCsv(visible, states), 'text/csv');
-        if (fmt === 'md') download(`${stamp}.md`, toMarkdown(visible, states), 'text/markdown');
+    const exportAs = (fmt, list = visible, label = 'papers') => {
+        if (!list.length) { notify('Nothing to export'); return; }
+        const stamp = label.replace(/[^\w-]+/g, '-').toLowerCase();
+        if (fmt === 'bib') download(`${stamp}.bib`, toBibtexAll(list), 'text/plain');
+        if (fmt === 'csv') download(`${stamp}.csv`, toCsv(list, states), 'text/csv');
+        if (fmt === 'md') download(`${stamp}.md`, toMarkdown(list, states), 'text/markdown');
     };
+
+    /* ------------------------------------------------------------ render --- */
 
     return (
         <div className="flex h-full min-h-0">
-            {/* --------------------------------------------------------- tree */}
-            <div className="flex w-64 flex-none flex-col border-r border-slate-800">
-                <div className="flex flex-none items-center gap-2 border-b border-slate-800 px-3 py-2.5">
-                    <h2 className="flex-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Folders</h2>
-                    <Button size="sm" onClick={() => newFolder(null)} data-testid="new-folder">+ Folder</Button>
-                </div>
-
-                <div
-                    {...rootDropProps}
-                    className={cx('min-h-0 flex-1 overflow-y-auto p-1.5', rootOver && 'pr-drop-target')}
-                    onContextMenu={(e) => { if (e.target === e.currentTarget) folderMenu.open(e, null); }}
-                >
-                    {roots.length ? (
-                        <ul>{roots.map((f) => <Node key={f.id} folder={f} depth={0} />)}</ul>
-                    ) : (
-                        <div className="px-3 py-8 text-center">
-                            <p className="text-[11px] leading-relaxed text-slate-600">
-                                No folders yet.
-                            </p>
-                            <Button className="mt-3" size="sm" variant="primary" onClick={() => newFolder(null)}>
-                                Create the first
-                            </Button>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* ----------------------------------------------------- contents */}
             <div className="flex min-w-0 flex-1 flex-col">
-                {!selected ? (
-                    <div className="p-8">
-                        <Empty icon="🗂" title="Pick a folder">
-                            Folders are bibliography drawers. Drag papers in from the Stream — hold them over the
-                            Explorer tab and it opens for you — then export the whole folder as BibTeX.
-                        </Empty>
-                    </div>
-                ) : (
-                    <>
-                        <header className="flex-none border-b border-slate-800 px-5 py-3">
-                            <div className="flex flex-wrap items-center gap-3">
-                                <div className="min-w-0">
-                                    <nav className="flex items-center gap-1 text-[10px] text-slate-600">
-                                        {crumbs.map((b, i) => (
-                                            <React.Fragment key={b.id}>
-                                                {i > 0 && <span>/</span>}
-                                                <button type="button" onClick={() => setSelectedId(b.id)} className="transition hover:text-orange-300">
-                                                    {b.name}
-                                                </button>
-                                            </React.Fragment>
-                                        ))}
-                                    </nav>
-                                    <h1 className="text-[15px] font-semibold text-slate-100">{selected.name}</h1>
-                                    <p className="text-[11px] text-slate-500">
-                                        {visible.length} paper{visible.length === 1 ? '' : 's'}
-                                        {' · created '}{shortDate(selected.createdAt)}
-                                    </p>
-                                </div>
-                                <div className="flex-1" />
-                                <Input
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    placeholder="Filter in folder…"
-                                    className="!w-40 !py-1 !text-[11.5px]"
-                                />
-                                <Button size="sm" variant={recursive ? 'active' : 'ghost'} onClick={() => setRecursive(!recursive)}>
-                                    Subfolders
-                                </Button>
-                                <Button size="sm" onClick={() => setImportOpen(true)}>Import</Button>
-                                <Button size="sm" onClick={() => exportAs('bib')}>BibTeX</Button>
-                            </div>
+                <header className="flex flex-none flex-wrap items-center gap-2 border-b border-slate-800 px-5 py-2.5">
+                    <h1 className="text-[13px] font-semibold text-slate-100">Explorer</h1>
+                    <Count>{folders.length} folder{folders.length === 1 ? '' : 's'}</Count>
+                    <div className="flex-1" />
+                    {draggingPapers && (
+                        <span className="pr-pulse text-[10.5px] text-orange-300">
+                            drop on a folder · hold ⌥ to copy
+                        </span>
+                    )}
+                    <Button size="sm" onClick={() => newFolder(null)} data-testid="new-folder">+ Folder</Button>
+                </header>
 
-                            {selection.size > 0 && (
-                                <div className="mt-2 flex items-center gap-2 rounded-lg border border-orange-400/25 bg-orange-400/[0.07] px-3 py-1.5">
-                                    <span className="text-[11px] text-orange-200">{selection.size} selected</span>
-                                    <div className="flex-1" />
-                                    <Button size="sm" variant="danger"
-                                            onClick={() => {
-                                                dispatch({ type: 'FOLDER_REMOVE_PAPERS', id: selected.id, paperIds: Array.from(selection) });
-                                                setSelection(new Set());
-                                            }}>
-                                        Remove from folder
-                                    </Button>
-                                    <Button size="sm" variant="quiet" onClick={() => setSelection(new Set())}>Clear</Button>
-                                </div>
-                            )}
-                        </header>
+                {/* ------------------------------------------------- columns */}
+                <div
+                    ref={columnsRef}
+                    data-testid="explorer-columns"
+                    className="flex flex-none overflow-x-auto border-b border-slate-800"
+                    style={{ height: '42%' }}
+                >
+                    {columns.map((col, depth) => (
+                        <Column
+                            key={depth}
+                            depth={depth}
+                            parent={col.parent}
+                            items={col.items}
+                            activeId={path[depth]}
+                            onSelect={(id) => select(depth, id)}
+                            onOpenMenu={folderMenu.open}
+                            renaming={renaming}
+                            setRenaming={setRenaming}
+                            dispatch={dispatch}
+                            onNewFolder={newFolder}
+                            onFilePapers={fileInto}
+                            draggingPapers={draggingPapers}
+                            draggingFolder={draggingFolder}
+                            startFolderDrag={startFolderDrag}
+                            endDrag={endDrag}
+                        />
+                    ))}
+                </div>
 
-                        <div
-                            {...paneDropProps}
-                            data-testid="folder-drop-pane"
-                            className={cx('min-h-0 flex-1 overflow-y-auto px-5 py-4', paneOver && 'pr-drop-target')}
-                        >
-                            {visible.length ? (
-                                <div className="space-y-1.5">
-                                    {visible.map((p) => (
-                                        <PaperRow
-                                            key={p.id}
-                                            paper={p}
-                                            selected={selection.has(p.id)}
-                                            focused={openId === p.id}
-                                            selectionIds={Array.from(selection)}
-                                            onToggleSelect={() => setSelection((s) => {
-                                                const n = new Set(s);
-                                                if (n.has(p.id)) n.delete(p.id); else n.add(p.id);
-                                                return n;
-                                            })}
-                                            onOpen={() => setOpenId(openId === p.id ? null : p.id)}
-                                            onContextMenu={(e) => paperMenu.open(e, p)}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <Empty icon="◦" title="This folder is empty" className="border-slate-800">
-                                    Drop papers here, or drag them from the Stream tab.
-                                </Empty>
-                            )}
-                        </div>
-                    </>
-                )}
+                {/* ------------------------------------------------ contents */}
+                <ContentsPane
+                    selectedId={selectedId}
+                    selectedFolder={selectedFolder}
+                    crumbs={crumbs}
+                    visible={visible}
+                    query={query}
+                    setQuery={setQuery}
+                    selection={selection}
+                    setSelection={setSelection}
+                    openId={openId}
+                    setOpenId={setOpenId}
+                    onFilePapers={fileInto}
+                    onPaperMenu={paperMenu.open}
+                    onExport={exportAs}
+                    onImport={() => setImportOpen(true)}
+                    onPickFolder={() => setPath([])}
+                />
             </div>
 
-            {/* ------------------------------------------------------- menus */}
+            {/* --------------------------------------------------------- menus */}
             <ContextMenu
                 menu={folderMenu.menu}
                 onClose={folderMenu.close}
-                items={(folder) => (folder ? [
-                    { label: 'New subfolder', icon: '＋', onSelect: () => newFolder(folder.id) },
-                    { label: 'Rename', icon: '✎', hint: 'dbl-click', onSelect: () => setRenaming(folder.id) },
-                    { separator: true },
-                    { label: 'Export BibTeX', icon: '⇩', onSelect: () => { setSelectedId(folder.id); setTimeout(() => exportAs('bib'), 0); } },
-                    { label: 'Export CSV', icon: '⇩', onSelect: () => { setSelectedId(folder.id); setTimeout(() => exportAs('csv'), 0); } },
-                    { label: 'Export Markdown', icon: '⇩', onSelect: () => { setSelectedId(folder.id); setTimeout(() => exportAs('md'), 0); } },
-                    { separator: true },
-                    {
-                        label: 'Delete folder',
-                        icon: '🗑',
-                        danger: true,
-                        onSelect: () => {
-                            const kids = folderSubtree(folders, folder.id).length - 1;
-                            // eslint-disable-next-line no-alert
-                            if (window.confirm(`Delete "${folder.name}"${kids ? ` and its ${kids} subfolder(s)` : ''}? Papers stay in your library.`)) {
-                                dispatch({ type: 'FOLDER_REMOVE', id: folder.id });
-                                if (selectedId === folder.id) setSelectedId(null);
-                            }
+                items={(node) => {
+                    if (!node) return [{ label: 'New folder', icon: '＋', onSelect: () => newFolder(null) }];
+                    if (node.kind === 'stream') {
+                        const list = node.id === STREAM_ROOT ? paperList : papersUnder(tree, streamKey(node.id));
+                        return [
+                            { label: `Export ${list.length} as BibTeX`, icon: '⇩', onSelect: () => exportAs('bib', list, node.name) },
+                            { label: 'Export as CSV', icon: '⇩', onSelect: () => exportAs('csv', list, node.name) },
+                            { separator: true },
+                            { label: 'Stream folders are read-only', icon: '🔒', disabled: true, onSelect: () => {} },
+                        ];
+                    }
+                    return [
+                        { label: 'New subfolder', icon: '＋', onSelect: () => newFolder(node.id) },
+                        { label: 'Rename', icon: '✎', hint: 'dbl-click', onSelect: () => setRenaming(node.id) },
+                        { separator: true },
+                        { label: 'Export BibTeX', icon: '⇩', onSelect: () => exportAs('bib', Array.from(papersInFolder(folders, node.id)).map((i) => papers[i]).filter(Boolean), node.name) },
+                        { separator: true },
+                        {
+                            label: 'Delete folder',
+                            icon: '🗑',
+                            danger: true,
+                            onSelect: () => {
+                                const kids = folderSubtree(folders, node.id).length - 1;
+                                // eslint-disable-next-line no-alert
+                                if (window.confirm(`Delete "${node.name}"${kids ? ` and its ${kids} subfolder(s)` : ''}? Papers stay in your library.`)) {
+                                    dispatch({ type: 'FOLDER_REMOVE', id: node.id });
+                                    setPath((p) => p.slice(0, p.indexOf(node.id)));
+                                }
+                            },
                         },
-                    },
-                ] : [
-                    { label: 'New folder', icon: '＋', onSelect: () => newFolder(null) },
-                ])}
+                    ];
+                }}
             />
 
             <ContextMenu
@@ -329,23 +286,261 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
                 items={(paper) => [
                     { label: 'Open details', icon: '◉', onSelect: () => setOpenId(paper.id) },
                     { label: 'Open on arXiv', icon: '↗', onSelect: () => window.open(`https://arxiv.org/abs/${paper.id}`, '_blank', 'noreferrer') },
-                    { separator: true },
-                    {
-                        label: 'Remove from folder',
-                        icon: '⊘',
-                        danger: true,
-                        onSelect: () => dispatch({ type: 'FOLDER_REMOVE_PAPERS', id: selected.id, paperIds: [paper.id] }),
-                    },
+                    ...(selectedFolder ? [
+                        { separator: true },
+                        {
+                            label: 'Remove from folder',
+                            icon: '⊘',
+                            danger: true,
+                            onSelect: () => dispatch({ type: 'FOLDER_REMOVE_PAPERS', id: selectedFolder.id, paperIds: [paper.id] }),
+                        },
+                    ] : []),
                 ]}
             />
 
             <ImportModal
                 open={importOpen}
                 onClose={() => setImportOpen(false)}
-                folder={selected}
+                folder={selectedFolder}
                 paperList={paperList}
-                onFile={(ids) => { if (selected) fileInto(selected.id, ids); setImportOpen(false); }}
+                onFile={(ids) => {
+                    if (selectedFolder) fileInto(selectedFolder.id, ids, { copy: true });
+                    setImportOpen(false);
+                }}
             />
+        </div>
+    );
+}
+
+/* -------------------------------------------------------------------- column */
+
+function Column({
+    depth, parent, items, activeId, onSelect, onOpenMenu, renaming, setRenaming,
+    dispatch, onNewFolder, onFilePapers, draggingPapers, draggingFolder, startFolderDrag, endDrag,
+}) {
+    const canAdd = parent === null || !isStream(parent);
+    const title = depth === 0 ? 'Locations' : null;
+
+    return (
+        <div
+            data-testid={`explorer-column-${depth}`}
+            className="flex h-full w-56 flex-none flex-col border-r border-slate-800"
+        >
+            <div className="flex flex-none items-center gap-1 px-2 py-1.5">
+                <span className="flex-1 truncate text-[9.5px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                    {title || ''}
+                </span>
+                {canAdd && (
+                    <button
+                        type="button"
+                        title={parent ? 'New subfolder here' : 'New folder'}
+                        data-testid={`new-folder-col-${depth}`}
+                        onClick={() => onNewFolder(parent)}
+                        className="rounded px-1 text-[12px] leading-none text-slate-600 transition hover:bg-white/5 hover:text-orange-300"
+                    >
+                        ＋
+                    </button>
+                )}
+            </div>
+
+            <ul
+                className="min-h-0 flex-1 overflow-y-auto px-1.5 pb-2"
+                onContextMenu={(e) => { if (e.target === e.currentTarget) onOpenMenu(e, null); }}
+            >
+                {items.map((node) => (
+                    <ColumnRow
+                        key={node.id}
+                        node={node}
+                        active={activeId === node.id}
+                        onSelect={() => onSelect(node.id)}
+                        onOpenMenu={onOpenMenu}
+                        renaming={renaming === node.id}
+                        setRenaming={setRenaming}
+                        dispatch={dispatch}
+                        onFilePapers={onFilePapers}
+                        draggingPapers={draggingPapers}
+                        draggingFolder={draggingFolder}
+                        startFolderDrag={startFolderDrag}
+                        endDrag={endDrag}
+                    />
+                ))}
+                {!items.length && (
+                    <li className="px-2 py-6 text-center text-[10.5px] leading-relaxed text-slate-700">
+                        {canAdd ? 'Empty — use ＋ above' : 'Nothing here'}
+                    </li>
+                )}
+            </ul>
+        </div>
+    );
+}
+
+function ColumnRow({
+    node, active, onSelect, onOpenMenu, renaming, setRenaming, dispatch,
+    onFilePapers, draggingPapers, draggingFolder, startFolderDrag, endDrag,
+}) {
+    const readOnly = node.kind === 'stream';
+
+    const [over, dropProps] = useDropTarget({
+        accept: 'all',
+        disabled: readOnly,
+        onDropPapers: (ids, meta) => onFilePapers(node.id, ids, meta),
+        onDropFolder: (id) => dispatch({ type: 'FOLDER_MOVE', id, parentId: node.id }),
+    });
+
+    // Every valid target is outlined for the whole drag, not only under the pointer,
+    // so you can see where a paper *could* go before you go there.
+    const droppable = !readOnly && (draggingPapers || draggingFolder);
+
+    return (
+        <li>
+            <div
+                {...dropProps}
+                data-testid={`folder-node-${node.id}`}
+                draggable={!readOnly}
+                onDragStart={(e) => !readOnly && startFolderDrag(e, node.id)}
+                onDragEnd={endDrag}
+                onClick={onSelect}
+                onDoubleClick={() => !readOnly && setRenaming(node.id)}
+                onContextMenu={(e) => onOpenMenu(e, node)}
+                className={cx(
+                    'group flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-[12px] transition',
+                    active ? 'bg-orange-400/15 text-orange-100' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
+                    droppable && !over && 'pr-droppable',
+                    over && 'pr-drop-target',
+                )}
+            >
+                <span className="flex-none text-[12px]">
+                    {node.root ? '📡' : readOnly ? '🗓' : active ? '📂' : '📁'}
+                </span>
+
+                {renaming ? (
+                    <input
+                        autoFocus
+                        defaultValue={node.name}
+                        onClick={(e) => e.stopPropagation()}
+                        onBlur={(e) => {
+                            const v = e.target.value.trim();
+                            if (v) dispatch({ type: 'FOLDER_UPDATE', id: node.id, patch: { name: v } });
+                            setRenaming(null);
+                        }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') setRenaming(null); }}
+                        className="min-w-0 flex-1 rounded border border-orange-400/60 bg-slate-950 px-1 text-[12px] text-slate-100 outline-none"
+                    />
+                ) : (
+                    <span className="min-w-0 flex-1 truncate">{node.name}</span>
+                )}
+
+                <Count>{node.count}</Count>
+                {node.hasChildren && <span className="flex-none text-[8px] text-slate-600">▸</span>}
+            </div>
+        </li>
+    );
+}
+
+/* ------------------------------------------------------------------ contents */
+
+function ContentsPane({
+    selectedId, selectedFolder, crumbs, visible, query, setQuery, selection, setSelection,
+    openId, setOpenId, onFilePapers, onPaperMenu, onExport, onImport, onPickFolder,
+}) {
+    const { draggingPapers } = useDrag();
+    const readOnly = !selectedFolder;
+
+    const [over, dropProps] = useDropTarget({
+        disabled: readOnly,
+        onDropPapers: (ids, meta) => onFilePapers(selectedFolder.id, ids, meta),
+    });
+
+    if (!selectedId) {
+        return (
+            <div className="min-h-0 flex-1 overflow-y-auto p-8">
+                <Empty icon="🗂" title="Pick a location">
+                    <b className="text-slate-300">Stream</b> mirrors everything fetched, by month, week and
+                    day — drag papers out of it to copy them into your own folders. Anything under it is
+                    read-only; your folders are yours to rearrange.
+                </Empty>
+            </div>
+        );
+    }
+
+    const name = selectedFolder ? selectedFolder.name : 'Stream';
+
+    return (
+        <div className="flex min-h-0 flex-1 flex-col">
+            <header className="flex flex-none flex-wrap items-center gap-3 border-b border-slate-800 px-5 py-2.5">
+                <div className="min-w-0">
+                    {crumbs.length > 0 && (
+                        <nav className="flex items-center gap-1 text-[10px] text-slate-600">
+                            <button type="button" onClick={onPickFolder} className="transition hover:text-orange-300">home</button>
+                            {crumbs.map((b) => (
+                                <React.Fragment key={b.id}><span>/</span><span>{b.name}</span></React.Fragment>
+                            ))}
+                        </nav>
+                    )}
+                    <h2 className="flex items-center gap-2 text-[14px] font-semibold text-slate-100">
+                        {name}
+                        {readOnly && (
+                            <span className="rounded-full border border-slate-700 px-1.5 py-0.5 text-[9px] font-normal text-slate-500">
+                                read-only
+                            </span>
+                        )}
+                    </h2>
+                    <p className="text-[11px] text-slate-500">
+                        {visible.length} paper{visible.length === 1 ? '' : 's'}
+                        {selectedFolder ? ` · created ${shortDate(selectedFolder.createdAt)}` : ''}
+                    </p>
+                </div>
+                <div className="flex-1" />
+                <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter…" className="!w-36 !py-1 !text-[11.5px]" />
+                {selectedFolder && <Button size="sm" onClick={onImport}>Import</Button>}
+                <Button size="sm" onClick={() => onExport('bib', visible, name)}>BibTeX</Button>
+            </header>
+
+            {selection.size > 0 && selectedFolder && (
+                <div className="flex flex-none items-center gap-2 border-b border-orange-400/25 bg-orange-400/[0.07] px-5 py-1.5">
+                    <span className="text-[11px] text-orange-200">{selection.size} selected</span>
+                    <div className="flex-1" />
+                    <Button size="sm" variant="quiet" onClick={() => setSelection(new Set())}>Clear</Button>
+                </div>
+            )}
+
+            <div
+                {...dropProps}
+                data-testid="folder-drop-pane"
+                className={cx(
+                    'min-h-0 flex-1 overflow-y-auto px-5 py-3',
+                    !readOnly && draggingPapers && !over && 'pr-droppable',
+                    over && 'pr-drop-target',
+                )}
+            >
+                {visible.length ? (
+                    <div className="space-y-1.5">
+                        {visible.map((p) => (
+                            <PaperRow
+                                key={p.id}
+                                paper={p}
+                                dense
+                                dragSource={selectedFolder ? selectedFolder.id : STREAM_SOURCE}
+                                selected={selection.has(p.id)}
+                                focused={openId === p.id}
+                                selectionIds={Array.from(selection)}
+                                onToggleSelect={() => setSelection((s) => {
+                                    const n = new Set(s);
+                                    if (n.has(p.id)) n.delete(p.id); else n.add(p.id);
+                                    return n;
+                                })}
+                                onOpen={() => setOpenId(openId === p.id ? null : p.id)}
+                                onContextMenu={(e) => onPaperMenu(e, p)}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <Empty icon="◦" title={readOnly ? 'Nothing here yet' : 'This folder is empty'} className="border-slate-800 !py-10">
+                        {readOnly ? 'Fetch some papers and they will appear here by date.'
+                            : 'Drag papers in from the Stream columns above, or from the Stream tab.'}
+                    </Empty>
+                )}
+            </div>
         </div>
     );
 }
@@ -355,7 +550,6 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
 function ImportModal({ open, onClose, folder, paperList, onFile }) {
     const [text, setText] = useState('');
 
-    // arXiv ids out of anything pasted: bare ids, abs/pdf URLs, a .bib file's eprint keys.
     const ids = useMemo(() => {
         const found = new Set();
         const re = /(\d{4}\.\d{4,5})(?:v\d+)?/g;

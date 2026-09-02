@@ -18,7 +18,7 @@ export const DEFAULT_SETTINGS = {
     proxy: 'auto',            // arXiv source only: 'auto' | strategy id | 'direct'
     autoFetchOnOpen: true,
     enrich: false,            // Semantic Scholar lookups
-    pdfInline: true,
+    pdfInline: false,       // open a paper straight on its PDF instead of the overview
     density: 'comfortable',   // 'comfortable' | 'compact'
     scoreThreshold: 0,        // hide digest items scoring below this
     recencyHalfLife: 10,      // days

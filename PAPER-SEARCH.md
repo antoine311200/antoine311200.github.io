@@ -75,6 +75,9 @@ The fetch and the reading surface are the same place, because they are the same 
 - Papers nest **Month › Week › Day**, newest first, every level collapsible with
   counts. The newest month, week and day open automatically; everything older stays
   folded, so the page opens on "what just arrived" without hiding the archive.
+- Each level reads differently rather than as three nested boxes: the month is a title
+  and a rule, the week a small date-range pill, and the day a sticky bar with a
+  calendar tile — the anchor you track while scrolling.
 - A week straddling a month boundary appears under both months and keeps independent
   collapse state in each.
 - **Quick filters** (Everything / Unread / Starred / Queue) and topic chips replace
@@ -83,16 +86,35 @@ The fetch and the reading surface are the same place, because they are the same 
 
 ### 3.3 Explorer — the organiser
 
-A folder tree and a contents pane, both drop targets.
+A **Finder-style column browser**. The first column holds two roots:
 
-- Drag papers onto a **folder in the tree** or into the **contents pane**; drag folders
-  onto each other to reparent (cycles refused). Double-click a name to rename.
-- **Right-click** for New subfolder, Rename, Export (BibTeX/CSV/Markdown) and Delete.
-  Deleting a folder deletes its subfolders and never the papers.
-- Counts roll up through subfolders; a toggle switches between the folder alone and
-  its whole subtree.
-- **Import** takes pasted arXiv ids, links, or a whole `.bib` file, tells you how many
-  are already in your library, and files those.
+- **📡 Stream** — a read-only mirror of everything fetched, bucketed Month › Week ›
+  Day by the same code the Stream tab uses, so the two can never disagree. Drag
+  papers *out* of it to file them.
+- **Your folders** — nest as deep as you like.
+
+Selecting anything opens its children in the next column, so nesting is something you
+walk rather than a tree you unfold in place. Every column has its own **＋** that
+creates a folder *at that level* — including inside an empty folder, which is where
+the old tree left you stuck.
+
+- **Rename** by double-click or right-click; **delete** takes its subfolders and never
+  the papers; **export** any node as BibTeX / CSV / Markdown.
+- **Import** takes pasted arXiv ids, links or a whole `.bib`.
+
+### 3.3.1 Copy versus move
+
+Where a paper came from decides what a drop means:
+
+| Dragged from | Dropped on a folder | Why |
+|---|---|---|
+| Stream (any level) | **copies** | the Stream is a record of what arrived; filing must not empty it |
+| One of your folders | **moves**, out of that folder only | a paper can sit in both "Chapter 2" and "Reading group", so a move must not evict it from everywhere |
+| Anywhere, holding **⌥** | **copies** | the Finder convention |
+
+Drop targets are signposted throughout a drag: every valid folder carries a faint
+dashed outline the whole time, and the one under the pointer fills and brightens. The
+Explorer header also spells out "drop on a folder · hold ⌥ to copy" while you drag.
 
 ### 3.4 Moving things between tabs
 
@@ -108,9 +130,13 @@ Two mechanisms, so nobody has to learn one particular gesture:
 ### 3.5 The reading panel
 
 Slides in beside whatever list you are in rather than taking the tab over, so you keep
-your place. Overview (TL;DR, abstract, authors with a follow switch, why it surfaced,
-every outbound link, BibTeX), Notes (tags, markdown notes, folder membership) and
-Related (TF-IDF neighbours). An inline PDF is one click away.
+your place. Four tabs: **Overview** (TL;DR, abstract, authors with a follow switch, why
+it surfaced, every outbound link, BibTeX), **PDF** (the arXiv PDF filling the panel,
+with an escape hatch to a real tab for browsers that refuse to frame it), **Notes**
+(tags, markdown notes, folder membership) and **Related** (TF-IDF neighbours).
+
+It opens on Overview; *Settings → Open papers on the PDF* makes it land on the PDF
+instead.
 
 ### 3.6 Everything else
 
@@ -142,6 +168,7 @@ src/pages/papers/
   ui.js                   the design system: buttons, cards, menus, modals, motion
   dnd.js                  drag payloads, spring-loaded tabs, the shelf
   animations.css          the motion vocabulary
+  timeTree.js             Month > Week > Day bucketing, shared by Stream and Explorer
   views/                  TopicsView, StreamView, ExplorerView, SettingsModal
   components/             PaperRow, PaperPanel
 ```

@@ -203,7 +203,7 @@ test.describe('stream', () => {
 /* ---------------------------------------------------------------- explorer -- */
 
 test.describe('explorer', () => {
-    test('a paper dragged onto a folder is filed there', async ({ page }) => {
+    test('a paper dragged between your folders moves; one from the Stream copies', async ({ page }) => {
         const store = seededStore();
         const ids = Object.keys(store.papers);
         store.folders = [
@@ -216,13 +216,56 @@ test.describe('explorer', () => {
         await page.getByTestId('folder-node-f_a').click();
         await expect(page.getByTestId('paper-row')).toHaveCount(2);
 
-        // dragTo drives real HTML5 drag events; raw mouse moves would not.
+        // Between your own folders: a move. dragTo drives real HTML5 drag events.
+        await page.getByTestId('paper-row').first().dragTo(page.getByTestId('folder-node-f_b'));
+        let after = await readStore(page);
+        expect(after.folders.find((f) => f.id === 'f_b').paperIds).toHaveLength(1);
+        expect(after.folders.find((f) => f.id === 'f_a').paperIds).toHaveLength(1);
+
+        // Out of the read-only Stream: a copy, so the Stream keeps everything.
+        await page.getByTestId('folder-node-stream:root').click();
+        const streamCount = await page.getByTestId('paper-row').count();
         await page.getByTestId('paper-row').first().dragTo(page.getByTestId('folder-node-f_b'));
 
+        after = await readStore(page);
+        expect(after.folders.find((f) => f.id === 'f_b').paperIds.length).toBeGreaterThanOrEqual(1);
+        await page.getByTestId('folder-node-stream:root').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(streamCount);
+    });
+
+    test('the Stream shows up as a read-only Month > Week > Day tree', async ({ page }) => {
+        await seed(page, seededStore());
+        await goTo(page, 'explorer');
+
+        await page.getByTestId('folder-node-stream:root').click();
+        await expect(page.getByTestId('explorer-column-1')).toBeVisible();
+        await expect(page.getByText('read-only')).toBeVisible();
+
+        // Month -> week -> day, each opening the next column.
+        await page.getByTestId('explorer-column-1').getByRole('listitem').first().click();
+        await expect(page.getByTestId('explorer-column-2')).toBeVisible();
+        await page.getByTestId('explorer-column-2').getByRole('listitem').first().click();
+        await expect(page.getByTestId('explorer-column-3')).toBeVisible();
+        await expect(page.getByTestId('paper-row').first()).toBeVisible();
+    });
+
+    test('a subfolder can be created inside an empty folder', async ({ page }) => {
+        const store = seededStore();
+        store.folders = [{
+            id: 'f_a', name: 'Thesis', parentId: null, paperIds: [],
+            description: '', color: null, createdAt: new Date().toISOString(),
+        }];
+        await seed(page, store);
+        await goTo(page, 'explorer');
+
+        // Selecting an empty folder still opens its column, which is where its + lives.
+        await page.getByTestId('folder-node-f_a').click();
+        await expect(page.getByTestId('explorer-column-1')).toBeVisible();
+        await page.getByTestId('new-folder-col-1').click();
+
         const after = await readStore(page);
-        expect(after.folders.find((f) => f.id === 'f_b').paperIds).toHaveLength(1);
-        // Filing moves rather than copies, so it left the folder it came from.
-        expect(after.folders.find((f) => f.id === 'f_a').paperIds).toHaveLength(1);
+        expect(after.folders).toHaveLength(2);
+        expect(after.folders.find((f) => f.parentId === 'f_a')).toBeTruthy();
     });
 
     test('holding a drag over a tab springs it open', async ({ page }) => {
@@ -232,24 +275,6 @@ test.describe('explorer', () => {
         // The spring timer is armed by dragover on the tab itself.
         await page.getByTestId('tab-explorer').dispatchEvent('dragover');
         await expect(tab(page, 'explorer')).toHaveAttribute('aria-selected', 'true', { timeout: 3000 });
-    });
-
-    test('subfolders roll up and can be excluded', async ({ page }) => {
-        const store = seededStore();
-        const ids = Object.keys(store.papers);
-        store.folders = [
-            { id: 'f_root', name: 'Thesis', parentId: null, paperIds: [], description: '', color: null, createdAt: new Date().toISOString() },
-            { id: 'f_kid', name: 'Chapter 1', parentId: 'f_root', paperIds: ids.slice(0, 3), description: '', color: null, createdAt: new Date().toISOString() },
-        ];
-        await seed(page, store);
-        await goTo(page, 'explorer');
-
-        await expect(page.getByTestId('folder-node-f_root')).toContainText('3');
-        await page.getByTestId('folder-node-f_root').click();
-        await expect(page.getByTestId('paper-row')).toHaveCount(3);
-
-        await page.getByRole('button', { name: 'Subfolders' }).click();
-        await expect(page.getByText('This folder is empty')).toBeVisible();
     });
 
     test('right-click renames and deletes a folder without touching the papers', async ({ page }) => {

@@ -25,8 +25,8 @@ const Section = ({ title, action, children }) => (
  */
 export default function PaperPanel({ paper, onClose, onOpenPaper }) {
     const { dispatch, stateOf, authors, index, papers, folders, notify } = usePapers();
-    const [tab, setTab] = useState('overview');
-    const [pdf, setPdf] = useState(false);
+    const { settings } = usePapers();
+    const [tab, setTab] = useState(settings.pdfInline ? 'pdf' : 'overview');
     const [copied, copy] = useCopy();
 
     const st = stateOf(paper.id);
@@ -75,12 +75,18 @@ export default function PaperPanel({ paper, onClose, onOpenPaper }) {
                     </Button>
                     <div className="flex-1" />
                     <Button size="sm" as="a" href={`https://arxiv.org/abs/${paper.id}`} target="_blank" rel="noreferrer">arXiv</Button>
-                    <Button size="sm" variant={pdf ? 'active' : 'ghost'} onClick={() => setPdf(!pdf)}>PDF</Button>
+                    <Button
+                        size="sm"
+                        variant={tab === 'pdf' ? 'active' : 'ghost'}
+                        onClick={() => setTab(tab === 'pdf' ? 'overview' : 'pdf')}
+                    >
+                        PDF
+                    </Button>
                 </div>
             </header>
 
             <nav className="flex flex-none gap-1 border-b border-slate-800 px-3 pt-2">
-                {[['overview', 'Overview'], ['notes', st.note || st.tags.length ? 'Notes •' : 'Notes'],
+                {[['overview', 'Overview'], ['pdf', 'PDF'], ['notes', st.note || st.tags.length ? 'Notes •' : 'Notes'],
                   ['related', `Related${similar.length ? ` (${similar.length})` : ''}`]].map(([id, label]) => (
                     <button
                         key={id}
@@ -96,7 +102,7 @@ export default function PaperPanel({ paper, onClose, onOpenPaper }) {
                 ))}
             </nav>
 
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className={cx('min-h-0 flex-1', tab === 'pdf' ? 'overflow-hidden' : 'overflow-y-auto')}>
                 {tab === 'overview' && (
                     <div className="space-y-5 px-4 py-4">
                         {enriched && enriched.tldr && (
@@ -243,6 +249,30 @@ export default function PaperPanel({ paper, onClose, onOpenPaper }) {
                     </div>
                 )}
 
+                {tab === 'pdf' && (
+                    <div data-testid="pdf-pane" className="flex h-full flex-col">
+                        <div className="flex flex-none items-center gap-2 border-b border-slate-800 px-3 py-1.5">
+                            <span className="flex-1 text-[10px] uppercase tracking-[0.14em] text-slate-500">
+                                arXiv PDF
+                            </span>
+                            <a
+                                href={pdfEmbedUrl(paper)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] text-slate-400 transition hover:border-orange-400/50 hover:text-orange-300"
+                            >
+                                Open in a tab
+                            </a>
+                        </div>
+                        {/* Some browsers refuse to frame arxiv.org; the link above is the way out. */}
+                        <iframe
+                            title={`PDF of ${paper.title}`}
+                            src={pdfEmbedUrl(paper)}
+                            className="min-h-0 w-full flex-1 bg-slate-800"
+                        />
+                    </div>
+                )}
+
                 {tab === 'related' && (
                     <div className="space-y-1 px-3 py-3">
                         {similar.length ? similar.map(({ paper: other, similarity }) => (
@@ -273,22 +303,7 @@ export default function PaperPanel({ paper, onClose, onOpenPaper }) {
                 )}
             </div>
 
-            {pdf && (
-                <div className="h-[45%] flex-none border-t border-slate-800">
-                    <div className="flex items-center justify-between border-b border-slate-800 px-3 py-1.5">
-                        <span className="text-[10px] uppercase tracking-[0.14em] text-slate-500">PDF</span>
-                        <a
-                            href={pdfEmbedUrl(paper)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] text-slate-400 transition hover:border-orange-400/50 hover:text-orange-300"
-                        >
-                            Open in tab
-                        </a>
-                    </div>
-                    <iframe title={`PDF of ${paper.title}`} src={pdfEmbedUrl(paper)} className="h-[calc(100%-1.75rem)] w-full bg-slate-800" />
-                </div>
-            )}
+
         </aside>
     );
 }

@@ -120,6 +120,9 @@ export default function SettingsModal({ open, onClose }) {
                         <Toggle checked={settings.autoFetchOnOpen} onChange={(v) => set({ autoFetchOnOpen: v })}
                                 label="Fetch automatically once a day"
                                 hint="On the first visit of a calendar day, pull every enabled topic." />
+                        <Toggle checked={settings.pdfInline} onChange={(v) => set({ pdfInline: v })}
+                                label="Open papers on the PDF"
+                                hint="Jump straight to the PDF tab instead of the overview when a paper is opened." />
                         <Toggle checked={settings.enrich} onChange={(v) => set({ enrich: v })}
                                 label="Enrich with Semantic Scholar"
                                 hint="Adds citation counts and TL;DR summaries. No key needed." />
