@@ -134,6 +134,39 @@ async function stubOpenAlex(page, works) {
     return calls;
 }
 
+/**
+ * Serve a fixed DataCite payload — the source "+ Add" reaches for first.
+ * `works` is the same {arxivId, title} shape as the OpenAlex stub takes.
+ */
+async function stubDataCite(page, works) {
+    const calls = { count: 0, urls: [] };
+    await page.route('**/api.datacite.org/**', async (route) => {
+        calls.count += 1;
+        calls.urls.push(route.request().url());
+        const data = works.map((w) => ({
+            id: `10.48550/arxiv.${w.arxivId}`,
+            attributes: {
+                doi: `10.48550/arxiv.${w.arxivId}`,
+                titles: [{ title: w.title }],
+                creators: (w.authors || ['Lovelace, Ada']).map((name) => ({ name })),
+                descriptions: [{ descriptionType: 'Abstract', description: 'We study optimal transport.' }],
+                publicationYear: 2026,
+                dates: [{ dateType: 'Submitted', date: w.date || new Date().toISOString() }],
+                subjects: [{ subjectScheme: 'arXiv', subject: 'Optimization and Control (math.OC)' }],
+                version: '1',
+                url: `https://arxiv.org/abs/${w.arxivId}`,
+            },
+        }));
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ data, meta: { total: data.length } }),
+        });
+    });
+    return calls;
+}
+
 module.exports = {
-    makeTopic, makePaper, makeStore, seed, readStore, clearStorage, stubOpenAlex, onQuietPage, putRecord,
+    makeTopic, makePaper, makeStore, seed, readStore, clearStorage, stubOpenAlex, stubDataCite,
+    onQuietPage, putRecord,
 };

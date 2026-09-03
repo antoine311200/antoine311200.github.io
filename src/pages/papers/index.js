@@ -30,6 +30,9 @@ function Shell({ tab, setTab }) {
     const [selection, setSelection] = useState(() => new Set());
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
+    // Switching source rebuilds fetchTopics, so a refetch has to wait for the
+    // setting to land rather than fire the callback we were rendered with.
+    const [retryOn, setRetryOn] = useState(null);
 
     // The reading panel keeps the width you last dragged it to. The ceiling is
     // whatever leaves the list still readable beside it.
@@ -63,6 +66,12 @@ function Shell({ tab, setTab }) {
     }, [settings.enrich, fetchState.running, papers, enrich]);
 
     const fetchAll = useCallback(() => { setTab('stream'); fetchTopics(); }, [fetchTopics, setTab]);
+
+    useEffect(() => {
+        if (!retryOn || settings.source !== retryOn) return;
+        setRetryOn(null);
+        fetchTopics();
+    }, [retryOn, settings.source, fetchTopics]);
     const fetchOne = useCallback((id) => { setTab('stream'); fetchTopics([id]); }, [fetchTopics, setTab]);
 
     const openPaper = openId ? papers[openId] : null;
@@ -103,7 +112,26 @@ function Shell({ tab, setTab }) {
             {error && (
                 <div className="flex flex-none items-start gap-3 border-b border-rose-500/25 bg-rose-500/[0.08] px-6 py-2.5">
                     <span className="text-rose-400">!</span>
-                    <p className="flex-1 text-[11.5px] leading-relaxed text-rose-200">{error}</p>
+                    <p className="flex-1 text-[11.5px] leading-relaxed text-rose-200">
+                        {typeof error === 'string' ? error : error.message}
+                    </p>
+                    {/* A dead end the app knows the way out of should offer to take
+                        it, rather than describe it and leave you to the settings. */}
+                    {error.fix && (
+                        <Button
+                            size="sm"
+                            data-testid="error-fix"
+                            className="flex-none !border-rose-400/40 !bg-rose-400/10 !text-rose-100 hover:!bg-rose-400/20"
+                            onClick={() => {
+                                dispatch({ type: 'SETTINGS', patch: { source: error.fix.to } });
+                                setError(null);
+                                setTab('stream');
+                                setRetryOn(error.fix.to);
+                            }}
+                        >
+                            {error.fix.label}
+                        </Button>
+                    )}
                     <button type="button" onClick={() => setError(null)} className="text-rose-300/60 hover:text-rose-200">✕</button>
                 </div>
             )}

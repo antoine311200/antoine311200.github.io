@@ -258,6 +258,101 @@ describe('storage', () => {
     });
 });
 
+describe('the lookup chain behind "+ Add"', () => {
+    const held = {
+        '2207.08683': {
+            id: '2207.08683',
+            title: 'Limit Theorems for Entropic Optimal Transport Maps',
+            authors: [{ name: 'Ziv Goldfeld' }, { name: 'Kengo Kato' }],
+        },
+    };
+    const found = (id, title) => ({ entries: [{ id, title }], total: 1, exact: false, skipped: 0 });
+    const empty = { entries: [], total: 0, exact: false, skipped: 0 };
+
+    /** Each case gets the chain with its two live sources stubbed. */
+    const load = (dataCite, openAlex) => {
+        jest.resetModules();
+        jest.doMock('./datacite', () => ({
+            ...jest.requireActual('./datacite'),
+            searchFreeText: dataCite,
+        }));
+        jest.doMock('./openalex', () => ({
+            ...jest.requireActual('./openalex'),
+            searchFreeText: openAlex,
+        }));
+        // eslint-disable-next-line global-require
+        return require('./lookup');
+    };
+
+    // doMock outlives resetModules, so the stubs have to be taken back down or
+    // every later suite that requires these modules gets them hollowed out.
+    afterEach(() => {
+        jest.dontMock('./datacite');
+        jest.dontMock('./openalex');
+        jest.resetModules();
+    });
+
+    test('the library answers first, and for free', () => {
+        // eslint-disable-next-line global-require
+        const { searchLibrary } = require('./lookup');
+        expect(searchLibrary(held, 'entropic optimal transport')[0].id).toBe('2207.08683');
+        expect(searchLibrary(held, 'goldfeld')[0].id).toBe('2207.08683');
+        expect(searchLibrary(held, 'arxiv.org/abs/2207.08683')[0].id).toBe('2207.08683');
+        expect(searchLibrary(held, 'rough volatility')).toEqual([]);
+    });
+
+    test('DataCite answering means OpenAlex is never asked', async () => {
+        const openAlex = jest.fn();
+        const { lookup } = load(jest.fn().mockResolvedValue(found('1706.03762', 'Attention Is All You Need')), openAlex);
+
+        const out = await lookup('attention is all you need', { papers: {} });
+        expect(out.entries.map((e) => e.id)).toEqual(['1706.03762']);
+        expect(out.source).toBe('DataCite');
+        expect(openAlex).not.toHaveBeenCalled();
+    });
+
+    test('an empty DataCite answer is worth one look at the wider index', async () => {
+        const openAlex = jest.fn().mockResolvedValue(found('9901.00001', 'Something older'));
+        const { lookup } = load(jest.fn().mockResolvedValue(empty), openAlex);
+
+        const out = await lookup('something older', { papers: {} });
+        expect(out.entries.map((e) => e.id)).toEqual(['9901.00001']);
+        expect(out.source).toBe('OpenAlex');
+        expect(openAlex).toHaveBeenCalledTimes(1);
+    });
+
+    test('a spent OpenAlex cannot break a search DataCite can answer', async () => {
+        const spent = jest.fn().mockRejectedValue(new Error("OpenAlex's free allowance of 1000 requests a day is spent."));
+        const { lookup } = load(jest.fn().mockResolvedValue(found('2609.00001', 'A new preprint')), spent);
+
+        const out = await lookup('a new preprint', { papers: {} });
+        expect(out.entries).toHaveLength(1);
+        expect(spent).not.toHaveBeenCalled();
+    });
+
+    test('when both refuse, the first refusal is the one reported', async () => {
+        const { lookup } = load(
+            jest.fn().mockRejectedValue(new Error('DataCite returned HTTP 503')),
+            jest.fn().mockRejectedValue(new Error('OpenAlex allowance spent')),
+        );
+        await expect(lookup('anything', { papers: {} })).rejects.toThrow(/DataCite returned HTTP 503/);
+    });
+
+    test('what you already have is listed first and never listed twice', async () => {
+        const { lookup } = load(
+            jest.fn().mockResolvedValue({
+                entries: [{ id: '2207.08683', title: 'Limit Theorems' }, { id: '2609.00002', title: 'A different one' }],
+                total: 2, exact: false, skipped: 0,
+            }),
+            jest.fn(),
+        );
+
+        const out = await lookup('entropic optimal transport', { papers: held });
+        expect(out.entries.map((e) => e.id)).toEqual(['2207.08683', '2609.00002']);
+        expect(out.held).toBe(1);
+    });
+});
+
 describe('the prefetched feed', () => {
     const paper = (over = {}) => ({
         id: '2609.00001',

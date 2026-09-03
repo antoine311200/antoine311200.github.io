@@ -496,12 +496,17 @@ export function PaperProvider({ children }) {
             // sends them looking for a fault that is not there.
             const explained = /allowance|resets at midnight/i.test(first);
             const hint = explained
-                ? ''
+                ? ' Nothing in the browser can raise that limit.'
                 : useOpenAlex
-                    ? ' Check your connection, or switch the source in Settings.'
-                    : ' arXiv sends no CORS headers to browsers and the public relays are unreliable — '
-                      + 'switch the source back to OpenAlex in Settings.';
-            setError(`${explained ? '' : 'Every topic failed. '}${first}.${hint}`);
+                    ? ' Check your connection.'
+                    : ' No browser can read arXiv directly, and the public relays are down more often'
+                      + ' than they are up.';
+            // Both of these dead ends have the same way out, and it is one the
+            // app can take for them rather than describe.
+            setError({
+                message: `${explained ? '' : 'Every topic failed. '}${first}.${hint}`,
+                fix: { label: 'Use the daily feed instead', to: 'feed' },
+            });
         } else {
             notify(fresh ? `${fresh} new paper${fresh === 1 ? '' : 's'}` : 'No new papers — you are up to date');
         }

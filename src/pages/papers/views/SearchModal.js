@@ -5,14 +5,18 @@
  * one in a bibliography, the one you half-remember. Search once, tick what you
  * want, and it joins the corpus alongside everything the topics brought in.
  *
- * Lookups go through OpenAlex, like a topic fetch, so what arrives has the same
- * shape: ids, abstracts, citation counts, a PDF link. Only papers with an arXiv
- * copy can be added — everything here is ultimately something to read.
+ * Lookups go through lookup.js — your own library first, then DataCite, and
+ * only then OpenAlex — so an ordinary search costs nothing rationed and works
+ * on a day OpenAlex has already been spent. Whatever answers, the paper arrives
+ * in the same shape as a fetched one: id, abstract, authors, categories, a PDF
+ * link. Only papers with an arXiv copy can be added; everything here is
+ * ultimately something to read.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { usePapers } from '../context';
-import { getBudget, humanWait, searchFreeText } from '../openalex';
+import { getBudget, humanWait } from '../openalex';
+import { lookup } from '../lookup';
 import { Button, Chip, Count, Empty, Modal, Spinner, cx, shortDate } from '../ui';
 
 const MAX = 25;
@@ -52,12 +56,12 @@ export default function SearchModal({ open, onClose }) {
         setError(null);
         setChosen(new Set());
         try {
-            const { entries, exact, skipped } = await searchFreeText(text, {
-                max: MAX,
+            const { entries, exact, skipped, source } = await lookup(text, {
+                papers,
                 mailto: settings.openAlexMailto,
                 signal: abort.current.signal,
             });
-            setResults({ entries, exact, skipped });
+            setResults({ entries: entries.slice(0, MAX), exact, skipped, source });
             // A lookup by id or DOI has one obvious answer: tick it for them.
             if (exact && entries.length === 1 && !papers[entries[0].id]) {
                 setChosen(new Set([entries[0].id]));
@@ -95,7 +99,9 @@ export default function SearchModal({ open, onClose }) {
             footer={(
                 <>
                     <Count className="mr-auto">
-                        {results ? `${results.entries.length} found · ${chosen.size} selected` : 'Nothing searched yet'}
+                        {results
+                            ? `${results.entries.length} found${results.source ? ` via ${results.source}` : ''} · ${chosen.size} selected`
+                            : 'Nothing searched yet'}
                     </Count>
                     <Button variant="quiet" size="sm" onClick={onClose}>Cancel</Button>
                     <Button
@@ -148,8 +154,9 @@ export default function SearchModal({ open, onClose }) {
                         title="Look something up"
                         className="!py-8"
                     >
-                        Results come from the same arXiv index the topics use, so anything you add
-                        arrives with its abstract, authors and citation count.
+                        Your own library first, then DataCite — where arXiv registers every DOI, with
+                        no key and no daily allowance. Anything you add arrives with its abstract,
+                        authors and arXiv categories.
                     </Empty>
                 )}
 

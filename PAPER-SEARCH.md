@@ -118,7 +118,13 @@ are three answers to that one problem:
 - **OpenAlex.** Live and reachable from the browser, and it adds citation counts —
   at the price of a daily allowance (§3.2.1) and no categories.
 - **arXiv direct.** Needs a public CORS relay. They are free, and they are down
-  about as often as they are up.
+  about as often as they are up: of the four the app knows, three now time out and
+  one answers 401.
+
+When a source dies in a way the app cannot work around — every relay refusing, or
+the allowance gone until midnight — the banner does not explain the fix and leave
+you to Settings. It offers **Use the daily feed instead**, switches the source, and
+refetches, because the feed is the one route that depends on nobody's permission.
 
 ### 3.2.1 Adding a paper by hand
 
@@ -126,6 +132,22 @@ Topics sweep on a schedule; **+ Add** in the top bar is the other half — the p
 colleague just mentioned, the one in a bibliography, the one you half-remember. Search
 by title, abstract or author, or paste an arXiv id, an abs/pdf URL or a DOI; tick what
 you want and it joins the corpus with everything else.
+
+It asks three places, cheapest first, and stops at the first that answers
+(`lookup.js`): **your own library**, which costs nothing and is right more often than
+it sounds; then **DataCite**, where arXiv registers every DOI — CORS, no key, no
+allowance, real arXiv categories, and ids that are arXiv's by construction; and only
+then **OpenAlex**, which ranks better and reaches wider but is rationed. So the button
+keeps working on a day the allowance is gone. Crossref, worth checking before ruling
+out: it holds none of arXiv's preprints at all, because arXiv registers with DataCite.
+Semantic Scholar's search is unusable without a key — six queries with backoff, six
+failures.
+
+DataCite's own ranking buries an exact title under everything that echoes it — "Attention
+Is All You Need" does not appear in its first page of results for that phrase — so the
+ordering is redone in the browser: exact title, then prefix, then containment, then word
+coverage across title and abstract. That lifts the real paper to first in every case
+tried.
 
 Three things this had to get right, each found by running it against the live index:
 

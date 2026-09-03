@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const {
-    makeTopic, makePaper, makeStore, seed, readStore, clearStorage, stubOpenAlex, onQuietPage,
+    makeTopic, makePaper, makeStore, seed, readStore, clearStorage, stubOpenAlex, stubDataCite, onQuietPage,
 } = require('./fixtures');
 
 const tab = (page, id) => page.getByTestId(`tab-${id}`);
@@ -324,6 +324,33 @@ test.describe('the prefetched arXiv feed', () => {
         expect(calls.runs).toEqual(['2026-09-02.json']);
     });
 
+    test('a dead source offers the way out, and takes it', async ({ page }) => {
+        // arXiv direct needs a relay, and the relays are down; rather than
+        // describing the fix, the banner offers to make it.
+        await page.route('**/export.arxiv.org/**', (route) => route.abort());
+        await page.route('**/api.allorigins.win/**', (route) => route.abort());
+        await page.route('**/corsproxy.io/**', (route) => route.abort());
+        await page.route('**/api.codetabs.com/**', (route) => route.abort());
+        await stubFeed(page, [{ file: '2026-09-02.json', entries: [entry('2609.00007', 'Rescued by the feed')] }]);
+
+        await seed(page, makeStore({
+            settings: { source: 'arxiv', proxy: 'auto', autoFetchOnOpen: false },
+            topics: [makeTopic({ id: 't_ot', terms: ['optimal transport'], categories: ['math.OC'] })],
+        }));
+
+        await page.getByTestId('fetch-all').click();
+        const fix = page.getByTestId('error-fix');
+        await expect(fix).toBeVisible({ timeout: 30000 });
+        await expect(fix).toHaveText('Use the daily feed instead');
+
+        await fix.click();
+        await expect(page.getByText('Rescued by the feed')).toBeVisible();
+
+        const store = await readStore(page);
+        expect(store.settings.source).toBe('feed');
+        expect(store.papers['2609.00007']).toBeTruthy();
+    });
+
     test('a site with no feed yet says so, and says what to do about it', async ({ page }) => {
         await page.route('**/arxiv/index.json', (route) => route.fulfill({ status: 404, body: 'not found' }));
         await seed(page, makeStore({
@@ -341,10 +368,11 @@ test.describe('the prefetched arXiv feed', () => {
 
 test.describe('adding a paper by hand', () => {
     test('search, tick, and it lands in the stream marked as added', async ({ page }) => {
-        const calls = await stubOpenAlex(page, [
-            { arxivId: '2608.70001', title: 'A paper someone mentioned', citations: 12 },
+        const calls = await stubDataCite(page, [
+            { arxivId: '2608.70001', title: 'A paper someone mentioned' },
             { arxivId: '2608.70002', title: 'Another from the same search' },
         ]);
+        const openAlex = await stubOpenAlex(page, []);
         await seed(page, makeStore({ topics: [makeTopic({ id: 't_ot', name: 'Optimal Transport' })] }));
 
         await page.getByTestId('open-search').click();
@@ -363,6 +391,8 @@ test.describe('adding a paper by hand', () => {
         expect(store.papers['2608.70001'].origin).toBe('search');
         expect(store.papers['2608.70001'].topicIds).toEqual([]);
         expect(store.papers['2608.70002']).toBeUndefined();
+        // DataCite answered, so nothing was taken from the rationed source.
+        expect(openAlex.count).toBe(0);
 
         // And the stream can single it out, since it answers to no topic.
         await goTo(page, 'stream');
@@ -371,10 +401,51 @@ test.describe('adding a paper by hand', () => {
         await expect(page.getByTestId('paper-row')).toHaveCount(1);
     });
 
+    test('when DataCite has nothing, the wider index is still asked', async ({ page }) => {
+        await page.route('**/api.datacite.org/**', (route) => route.fulfill({
+            status: 200, contentType: 'application/json', body: JSON.stringify({ data: [], meta: { total: 0 } }),
+        }));
+        const openAlex = await stubOpenAlex(page, [{ arxivId: '2608.70009', title: 'Only OpenAlex knows this one' }]);
+        await seed(page, makeStore({ topics: [makeTopic({ id: 't_ot' })] }));
+
+        await page.getByTestId('open-search').click();
+        await page.getByTestId('search-input').fill('only openalex knows this one');
+        await page.getByTestId('run-search').click();
+
+        await expect(page.getByTestId('search-result')).toHaveCount(1);
+        await expect(page.getByText('Only OpenAlex knows this one')).toBeVisible();
+        // OpenAlex fans out its own fallback passes when a first one is thin,
+        // so what matters is that it was reached at all.
+        expect(openAlex.count).toBeGreaterThan(0);
+    });
+
+    test('a spent OpenAlex no longer stops a paper being added', async ({ page }) => {
+        // The state that started all this: the allowance gone for the day.
+        await page.route('**/api.openalex.org/**', (route) => route.fulfill({
+            status: 429,
+            contentType: 'application/json',
+            headers: { 'retry-after': '32206', 'x-ratelimit-limit': '1000', 'x-ratelimit-remaining': '0' },
+            body: JSON.stringify({ error: 'Rate limit exceeded' }),
+        }));
+        await stubDataCite(page, [{ arxivId: '2608.70010', title: 'Found without spending anything' }]);
+        await seed(page, makeStore({ topics: [makeTopic({ id: 't_ot' })] }));
+
+        await page.getByTestId('open-search').click();
+        await page.getByTestId('search-input').fill('found without spending anything');
+        await page.getByTestId('run-search').click();
+
+        await expect(page.getByTestId('search-result')).toHaveCount(1);
+        await page.getByTestId('search-result').first().click();
+        await page.getByTestId('add-selected').click();
+
+        const store = await readStore(page);
+        expect(store.papers['2608.70010'].origin).toBe('search');
+    });
+
     test('a paper already held is offered but cannot be added twice', async ({ page }) => {
         const store = seededStore();
         const held = Object.keys(store.papers)[0];
-        await stubOpenAlex(page, [{ arxivId: held, title: store.papers[held].title }]);
+        await stubDataCite(page, [{ arxivId: held, title: store.papers[held].title }]);
         await seed(page, store);
 
         await page.getByTestId('open-search').click();
