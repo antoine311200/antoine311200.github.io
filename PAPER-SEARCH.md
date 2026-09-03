@@ -143,11 +143,14 @@ out: it holds none of arXiv's preprints at all, because arXiv registers with Dat
 Semantic Scholar's search is unusable without a key — six queries with backoff, six
 failures.
 
-DataCite's own ranking buries an exact title under everything that echoes it — "Attention
-Is All You Need" does not appear in its first page of results for that phrase — so the
-ordering is redone in the browser: exact title, then prefix, then containment, then word
-coverage across title and abstract. That lifts the real paper to first in every case
-tried.
+Results from all three are ranked together, by `match.js`: exact title, then prefix, then
+containment, then word coverage across title and abstract. One ranking pass over the
+merged list, because the alternative — each source ordered by its own idea of relevance
+and then concatenated — put a loose match from your own library above the exact paper
+whose title you had just typed. DataCite needs this anyway: its own ranking buries an
+exact title under everything that echoes it, and "Attention Is All You Need" does not
+appear at all in its first page for that phrase. With the shared ranking, the paper you
+named comes first in every case tried.
 
 Three things this had to get right, each found by running it against the live index:
 
@@ -202,9 +205,13 @@ cannot edit sit together above everything that is yours, with rules between the 
   views you check constantly. They are a *view of reading state*, not a second place a
   paper lives, so they cannot drift out of sync with the stars and queue you set
   elsewhere. Dropping a paper on one *sets* that state and leaves it where it was filed.
-  The Stream root carries a small **written / arrived** switch for the same reason: the
-  archive is filed by publication date by default, and one click refiles the whole tree
-  by when papers reached you. The choice is remembered per device.
+  The Stream root carries a small **written / arrived** switch. It is filed by *arrival*
+  out of the box, so a fetch always lands under Today and the tree agrees with the Stream
+  about what just happened; one click refiles the whole archive by publication date,
+  which is the better order for looking something up months later and the worse one for
+  finding what you pulled this morning. The choice is remembered per device. The file
+  list sorts by arrival for the same reason — "newest" meant newest *written*, which
+  buried a paper fetched today under one published last week.
 - **📡 Stream** — bracketed by rules, because it is unlike everything around it:
   read-only, and organised by date rather than by you. It mirrors everything fetched,
   nested Month › Week › Day on **publication date**. This is the archive you come back

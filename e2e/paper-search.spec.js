@@ -269,8 +269,8 @@ test.describe('finding what just arrived', () => {
         await seed(page, store);
         await goTo(page, 'explorer');
 
-        // The archive files by when it was written, which is nine years down.
-        await expect(page.getByTestId('folder-node-stream:2017-06')).toBeVisible();
+        // Filed by arrival, so it is under this month, not its publication year.
+        await expect(page.getByTestId(`folder-node-stream:${new Date().toISOString().slice(0, 7)}`)).toBeVisible();
 
         // But "Recently added" answers the question actually being asked.
         await page.getByTestId('folder-node-smart:new').click();
@@ -285,20 +285,23 @@ test.describe('finding what just arrived', () => {
         }));
         await goTo(page, 'explorer');
 
-        await expect(page.getByTestId('stream-by')).toHaveText('written');
-        await page.getByTestId('stream-by').click();
-        await expect(page.getByTestId('stream-by')).toHaveText('arrived');
-
-        // Filed under this month now, not 2017.
+        // Filed by arrival out of the box: a paper fetched today is under today,
+        // whenever it was written.
         const thisMonth = `stream:${new Date().toISOString().slice(0, 7)}`;
+        await expect(page.getByTestId('stream-by')).toHaveText('arrived');
         await expect(page.getByTestId(`folder-node-${thisMonth}`)).toBeVisible();
         await expect(page.getByTestId('folder-node-stream:2017-06')).toHaveCount(0);
+
+        // And publication date is one click away, for looking things up later.
+        await page.getByTestId('stream-by').click();
+        await expect(page.getByTestId('stream-by')).toHaveText('written');
+        await expect(page.getByTestId('folder-node-stream:2017-06')).toBeVisible();
 
         // It is a per-device habit, so it survives a reload.
         await page.reload({ waitUntil: 'domcontentloaded' });
         await page.waitForSelector('text=Paper Radar');
         await goTo(page, 'explorer');
-        await expect(page.getByTestId('stream-by')).toHaveText('arrived');
+        await expect(page.getByTestId('stream-by')).toHaveText('written');
     });
 });
 

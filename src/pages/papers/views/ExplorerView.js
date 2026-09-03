@@ -68,15 +68,20 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
         edge: 'right',
     });
     const [expanded, setExpanded] = useState(() => new Set([STREAM_ROOT]));
-    // The archive is filed by when papers were written; sometimes the question is
-    // when they turned up instead, and the two answers can be years apart.
-    const [streamBy, setStreamBy] = usePref('explorerStreamBy', 'published');
+    // Filed by arrival, so a fetch always lands under Today and the tree agrees
+    // with the Stream about what just happened. Publication date is one click
+    // away and remembered — it is the better order for looking something up
+    // months later, and the worse one for finding what you pulled this morning.
+    const [streamBy, setStreamBy] = usePref('explorerStreamBy', 'firstSeen');
     const [renaming, setRenaming] = useState(null);
     const [importOpen, setImportOpen] = useState(false);
     const [recursive, setRecursive] = useState(true);
     const [filters, setFilters] = useState({
         ...DEFAULT_FILTERS,
-        sort: 'newest',
+        // "Newest" means newest *written*, which buries a paper fetched today
+        // under one published last week. Arrival order is what a file list
+        // should open on.
+        sort: 'seen',
         // A file manager shows what is filed; nothing is hidden behind a status here.
         hideDismissed: false,
         hideArchived: false,

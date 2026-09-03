@@ -13,10 +13,11 @@
  * nothing has to be reverse-engineered out of a landing page.
  *
  * One thing it does worse: ranking. A search for a famous title buries it under
- * every paper that echoes it, so the ordering is redone here — see rank().
+ * every paper that echoes it, so the ordering is redone against match.js.
  */
 
 import { deTex } from './openalex';
+import { matchScore } from './match';
 
 const API = 'https://api.datacite.org/dois';
 const ARXIV_PREFIX = '10.48550';
@@ -100,35 +101,6 @@ function toEntry(record) {
     };
 }
 
-/* ------------------------------------------------------------------ ranking */
-
-const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
-
-/**
- * DataCite hands back everything that shares a word with the query, in an order
- * of its own. Someone searching a title they half-remember wants that title
- * first, so score the exact shapes highest and let word coverage decide the
- * rest.
- */
-function rank(entry, query) {
-    const title = norm(entry.title);
-    const wanted = norm(query);
-    if (!wanted) return 0;
-
-    if (title === wanted) return 1000;
-    if (title.startsWith(wanted)) return 900;
-    if (title.includes(wanted)) return 800;
-
-    const words = wanted.split(' ').filter((w) => w.length > 2);
-    if (!words.length) return 0;
-    const inTitle = words.filter((w) => title.includes(w)).length;
-    const body = norm(`${entry.summary} ${(entry.authors || []).map((a) => a.name).join(' ')}`);
-    const inBody = words.filter((w) => body.includes(w)).length;
-
-    // A short title covering every word beats a long one that merely mentions them.
-    return Math.round((600 * inTitle + 150 * inBody) / words.length) - Math.min(60, title.split(' ').length * 2);
-}
-
 /* ----------------------------------------------------------------- requests */
 
 async function ask(params, { signal }) {
@@ -193,6 +165,6 @@ export async function searchFreeText(input, { max = 25, signal } = {}) {
         total = Math.max(total, (broad.meta && broad.meta.total) || 0);
     }
 
-    entries.sort((a, b) => rank(b, raw) - rank(a, raw));
+    entries.sort((a, b) => matchScore(b, raw) - matchScore(a, raw));
     return { entries: entries.slice(0, max), total, exact: false, skipped: 0 };
 }

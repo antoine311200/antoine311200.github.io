@@ -3,6 +3,7 @@ import { scorePaper, learnFrom, buildIndex, similarTo, coauthorGraph, authorStat
 import { parseQuery, applyFilters, groupByDay, DEFAULT_FILTERS } from './filters';
 import { toBibtex, citeKey, toCsv } from './bibtex';
 import { matchesTopic, sortIntoTopics, feedConfig } from './feed';
+import { matchScore } from './match';
 import {
     mergeStores, emptyStore, authorKey, prune, makeTopic, makeFolder,
     folderPath, folderSubtree, papersInFolder, canMoveFolder,
@@ -255,6 +256,32 @@ describe('storage', () => {
         const { store: pruned, removed } = prune(store, { days: 90 });
         expect(removed).toBe(1);
         expect(Object.keys(pruned.papers).sort()).toEqual(['fresh', 'kept']);
+    });
+});
+
+describe('ranking search results', () => {
+    const paper = (title, over = {}) => ({ title, summary: '', authors: [], ...over });
+
+    test('the title you typed beats everything that merely echoes it', () => {
+        const q = 'Attention Is All You Need';
+        const exact = matchScore(paper('Attention Is All You Need'), q);
+        const echo = matchScore(paper('Attention is All You Need to Defend Against Prompt Injection'), q);
+        const loose = matchScore(paper('On the need for attention in all sparse models'), q);
+        expect(exact).toBeGreaterThan(echo);
+        expect(echo).toBeGreaterThan(loose);
+    });
+
+    test('a paper matching in the abstract ranks under one matching in the title', () => {
+        const q = 'rough volatility';
+        const inTitle = matchScore(paper('Deep Hedging under Rough Volatility'), q);
+        const inAbstract = matchScore(paper('A note on hedging', { summary: 'We assume rough volatility.' }), q);
+        expect(inTitle).toBeGreaterThan(inAbstract);
+        expect(inAbstract).toBeGreaterThan(0);
+    });
+
+    test('nothing in common scores nothing, whatever the source', () => {
+        expect(matchScore(paper('Ricci flow on surfaces'), 'limit order book')).toBe(0);
+        expect(matchScore(paper(''), 'anything')).toBe(0);
     });
 });
 

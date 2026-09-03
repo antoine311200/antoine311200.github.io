@@ -16,6 +16,7 @@
 
 import { searchFreeText as searchDataCite, arxivIdFromInput } from './datacite';
 import { searchFreeText as searchOpenAlex } from './openalex';
+import { matchScore } from './match';
 
 const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -94,8 +95,16 @@ export async function lookup(query, { papers = {}, mailto, signal } = {}) {
     }
 
     const seen = new Set(held.map((p) => p.id));
+    const merged = [...held, ...(live ? live.entries.filter((e) => !seen.has(e.id)) : [])];
+
+    // Rank the whole list at once. Listing the library's matches first put a
+    // loose local match above the exact paper someone had just typed the title
+    // of — where a result came from is a chip on the card, not a sort key.
+    // An exact id lookup is left alone: it has one answer and it is the answer.
+    if (!(live && live.exact)) merged.sort((a, b) => matchScore(b, query) - matchScore(a, query));
+
     return {
-        entries: [...held, ...(live ? live.entries.filter((e) => !seen.has(e.id)) : [])],
+        entries: merged,
         exact: !!(live && live.exact),
         skipped: (live && live.skipped) || 0,
         source: held.length && !(live && live.entries.length) ? 'your library' : source,
