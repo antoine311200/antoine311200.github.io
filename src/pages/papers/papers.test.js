@@ -297,7 +297,41 @@ describe('the API key', () => {
         const exported = JSON.stringify(emptyStore());
         expect(exported).not.toContain('sk-ant-secret');
         expect(Object.keys(emptyStore())).not.toContain('llmKey');
-        expect(localStorage.getItem('paper-radar:llm')).toBe('sk-ant-secret');
+        expect(localStorage.getItem('paper-radar:llm')).toContain('sk-ant-secret');
+    });
+
+    test('a key stored by an older version is still found', () => {
+        localStorage.setItem('paper-radar:llm', 'sk-ant-from-before');
+        const { loadKey } = load();
+        expect(loadKey()).toBe('sk-ant-from-before');
+    });
+
+    test('the proxy token is the only secret sent when a proxy is set', async () => {
+        const { saveKey, saveAppKey, complete } = load();
+        saveKey('sk-ant-secret', { remember: true });
+        saveAppKey('app-token-abc');
+        global.fetch = jest.fn().mockResolvedValue(ok('hi'));
+
+        await complete({
+            config: { provider: 'anthropic', proxyUrl: 'https://llm.example.workers.dev' },
+            system: 's',
+            prompt: 'p',
+        });
+        const [, init] = global.fetch.mock.calls[0];
+        expect(init.headers['x-app-key']).toBe('app-token-abc');
+        // The provider credential stays on this machine even though it is set.
+        expect(JSON.stringify(init.headers)).not.toContain('sk-ant-secret');
+        expect(init.body).not.toContain('sk-ant-secret');
+    });
+
+    test('forgetting the provider key leaves the proxy token alone', () => {
+        const { saveKey, saveAppKey, forgetKey, loadKey, loadAppKey } = load();
+        saveKey('sk-ant-secret', { remember: true });
+        saveAppKey('app-token-abc');
+
+        forgetKey();
+        expect(loadKey()).toBe('');
+        expect(loadAppKey()).toBe('app-token-abc');
     });
 
     test('an importable store cannot smuggle a key in', () => {

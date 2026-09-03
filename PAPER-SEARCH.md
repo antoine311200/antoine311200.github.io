@@ -340,12 +340,22 @@ shared. Anthropic makes this explicit — browser calls need an opt-in
 `anthropic-dangerous-direct-browser-access` header, which is the provider saying out loud
 that you are choosing to expose a key.
 
-**The way out, if that is not good enough.** Set a **proxy URL** and no key is stored in
-the browser at all: requests go to something you control — a Cloudflare Worker, a small
-function — which holds the real key server-side and forwards the call. That is the only
-arrangement where the secret is genuinely not on this machine. A third option, if
-on-demand is not needed, is the shape §3.2.0 already uses: a scheduled job with the key
-in repo secrets, writing explanations into the feed.
+**The way out, and it is built.** `server/` is a dependency-free Node proxy holding the
+provider key in `.env`, which it never sends anywhere but the provider. The browser
+presents an **app key** instead — deliberately cheap, because it authorises spending only
+through that server, under ceilings that server enforces: allowlists of tokens and of
+origins, a per-caller rate limit, a hard `max_tokens` cap, an optional model allowlist,
+and a daily token budget reserved *before* each call, so the ceiling holds without waiting
+for a bill. If an app key leaks, one line of `.env` changes and nothing is revoked.
+
+Set the proxy URL in Settings and the API-key field disappears: there is nothing left for
+the browser to hold. Verified end to end — with the proxy configured, browser storage
+contains `{"apiKey":"","appKey":"…"}`, the provider sees a key added server-side, and a
+stranger at the endpoint gets 403 on the origin then 401 on the token, having spent
+nothing. See `server/README.md`.
+
+A third option, if on-demand is not needed, is the shape §3.2.0 already uses: a scheduled
+job with the key in repo secrets, writing explanations into the feed.
 
 ### 3.5.1 The reading panel
 

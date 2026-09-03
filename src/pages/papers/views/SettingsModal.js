@@ -6,7 +6,9 @@ import { STRATEGIES } from '../arxiv';
 import { toBibtexAll, toCsv } from '../bibtex';
 import { getBudget, humanWait } from '../openalex';
 import { feedConfig } from '../feed';
-import { PROVIDERS, forgetKey, keyIsRemembered, loadKey, maskKey, saveKey, testKey } from '../llm';
+import {
+    PROVIDERS, forgetKey, keyIsRemembered, loadAppKey, loadKey, maskKey, saveAppKey, saveKey, testKey,
+} from '../llm';
 import { Button, Count, Field, Input, Modal, Toggle, cx } from '../ui';
 
 const fmt = (n) => {
@@ -40,6 +42,7 @@ const SOURCE_HINTS = {
  */
 function AiSettings({ settings, set }) {
     const [key, setKey] = useState(() => loadKey());
+    const [appKey, setAppKey] = useState(() => loadAppKey());
     const [remember, setRemember] = useState(() => keyIsRemembered() || !loadKey());
     const [probe, setProbe] = useState(null);
     const provider = PROVIDERS[settings.llmProvider] || PROVIDERS.anthropic;
@@ -171,17 +174,41 @@ function AiSettings({ settings, set }) {
 
             <Field
                 label="Or a proxy you control"
-                hint="Set this and no key is stored in the browser at all: a Cloudflare Worker or
-                      small function holds the real key server-side and forwards the call. It is the
-                      only arrangement where the secret is genuinely not on this machine."
+                hint="Set this and no provider key is stored in the browser at all: the server holds
+                      it and forwards the call. There is one in server/ — copy .env.example, add the
+                      key, run it."
             >
                 <Input
-                    placeholder="https://llm.you.workers.dev"
+                    placeholder="https://llm.example.com/explain"
                     data-testid="llm-proxy"
                     value={settings.llmProxyUrl}
                     onChange={(e) => set({ llmProxyUrl: e.target.value.trim() })}
                 />
             </Field>
+
+            {viaProxy && (
+                <Field
+                    label="Proxy token"
+                    hint="One of the APP_KEYS the proxy accepts. It only authorises spending through
+                          that server, under its own per-minute and daily ceilings, so it is worth
+                          little if it leaks — rotate it by editing one line of the server's .env."
+                >
+                    <Input
+                        type="password"
+                        autoComplete="off"
+                        data-testid="llm-proxy-key"
+                        placeholder="from APP_KEYS"
+                        value={appKey}
+                        onChange={(e) => { const v = e.target.value.trim(); setAppKey(v); saveAppKey(v); }}
+                    />
+                </Field>
+            )}
+
+            {viaProxy && (
+                <Button size="sm" onClick={check} disabled={probe?.state === 'running'}>
+                    {probe?.state === 'running' ? 'Testing…' : 'Test the proxy'}
+                </Button>
+            )}
         </section>
     );
 }

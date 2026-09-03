@@ -27,7 +27,31 @@
 const KEY_STORE = 'paper-radar:llm';
 
 /* Kept out of localStorage when the reader asked us not to remember it. */
-let sessionKey = null;
+let session = { apiKey: '', appKey: '' };
+
+/* Two different secrets with two different weights:
+     apiKey — the provider credential, worth real money if it leaks;
+     appKey — the token a proxy accepts, worth only what its own limits allow,
+              and rotated by editing one line of the server's .env.
+   Both are held here rather than in the library, so neither can ride out inside
+   an export. */
+function readStored() {
+    try {
+        const raw = localStorage.getItem(KEY_STORE);
+        if (!raw) return { apiKey: '', appKey: '' };
+        // Older installs stored the provider key as a bare string.
+        if (!raw.startsWith('{')) return { apiKey: raw, appKey: '' };
+        const parsed = JSON.parse(raw);
+        return { apiKey: parsed.apiKey || '', appKey: parsed.appKey || '' };
+    } catch { return { apiKey: '', appKey: '' }; }
+}
+
+function writeStored(next) {
+    try {
+        if (next.apiKey || next.appKey) localStorage.setItem(KEY_STORE, JSON.stringify(next));
+        else localStorage.removeItem(KEY_STORE);
+    } catch { /* private mode: the session copy still works */ }
+}
 
 export const PROVIDERS = {
     anthropic: {
@@ -57,26 +81,33 @@ export const PROVIDERS = {
 /* ------------------------------------------------------------------- the key */
 
 export function loadKey() {
-    if (sessionKey) return sessionKey;
-    try { return localStorage.getItem(KEY_STORE) || ''; } catch { return ''; }
+    return session.apiKey || readStored().apiKey || '';
+}
+
+/** The token a proxy asks for. Cheap by design — see server/README.md. */
+export function loadAppKey() {
+    return session.appKey || readStored().appKey || '';
 }
 
 export function saveKey(key, { remember }) {
-    sessionKey = key || null;
-    try {
-        if (remember && key) localStorage.setItem(KEY_STORE, key);
-        else localStorage.removeItem(KEY_STORE);
-    } catch { /* private mode: the session copy still works */ }
+    session = { ...session, apiKey: key || '' };
+    const stored = readStored();
+    writeStored({ apiKey: remember && key ? key : '', appKey: stored.appKey });
+}
+
+export function saveAppKey(key) {
+    session = { ...session, appKey: key || '' };
+    writeStored({ ...readStored(), appKey: key || '' });
 }
 
 export function forgetKey() {
-    sessionKey = null;
-    try { localStorage.removeItem(KEY_STORE); } catch { /* nothing to forget */ }
+    session = { apiKey: '', appKey: session.appKey };
+    writeStored({ ...readStored(), apiKey: '' });
 }
 
 /** Whether the key outlives this tab, which is a thing worth showing plainly. */
 export function keyIsRemembered() {
-    try { return !!localStorage.getItem(KEY_STORE); } catch { return false; }
+    return !!readStored().apiKey;
 }
 
 /** "sk-ant-…4f2a" — enough to recognise, not enough to use. */
@@ -102,7 +133,11 @@ function buildRequest({ config, key, system, prompt, maxTokens, stream }) {
     if (config.proxyUrl) {
         return {
             url: config.proxyUrl,
-            headers: { 'content-type': 'application/json' },
+            headers: {
+                'content-type': 'application/json',
+                // Not the provider credential: the token the proxy accepts.
+                ...(config.appKey ? { 'x-app-key': config.appKey } : {}),
+            },
             body: { provider: provider.id, model, system, prompt, max_tokens: maxTokens, stream },
             shape: provider.id === 'anthropic' ? 'anthropic' : 'openai',
         };
@@ -182,6 +217,7 @@ async function readStream(res, shape, onToken) {
  */
 export async function complete({ config, system, prompt, maxTokens = 2000, onToken, signal }) {
     const key = config.proxyUrl ? '' : loadKey();
+    const withAppKey = { ...config, appKey: config.proxyUrl ? (config.appKey ?? loadAppKey()) : '' };
     if (!key && !config.proxyUrl) {
         const err = new Error('No API key set. Settings → AI explanations.');
         err.code = 'NO_KEY';
@@ -189,7 +225,7 @@ export async function complete({ config, system, prompt, maxTokens = 2000, onTok
     }
 
     const stream = typeof onToken === 'function';
-    const req = buildRequest({ config, key, system, prompt, maxTokens, stream });
+    const req = buildRequest({ config: withAppKey, key, system, prompt, maxTokens, stream });
 
     let res;
     try {
