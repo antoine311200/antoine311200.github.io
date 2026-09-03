@@ -248,6 +248,60 @@ test.describe('stream', () => {
     });
 });
 
+/* --------------------------------------------------------------- arrivals -- */
+
+test.describe('finding what just arrived', () => {
+    /** Written years ago, added this morning — the two dates disagree hard. */
+    const oldPaper = makePaper(1, {
+        id: '1706.03762',
+        title: 'Attention Is All You Need',
+        published: '2017-06-12T00:00:00Z',
+        firstSeen: new Date().toISOString(),
+        topicIds: ['t_ot'],
+    });
+
+    test('a paper filed under its publication year is still one click away', async ({ page }) => {
+        const store = makeStore({
+            topics: [makeTopic({ id: 't_ot', name: 'Optimal Transport' })],
+            papers: { [oldPaper.id]: oldPaper },
+            states: {},
+        });
+        await seed(page, store);
+        await goTo(page, 'explorer');
+
+        // The archive files by when it was written, which is nine years down.
+        await expect(page.getByTestId('folder-node-stream:2017-06')).toBeVisible();
+
+        // But "Recently added" answers the question actually being asked.
+        await page.getByTestId('folder-node-smart:new').click();
+        await expect(page.getByTestId('paper-row')).toHaveCount(1);
+        await expect(page.getByText('Attention Is All You Need')).toBeVisible();
+    });
+
+    test('the archive can be filed by arrival instead, and remembers', async ({ page }) => {
+        await seed(page, makeStore({
+            topics: [makeTopic({ id: 't_ot' })],
+            papers: { [oldPaper.id]: oldPaper },
+        }));
+        await goTo(page, 'explorer');
+
+        await expect(page.getByTestId('stream-by')).toHaveText('written');
+        await page.getByTestId('stream-by').click();
+        await expect(page.getByTestId('stream-by')).toHaveText('arrived');
+
+        // Filed under this month now, not 2017.
+        const thisMonth = `stream:${new Date().toISOString().slice(0, 7)}`;
+        await expect(page.getByTestId(`folder-node-${thisMonth}`)).toBeVisible();
+        await expect(page.getByTestId('folder-node-stream:2017-06')).toHaveCount(0);
+
+        // It is a per-device habit, so it survives a reload.
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        await page.waitForSelector('text=Paper Radar');
+        await goTo(page, 'explorer');
+        await expect(page.getByTestId('stream-by')).toHaveText('arrived');
+    });
+});
+
 /* ------------------------------------------------------------------- feed -- */
 
 test.describe('the prefetched arXiv feed', () => {
@@ -568,11 +622,12 @@ test.describe('explorer', () => {
         await seed(page, seededStore());
         await goTo(page, 'explorer');
 
-        // Order top to bottom: the two saved views, then the archive.
+        // Order top to bottom: the saved views, then the archive.
         const rows = page.locator('[data-testid^="folder-node-"]');
-        await expect(rows.nth(0)).toContainText('Starred');
-        await expect(rows.nth(1)).toContainText('Read later');
-        await expect(rows.nth(2)).toContainText('Stream');
+        await expect(rows.nth(0)).toContainText('Recently added');
+        await expect(rows.nth(1)).toContainText('Starred');
+        await expect(rows.nth(2)).toContainText('Read later');
+        await expect(rows.nth(3)).toContainText('Stream');
 
         // Stream is bracketed by rules, keeping the two read-only groups together.
         await expect(page.getByTestId('tree-separator')).toHaveCount(2);
@@ -587,7 +642,7 @@ test.describe('explorer', () => {
 
         // Your folders come after the archive, below the second rule.
         const withFolder = page.locator('[data-testid^="folder-node-"]');
-        await expect(withFolder.nth(2)).toContainText('Stream');
+        await expect(withFolder.nth(3)).toContainText('Stream');
         await expect(withFolder.last()).toContainText('Thesis');
         await expect(page.getByTestId('tree-separator')).toHaveCount(2);
     });

@@ -192,10 +192,19 @@ per device (localStorage, not the store, so they never travel with an export).
 The tree runs saved views, then the archive, then your folders — the two things you
 cannot edit sit together above everything that is yours, with rules between the groups:
 
+- **✦ Recently added** — everything that reached the library in the last fortnight,
+  newest first. It exists because the tree below answers "what just arrived" worst of
+  all: the archive files by *publication* date, so a paper written in 2017 and added
+  this morning lands nine years down, and a morning's fetch scatters across the month
+  it was written in rather than the day it turned up. This is the one click that
+  gathers them.
 - **★ Starred** and **🕓 Read later** — smart folders, first because they are the two
   views you check constantly. They are a *view of reading state*, not a second place a
   paper lives, so they cannot drift out of sync with the stars and queue you set
   elsewhere. Dropping a paper on one *sets* that state and leaves it where it was filed.
+  The Stream root carries a small **written / arrived** switch for the same reason: the
+  archive is filed by publication date by default, and one click refiles the whole tree
+  by when papers reached you. The choice is remembered per device.
 - **📡 Stream** — bracketed by rules, because it is unlike everything around it:
   read-only, and organised by date rather than by you. It mirrors everything fetched,
   nested Month › Week › Day on **publication date**. This is the archive you come back

@@ -13,6 +13,8 @@ import {
 } from '../ui';
 
 const STREAM_ROOT = 'stream:root';
+const NEW_ROOT = 'smart:new';
+const NEW_WINDOW_DAYS = 14;
 const STARRED_ROOT = 'smart:starred';
 const LATER_ROOT = 'smart:later';
 const isStream = (id) => typeof id === 'string' && id.startsWith('stream:');
@@ -66,6 +68,9 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
         edge: 'right',
     });
     const [expanded, setExpanded] = useState(() => new Set([STREAM_ROOT]));
+    // The archive is filed by when papers were written; sometimes the question is
+    // when they turned up instead, and the two answers can be years apart.
+    const [streamBy, setStreamBy] = usePref('explorerStreamBy', 'published');
     const [renaming, setRenaming] = useState(null);
     const [importOpen, setImportOpen] = useState(false);
     const [recursive, setRecursive] = useState(true);
@@ -80,7 +85,15 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
     const paperMenu = useContextMenu();
 
     // The archive is bucketed by when papers were written, not when they arrived.
-    const tree = useMemo(() => buildTimeTree(paperList, 'published'), [paperList]);
+    const tree = useMemo(() => buildTimeTree(paperList, streamBy), [paperList, streamBy]);
+
+    /* Everything that reached the library in the last fortnight, newest first. */
+    const arrivals = useMemo(() => {
+        const cutoff = Date.now() - NEW_WINDOW_DAYS * 864e5;
+        return paperList
+            .filter((p) => new Date(p.firstSeen || p.published || 0).getTime() >= cutoff)
+            .sort((a, b) => String(b.firstSeen || '').localeCompare(String(a.firstSeen || '')));
+    }, [paperList]);
 
     const childrenOfFolder = useMemo(() => {
         const map = new Map();
@@ -98,6 +111,7 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
 
     /** The papers the selected node owns, before any filtering. */
     const scoped = useMemo(() => {
+        if (selectedId === NEW_ROOT) return arrivals;
         if (selectedId === STARRED_ROOT) return paperList.filter((p) => (states[p.id] || {}).starred);
         if (selectedId === LATER_ROOT) {
             return paperList.filter((p) => ['queued', 'reading'].includes((states[p.id] || {}).status));
@@ -108,7 +122,7 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
         return Array.from(papersInFolder(folders, selectedId, { recursive }))
             .map((id) => papers[id])
             .filter(Boolean);
-    }, [selectedId, tree, folders, papers, paperList, states, recursive]);
+    }, [selectedId, tree, folders, papers, paperList, states, recursive, arrivals]);
 
     // The Explorer runs the same filter engine as the Stream, so `au:`, `ti:`, `tag:`
     // and `is:` mean the same thing in both places.
@@ -205,6 +219,17 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
     // Saved views, then the read-only archive, then the folders you maintain — the
     // two things you cannot edit sit together, above everything that is yours.
     const smartRoots = [
+        // First, because "what just came in" is the question asked most often and
+        // the one the date tree below answers worst: a paper written in 2017 and
+        // added this morning files nine years down.
+        {
+            id: NEW_ROOT,
+            name: 'Recently added',
+            hint: `${NEW_WINDOW_DAYS}d`,
+            stats: statsFor(arrivals, states),
+            readOnly: true,
+            icon: '\u2726',
+        },
         { id: STARRED_ROOT, name: 'Starred', stats: statsFor(starred, states), readOnly: true, smart: true, icon: '★' },
         { id: LATER_ROOT, name: 'Read later', stats: statsFor(later, states), readOnly: true, smart: true, icon: '\u{1F553}' },
     ];
@@ -214,7 +239,11 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
     const streamRoot = {
         id: STREAM_ROOT,
         name: 'Stream',
-        hint: 'by publication date',
+        toggleLabel: streamBy === 'published' ? 'written' : 'arrived',
+        toggleTitle: streamBy === 'published'
+            ? 'Filed by publication date — click to file by when papers arrived'
+            : 'Filed by arrival — click to file by publication date',
+        onToggleHint: () => setStreamBy(streamBy === 'published' ? 'firstSeen' : 'published'),
         stats: statsFor(paperList, states),
         readOnly: true,
         icon: '\u{1F4E1}',
@@ -582,6 +611,20 @@ function TreeNode({
                         {node.name}
                         {node.hint && <span className="ml-1.5 text-[9px] text-slate-600">{node.hint}</span>}
                     </span>
+                )}
+
+                {/* Outside the truncating name, or a narrow sidebar clips it out of
+                    reach — a control you cannot click is worse than no control. */}
+                {node.onToggleHint && (
+                    <button
+                        type="button"
+                        data-testid="stream-by"
+                        title={node.toggleTitle}
+                        onClick={(e) => { e.stopPropagation(); node.onToggleHint(); }}
+                        className="flex-none rounded px-1 py-0.5 text-[9px] text-slate-500 underline decoration-dotted underline-offset-2 transition-colors hover:bg-white/5 hover:text-orange-300"
+                    >
+                        {node.toggleLabel}
+                    </button>
                 )}
 
                 {/* Chips count papers, never list them. The unread pill only appears when
