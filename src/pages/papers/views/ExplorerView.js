@@ -24,16 +24,77 @@ const isVirtual = (id) => isStream(id) || isSmart(id);
 /** Read/unread/starred for a set of papers, for the chips on a tree row. */
 function statsFor(list, states) {
     let unread = 0;
+    let queued = 0;
     let read = 0;
     let starred = 0;
     list.forEach((p) => {
         const st = states[p.id] || {};
         const status = st.status || 'unread';
         if (status === 'unread') unread += 1;
+        if (status === 'queued' || status === 'reading') queued += 1;
         if (status === 'read') read += 1;
         if (st.starred) starred += 1;
     });
-    return { total: list.length, unread, read, starred };
+    return { total: list.length, unread, queued, read, starred };
+}
+
+/** "12 papers · 5 unread · 3 to read · 4 read" — the long form, for tooltips. */
+function describeStats(stats) {
+    const parts = [`${stats.total} paper${stats.total === 1 ? '' : 's'}`];
+    if (stats.unread) parts.push(`${stats.unread} unread`);
+    if (stats.queued) parts.push(`${stats.queued} to read`);
+    if (stats.read) parts.push(`${stats.read} read`);
+    if (stats.starred) parts.push(`${stats.starred} starred`);
+    return parts.join(' · ');
+}
+
+/**
+ * One chip, not three.
+ *
+ * A folder's counts are one fact about it — how much is in there and how much
+ * of it is still owed — so they read as a single object: cells divided by
+ * hairlines inside a shared border, each keyed by a colour that means the same
+ * thing here as it does on a card's edge. Cells that would say "0" are absent,
+ * so a folder you have finished quietens down to a single number instead of
+ * carrying two zeroes around.
+ */
+function StatChip({ stats, id, selected }) {
+    if (!stats.total) {
+        return (
+            <span className="flex-none rounded-md px-1.5 py-px font-mono text-[9.5px] tabular-nums text-slate-700">0</span>
+        );
+    }
+    const cell = 'flex items-center gap-1 px-1.5 py-px font-mono text-[9.5px] tabular-nums';
+    const divide = 'border-l border-slate-700/60';
+    return (
+        <span
+            title={describeStats(stats)}
+            className={cx(
+                'flex flex-none items-stretch overflow-hidden rounded-md border',
+                selected ? 'border-orange-400/40 bg-orange-400/[0.08]' : 'border-slate-700/60 bg-slate-950/50',
+            )}
+        >
+            {stats.unread > 0 && (
+                <span data-testid={`unread-chip-${id}`} className={cx(cell, 'text-orange-200')}>
+                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+                    {stats.unread}
+                </span>
+            )}
+            {stats.queued > 0 && (
+                <span data-testid={`queued-chip-${id}`} className={cx(cell, 'text-sky-200', stats.unread > 0 && divide)}>
+                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+                    {stats.queued}
+                </span>
+            )}
+            <span className={cx(
+                cell,
+                (stats.unread > 0 || stats.queued > 0) && divide,
+                selected ? 'text-orange-100' : 'text-slate-400',
+            )}>
+                {stats.total}
+            </span>
+        </span>
+    );
 }
 
 // Time-tree keys ("2026-09") carry no namespace of their own, so the Explorer adds
@@ -395,6 +456,7 @@ export default function ExplorerView({ selection, setSelection, openId, setOpenI
                 selectedFolder={selectedFolder}
                 crumbs={crumbs}
                 visible={visible}
+                stats={statsFor(visible, states)}
                 filters={filters}
                 setFilters={setFilters}
                 topics={topics}
@@ -632,27 +694,8 @@ function TreeNode({
                     </button>
                 )}
 
-                {/* Chips count papers, never list them. The unread pill only appears when
-                    there is something left to do, so a finished folder reads as quiet. */}
-                <span
-                    className="flex flex-none items-center gap-1"
-                    title={`${stats.total} paper${stats.total === 1 ? '' : 's'} · ${stats.read} read · ${stats.unread} unread · ${stats.starred} starred`}
-                >
-                    {stats.unread > 0 && (
-                        <span
-                            data-testid={`unread-chip-${node.id}`}
-                            className="rounded-full bg-orange-400/20 px-1.5 py-px font-mono text-[9.5px] tabular-nums text-orange-200"
-                        >
-                            {stats.unread}
-                        </span>
-                    )}
-                    <span className={cx(
-                        'rounded-full px-1.5 py-px font-mono text-[9.5px] tabular-nums',
-                        isSel ? 'bg-orange-400/20 text-orange-100' : 'bg-slate-800/80 text-slate-500',
-                    )}>
-                        {stats.total}
-                    </span>
-                </span>
+                {/* Counts a folder, never lists it. */}
+                <StatChip stats={stats} id={node.id} selected={isSel} />
 
                 {sprung && draggingPapers && (
                     <NewFolderDropTarget onDrop={(ids) => onFileIntoNew(node.id, ids)} />
@@ -712,7 +755,7 @@ function NewFolderDropTarget({ onDrop }) {
 /* ------------------------------------------------------------------ file list */
 
 function FileList({
-    selectedId, selectedFolder, crumbs, visible, filters, setFilters, topics, scopedCount,
+    selectedId, selectedFolder, crumbs, visible, stats, filters, setFilters, topics, scopedCount,
     recursive, setRecursive, selection, setSelection,
     openId, setOpenId, onFilePapers, onPaperMenu, onExport, onImport, onSelectFolder,
 }) {
@@ -755,9 +798,27 @@ function FileList({
                             </span>
                         )}
                     </h2>
-                    <p className="text-[11px] text-slate-500">
-                        {visible.length} paper{visible.length === 1 ? '' : 's'}
-                        {selectedFolder ? ` · created ${shortDate(selectedFolder.createdAt)}` : ''}
+                    {/* The sidebar chip is a glance; here there is room to say it in
+                        words, so the same three numbers are readable without hovering. */}
+                    <p
+                        data-testid="folder-summary"
+                        className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-500"
+                    >
+                        <span>{visible.length} paper{visible.length === 1 ? '' : 's'}</span>
+                        {stats && stats.unread > 0 && (
+                            <span className="flex items-center gap-1 text-orange-200/80">
+                                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+                                {stats.unread} unread
+                            </span>
+                        )}
+                        {stats && stats.queued > 0 && (
+                            <span className="flex items-center gap-1 text-sky-200/80">
+                                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+                                {stats.queued} to read
+                            </span>
+                        )}
+                        {stats && stats.read > 0 && <span>{stats.read} read</span>}
+                        {selectedFolder && <span>created {shortDate(selectedFolder.createdAt)}</span>}
                     </p>
                 </div>
                 <div className="flex-1" />

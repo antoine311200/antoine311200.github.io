@@ -708,6 +708,46 @@ test.describe('explorer', () => {
         await expect(page.getByTestId('unread-chip-f_a')).toHaveCount(0);
     });
 
+    test('one chip carries what is in a folder and what is still owed', async ({ page }) => {
+        const store = seededStore();
+        const ids = Object.keys(store.papers).slice(0, 6);
+        store.folders = [{
+            id: 'f_a', name: 'Chapter 2', parentId: null, paperIds: ids,
+            description: '', color: null, createdAt: new Date().toISOString(),
+        }];
+        ids.slice(0, 2).forEach((id) => { store.states[id].status = 'read'; });
+        ids.slice(2, 4).forEach((id) => { store.states[id].status = 'queued'; });
+        await seed(page, store);
+        await goTo(page, 'explorer');
+
+        // Six filed: two read, two queued, two still untouched.
+        await expect(page.getByTestId('unread-chip-f_a')).toHaveText('2');
+        await expect(page.getByTestId('queued-chip-f_a')).toHaveText('2');
+        await expect(page.getByTestId('folder-node-f_a')).toContainText('6');
+
+        // Said in words where there is room for words.
+        await page.getByTestId('folder-node-f_a').click();
+        const header = page.getByTestId('folder-summary');
+        await expect(header).toContainText('6 papers');
+        await expect(header).toContainText('2 unread');
+        await expect(header).toContainText('2 to read');
+        await expect(header).toContainText('2 read');
+
+        // A folder with nothing outstanding says one number and stops talking.
+        const done = seededStore();
+        const held = Object.keys(done.papers).slice(0, 3);
+        done.folders = [{
+            id: 'f_done', name: 'Finished', parentId: null, paperIds: held,
+            description: '', color: null, createdAt: new Date().toISOString(),
+        }];
+        held.forEach((id) => { done.states[id].status = 'read'; });
+        await seed(page, done);
+        await goTo(page, 'explorer');
+        await expect(page.getByTestId('unread-chip-f_done')).toHaveCount(0);
+        await expect(page.getByTestId('queued-chip-f_done')).toHaveCount(0);
+        await expect(page.getByTestId('folder-node-f_done')).toContainText('3');
+    });
+
     test('a subfolder can be created inside an empty folder', async ({ page }) => {
         const store = seededStore();
         store.folders = [{

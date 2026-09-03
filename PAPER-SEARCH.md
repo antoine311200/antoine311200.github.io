@@ -186,7 +186,16 @@ in, for topic fetches as much as for this.
 
 A **source-tree sidebar and a file list**, the way an editor does it. The tree carries
 only folders — each with a count chip rather than its papers — so the list gets the
-screen. Drag its right edge to set how much — the drag holds the pointer for its whole
+screen.
+
+That chip is one object, not three. How much is in a folder and how much of it is still
+owed are one fact about it, so the numbers sit in a single bordered pill divided by
+hairlines: **● unread** in orange, **● to read** in sky, then the total. The colours are
+the ones a card's own edge uses for the same states, so the sidebar and the list agree
+without a legend. Cells that would read zero are simply absent — a folder you have
+finished quietens to a single number rather than carrying two zeroes around, and an
+empty one dims to `0`. Hovering spells the whole thing out, and so does the list header,
+where there is room for words: *12 papers · 5 unread · 3 to read · 4 read*. Drag its right edge to set how much — the drag holds the pointer for its whole
 length, so running past the limit and coming back still works even across the PDF
 frame — and `«` folds it down to a rail when you want the list alone; the rail springs back open while a drag is in flight, because you
 cannot file a paper into folders you cannot see. Width and folded state are remembered
