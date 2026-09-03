@@ -139,6 +139,29 @@ function reducer(state, action) {
                 feedSeen: Array.from(new Set([...(state.feedSeen || []), ...action.files])).slice(-120),
             };
 
+        case 'EXPLANATION': {
+            const prev = state.states[action.id] || emptyState();
+            return {
+                ...state,
+                states: {
+                    ...state.states,
+                    [action.id]: {
+                        ...prev,
+                        explanations: { ...(prev.explanations || {}), [action.level]: action.note },
+                        updatedAt: Date.now(),
+                    },
+                },
+            };
+        }
+
+        case 'EXPLANATION_REMOVE': {
+            const prev = state.states[action.id];
+            if (!prev || !prev.explanations) return state;
+            const explanations = { ...prev.explanations };
+            delete explanations[action.level];
+            return { ...state, states: { ...state.states, [action.id]: { ...prev, explanations } } };
+        }
+
         case 'PAPER_STATE': {
             const prev = state.states[action.id] || emptyState();
             const next = { ...prev, ...action.patch, updatedAt: Date.now() };

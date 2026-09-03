@@ -17,6 +17,12 @@ export const DEFAULT_SETTINGS = {
     // 'openalex' — live, but on a daily allowance; see openalex.js
     // 'arxiv'    — direct, and blocked by CORS unless a relay answers
     source: 'feed',
+    // How to reach a model. The key itself is never here: it lives apart, in its
+    // own store, so that an export can never carry it — see llm.js.
+    llmProvider: 'anthropic',
+    llmModel: '',
+    llmEndpoint: '',
+    llmProxyUrl: '',
     openAlexMailto: '',       // optional: OpenAlex "polite pool", never auto-filled
     proxy: 'auto',            // arXiv source only: 'auto' | strategy id | 'direct'
     autoFetchOnOpen: true,
@@ -106,6 +112,10 @@ export const emptyState = () => ({
     starred: false,
     tags: [],
     note: '',
+    // Generated explanations, keyed by depth: { gist|brief|deep: {text, model, at} }.
+    // They live with the paper's reading state because that is what they are — a
+    // record of how you came to understand it — and they travel with an export.
+    explanations: {},
     rating: 0,
     readAt: null,
     queuedAt: null,

@@ -6,6 +6,7 @@ import { STRATEGIES } from '../arxiv';
 import { toBibtexAll, toCsv } from '../bibtex';
 import { getBudget, humanWait } from '../openalex';
 import { feedConfig } from '../feed';
+import { PROVIDERS, forgetKey, keyIsRemembered, loadKey, maskKey, saveKey, testKey } from '../llm';
 import { Button, Count, Field, Input, Modal, Toggle, cx } from '../ui';
 
 const fmt = (n) => {
@@ -26,6 +27,164 @@ const SOURCE_HINTS = {
     arxiv: 'arXiv carries categories and versions but sends no CORS headers, so it needs a public relay — '
         + 'and those are often down.',
 };
+
+/**
+ * Connecting a model.
+ *
+ * The security story is told here rather than buried in a tooltip, because the
+ * reader is the one carrying the risk: on a static site there is no server to
+ * hide a secret in, so a key in this box is a key in this browser. What the app
+ * can promise is narrow and worth stating exactly — it is kept out of the
+ * library, so no export, no BibTeX file and no shared note can carry it — and
+ * the way to promise more is a proxy the reader controls.
+ */
+function AiSettings({ settings, set }) {
+    const [key, setKey] = useState(() => loadKey());
+    const [remember, setRemember] = useState(() => keyIsRemembered() || !loadKey());
+    const [probe, setProbe] = useState(null);
+    const provider = PROVIDERS[settings.llmProvider] || PROVIDERS.anthropic;
+    const viaProxy = !!settings.llmProxyUrl;
+
+    const store = (next, keep) => {
+        setKey(next);
+        saveKey(next, { remember: keep });
+    };
+
+    const check = async () => {
+        setProbe({ state: 'running' });
+        try {
+            const reply = await testKey({
+                provider: settings.llmProvider,
+                model: settings.llmModel,
+                endpoint: settings.llmEndpoint,
+                proxyUrl: settings.llmProxyUrl,
+            });
+            setProbe({ state: 'ok', message: reply || 'ready' });
+        } catch (err) {
+            setProbe({ state: 'bad', message: err.message });
+        }
+    };
+
+    return (
+        <section className="space-y-3 border-t border-slate-800 pt-4">
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">AI explanations</h3>
+
+            <Field label="Provider" hint={viaProxy ? 'Your proxy decides what it forwards to.' : undefined}>
+                <select
+                    value={settings.llmProvider}
+                    onChange={(e) => set({ llmProvider: e.target.value, llmModel: '' })}
+                    data-testid="llm-provider"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-orange-400/60"
+                >
+                    {Object.values(PROVIDERS).map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+                </select>
+            </Field>
+
+            {provider.models.length > 0 ? (
+                <Field label="Model">
+                    <select
+                        value={settings.llmModel || provider.defaultModel}
+                        onChange={(e) => set({ llmModel: e.target.value })}
+                        className="w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 outline-none focus:border-orange-400/60"
+                    >
+                        {provider.models.map((m) => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                </Field>
+            ) : (
+                <div className="grid grid-cols-2 gap-3">
+                    <Field label="Model">
+                        <Input
+                            placeholder={provider.defaultModel}
+                            value={settings.llmModel}
+                            onChange={(e) => set({ llmModel: e.target.value.trim() })}
+                        />
+                    </Field>
+                    <Field label="Endpoint" hint="Anything speaking the OpenAI shape.">
+                        <Input
+                            placeholder={provider.endpoint}
+                            value={settings.llmEndpoint}
+                            onChange={(e) => set({ llmEndpoint: e.target.value.trim() })}
+                        />
+                    </Field>
+                </div>
+            )}
+
+            {!viaProxy && (
+                <Field
+                    label="API key"
+                    hint={(
+                        <>
+                            Held on this device only, in its own store — never inside an export, a
+                            BibTeX file or a shared note. It is still readable by anything running
+                            in this page, so use a key with a spend cap. <a
+                                href={provider.console}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-orange-300/80 underline decoration-dotted"
+                            >Create one</a>.
+                        </>
+                    )}
+                >
+                    <div className="flex gap-2">
+                        <Input
+                            type="password"
+                            autoComplete="off"
+                            spellCheck="false"
+                            data-testid="llm-key"
+                            placeholder={provider.keyHint}
+                            value={key}
+                            onChange={(e) => store(e.target.value.trim(), remember)}
+                        />
+                        <Button size="sm" onClick={check} disabled={!key || probe?.state === 'running'}>
+                            {probe?.state === 'running' ? 'Testing…' : 'Test'}
+                        </Button>
+                    </div>
+                </Field>
+            )}
+
+            {!viaProxy && key && (
+                <div className="flex flex-wrap items-center gap-3">
+                    <Toggle
+                        checked={remember}
+                        onChange={(v) => { setRemember(v); saveKey(key, { remember: v }); }}
+                        label="Remember on this device"
+                        hint={remember
+                            ? `Stored as ${maskKey(key)}. Anyone with this browser profile can use it.`
+                            : 'Kept in memory only — asked again next time this tab is opened.'}
+                    />
+                    <Button size="sm" variant="danger" onClick={() => { forgetKey(); setKey(''); setProbe(null); }}>
+                        Forget key
+                    </Button>
+                </div>
+            )}
+
+            {probe && probe.state !== 'running' && (
+                <p className={cx(
+                    'rounded-lg border px-3 py-2 text-[11.5px]',
+                    probe.state === 'ok'
+                        ? 'border-emerald-500/25 bg-emerald-500/[0.08] text-emerald-200'
+                        : 'border-rose-500/25 bg-rose-500/[0.08] text-rose-200',
+                )}>
+                    {probe.state === 'ok' ? `The model answered: "${probe.message}"` : probe.message}
+                </p>
+            )}
+
+            <Field
+                label="Or a proxy you control"
+                hint="Set this and no key is stored in the browser at all: a Cloudflare Worker or
+                      small function holds the real key server-side and forwards the call. It is the
+                      only arrangement where the secret is genuinely not on this machine."
+            >
+                <Input
+                    placeholder="https://llm.you.workers.dev"
+                    data-testid="llm-proxy"
+                    value={settings.llmProxyUrl}
+                    onChange={(e) => set({ llmProxyUrl: e.target.value.trim() })}
+                />
+            </Field>
+        </section>
+    );
+}
 
 /**
  * OpenAlex bills per request against a daily allowance, and the only place that
@@ -200,6 +359,8 @@ export default function SettingsModal({ open, onClose }) {
                                 label="Enrich with Semantic Scholar"
                                 hint="Adds citation counts and TL;DR summaries. No key needed." />
                     </section>
+
+                    <AiSettings settings={settings} set={set} />
 
                     <section className="flex flex-wrap gap-2 border-t border-slate-800 pt-4">
                         <Button size="sm" variant="danger" disabled={!pruneable}

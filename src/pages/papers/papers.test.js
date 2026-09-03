@@ -4,6 +4,7 @@ import { parseQuery, applyFilters, groupByDay, DEFAULT_FILTERS } from './filters
 import { toBibtex, citeKey, toCsv } from './bibtex';
 import { matchesTopic, sortIntoTopics, feedConfig } from './feed';
 import { matchScore } from './match';
+import { LEVELS, buildPrompt, levelById, noteMarkdown, shareTargets } from './explain';
 import {
     mergeStores, emptyStore, authorKey, prune, makeTopic, makeFolder,
     folderPath, folderSubtree, papersInFolder, canMoveFolder,
@@ -256,6 +257,160 @@ describe('storage', () => {
         const { store: pruned, removed } = prune(store, { days: 90 });
         expect(removed).toBe(1);
         expect(Object.keys(pruned.papers).sort()).toEqual(['fresh', 'kept']);
+    });
+});
+
+describe('the API key', () => {
+    /* Module state (the in-memory key) has to be fresh for each case. */
+    const load = () => { jest.resetModules(); return require('./llm'); };
+    const config = { provider: 'anthropic', model: 'claude-sonnet-5' };
+    const ok = (text) => ({
+        ok: true, status: 200,
+        json: async () => ({ content: [{ text }] }),
+        text: async () => JSON.stringify({ content: [{ text }] }),
+    });
+
+    beforeEach(() => { localStorage.clear(); });
+    afterEach(() => { delete global.fetch; localStorage.clear(); });
+
+    test('"remember" decides whether anything is written to disk at all', () => {
+        const { saveKey, loadKey, keyIsRemembered, forgetKey } = load();
+
+        saveKey('sk-ant-secret', { remember: false });
+        expect(loadKey()).toBe('sk-ant-secret');          // usable this session
+        expect(keyIsRemembered()).toBe(false);            // but nothing persisted
+        expect(localStorage.getItem('paper-radar:llm')).toBeNull();
+
+        saveKey('sk-ant-secret', { remember: true });
+        expect(keyIsRemembered()).toBe(true);
+        forgetKey();
+        expect(localStorage.getItem('paper-radar:llm')).toBeNull();
+        expect(loadKey()).toBe('');
+    });
+
+    test('it is stored apart from the library, so an export cannot carry it', () => {
+        const { saveKey } = load();
+        saveKey('sk-ant-secret', { remember: true });
+
+        // The exported store is built from the library alone; the key lives under
+        // its own roof and is never merged in.
+        const exported = JSON.stringify(emptyStore());
+        expect(exported).not.toContain('sk-ant-secret');
+        expect(Object.keys(emptyStore())).not.toContain('llmKey');
+        expect(localStorage.getItem('paper-radar:llm')).toBe('sk-ant-secret');
+    });
+
+    test('an importable store cannot smuggle a key in', () => {
+        const { loadKey } = load();
+        // Whatever an imported file claims, the key is not read from the store.
+        const merged = mergeStores(emptyStore(), { ...emptyStore(), llmKey: 'sk-ant-evil' });
+        expect(JSON.stringify(merged)).not.toContain('sk-ant-evil');
+        expect(loadKey()).toBe('');
+    });
+
+    test('Anthropic is called with the header that makes browser use deliberate', async () => {
+        const { saveKey, complete } = load();
+        saveKey('sk-ant-secret', { remember: false });
+        global.fetch = jest.fn().mockResolvedValue(ok('hello'));
+
+        await complete({ config, system: 's', prompt: 'p' });
+        const [url, init] = global.fetch.mock.calls[0];
+        expect(url).toBe('https://api.anthropic.com/v1/messages');
+        expect(init.headers['x-api-key']).toBe('sk-ant-secret');
+        expect(init.headers['anthropic-dangerous-direct-browser-access']).toBe('true');
+        // The key belongs in the header, never in the body.
+        expect(init.body).not.toContain('sk-ant-secret');
+    });
+
+    test('with a proxy set, no key leaves the browser', async () => {
+        const { saveKey, complete } = load();
+        saveKey('sk-ant-secret', { remember: false });
+        global.fetch = jest.fn().mockResolvedValue(ok('hello'));
+
+        await complete({ config: { ...config, proxyUrl: 'https://llm.example.workers.dev' }, system: 's', prompt: 'p' });
+        const [url, init] = global.fetch.mock.calls[0];
+        expect(url).toBe('https://llm.example.workers.dev');
+        expect(JSON.stringify(init.headers)).not.toContain('sk-ant-secret');
+        expect(init.body).not.toContain('sk-ant-secret');
+    });
+
+    test('a provider that echoes the request back cannot echo the key onto a screen', async () => {
+        const { saveKey, complete } = load();
+        saveKey('sk-ant-secret', { remember: false });
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: false,
+            status: 400,
+            text: async () => 'Bad request for key sk-ant-secret in header',
+        });
+
+        await expect(complete({ config, system: 's', prompt: 'p' }))
+            .rejects.toThrow(/«your key»/);
+        await expect(complete({ config, system: 's', prompt: 'p' }))
+            .rejects.not.toThrow(/sk-ant-secret/);
+    });
+
+    test('asking with no key at all says so rather than calling anyone', async () => {
+        const { complete } = load();
+        global.fetch = jest.fn();
+        await expect(complete({ config, system: 's', prompt: 'p' })).rejects.toThrow(/No API key/);
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+});
+
+describe('explanations', () => {
+    const paper = {
+        id: '2207.08683',
+        title: 'Limit Theorems for Entropic Optimal Transport Maps',
+        summary: 'We study limit theorems for EOT maps and the Sinkhorn divergence.',
+        authors: [{ name: 'Ziv Goldfeld' }, { name: 'Kengo Kato' }],
+        categories: ['math.ST', 'math.PR'],
+        published: '2022-07-18T00:00:00Z',
+    };
+
+    test('the model is given the paper and told not to go beyond it', () => {
+        const { system, prompt } = buildPrompt(paper, levelById('deep'));
+        expect(prompt).toContain(paper.title);
+        expect(prompt).toContain(paper.summary);
+        expect(prompt).toContain('2207.08683');
+        expect(prompt).toContain('math.ST');
+        // The guard against inventing results it was never shown.
+        expect(system).toMatch(/not its full text/);
+        expect(system).toMatch(/rather than inventing/);
+        // And the maths has to come back as KaTeX, or the deep level is pointless.
+        expect(system).toMatch(/\$\$/);
+    });
+
+    test('each level asks for something different', () => {
+        expect(LEVELS.map((l) => l.id)).toEqual(['gist', 'brief', 'deep']);
+        const budgets = LEVELS.map((l) => l.maxTokens);
+        expect(budgets).toEqual([...budgets].sort((a, b) => a - b));
+        expect(levelById('gist').instruction).toMatch(/three short sentences/);
+        expect(levelById('nonsense').id).toBe('gist');
+    });
+
+    test('a note carries enough to make sense somewhere else', () => {
+        const note = { level: 'brief', text: 'It proves a CLT.', model: 'claude-sonnet-5', at: '2026-09-03' };
+        const md = noteMarkdown(paper, note);
+        expect(md).toContain(`# ${paper.title}`);
+        expect(md).toContain('Ziv Goldfeld, Kengo Kato');
+        expect(md).toContain('https://arxiv.org/abs/2207.08683');
+        expect(md).toContain('It proves a CLT.');
+        // Whoever receives it should know a model wrote it.
+        expect(md).toMatch(/Generated with claude-sonnet-5/);
+    });
+
+    test('share links carry the note and stay inside what a URL can hold', () => {
+        const long = { level: 'deep', text: 'x'.repeat(6000), model: 'm', at: '2026-09-03' };
+        const { mailto, whatsapp, filename, markdown } = shareTargets(paper, long);
+
+        expect(filename).toBe('2207.08683-deep.md');
+        expect(markdown).toContain('x'.repeat(100));          // the file keeps everything
+        expect(mailto.startsWith('mailto:?subject=')).toBe(true);
+        expect(whatsapp.startsWith('https://wa.me/?text=')).toBe(true);
+        // Both are truncated rather than producing a URL nothing will open.
+        expect(decodeURIComponent(mailto)).toMatch(/truncated/);
+        expect(decodeURIComponent(whatsapp)).toMatch(/truncated/);
+        expect(whatsapp.length).toBeLessThan(8000);
     });
 });
 

@@ -304,6 +304,49 @@ something. Keyword matches weighted by title over abstract, plus boosts for foll
 authors and for vocabulary you have starred before, decayed by age. It is why the list
 is in the order it is, and hovering it lists the specific reasons.
 
+### 3.5.0 Explanations
+
+An **Explain** tab on every paper, at three depths, because "what is this paper" is
+three different questions depending on why you are asking:
+
+- **Gist** — three sentences: the claim, the trick, whether it is worth your afternoon.
+- **Brief** — a page: the problem, the contribution, the mechanism, what it costs.
+- **Deep** — a worked walkthrough for someone in the field, with the mathematics set in
+  KaTeX rather than left as backslashes.
+
+The answer streams in as it is written, is kept against the paper so opening it again
+costs nothing, and leaves the app as a note: copied, saved as `.md`, mailed, or handed
+to WhatsApp — both of those through your own client, so nothing passes through anyone
+else on the way. Every note says which model wrote it and that it was written *from the
+abstract*, which is the honest limit: no full text is sent, so nothing generated here is
+citable without opening the paper. Nothing is ever generated unasked.
+
+#### Where the API key lives, and what that is worth
+
+On a static site there is no server, so there is nowhere to hide a secret: whatever the
+browser sends, the browser knows. The app is precise about which half of that it can fix.
+
+**What it does.** The key is held in its own store, apart from the library — so no
+export, BibTeX file, CSV or shared note can carry it, and no imported file can smuggle
+one in. "Remember on this device" off keeps it in memory for the session and writes
+nothing at all. Provider errors are scrubbed before display, because some echo the
+request back. All of this is covered by tests, since it is the kind of promise that
+rots quietly.
+
+**What it does not.** Anything already running in this page can read that key: an XSS
+hole, a compromised npm dependency, a browser extension with page access. No care in the
+client changes that. So: use a key with a hard spend cap, and rotate it if the machine is
+shared. Anthropic makes this explicit — browser calls need an opt-in
+`anthropic-dangerous-direct-browser-access` header, which is the provider saying out loud
+that you are choosing to expose a key.
+
+**The way out, if that is not good enough.** Set a **proxy URL** and no key is stored in
+the browser at all: requests go to something you control — a Cloudflare Worker, a small
+function — which holds the real key server-side and forwards the call. That is the only
+arrangement where the secret is genuinely not on this machine. A third option, if
+on-demand is not needed, is the shape §3.2.0 already uses: a scheduled job with the key
+in repo secrets, writing explanations into the feed.
+
 ### 3.5.1 The reading panel
 
 Slides in beside whatever list you are in rather than taking the tab over, and you set

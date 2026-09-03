@@ -248,6 +248,83 @@ test.describe('stream', () => {
     });
 });
 
+/* ------------------------------------------------------------ explanations -- */
+
+test.describe('explaining a paper', () => {
+    /** Streams SSE the way a provider does, and records what it was sent. */
+    const stubModel = async (page, chunks) => {
+        const seen = { key: null, body: null, calls: 0 };
+        await page.route('**/api.anthropic.com/**', async (route) => {
+            seen.calls += 1;
+            seen.key = route.request().headers()['x-api-key'];
+            seen.body = route.request().postData();
+            const frames = chunks.map((text) => `data: ${JSON.stringify({
+                type: 'content_block_delta', delta: { type: 'text_delta', text },
+            })}\n\n`).join('');
+            await route.fulfill({
+                status: 200,
+                headers: { 'content-type': 'text/event-stream' },
+                body: `${frames}data: [DONE]\n\n`,
+            });
+        });
+        return seen;
+    };
+
+    const storeWithPaper = () => {
+        const store = makeStore({ topics: [makeTopic({ id: 't_ot' })] });
+        const paper = makePaper(1, { id: '2207.08683', title: 'Limit Theorems for Entropic OT' });
+        store.papers = { [paper.id]: paper };
+        store.states = {};
+        return store;
+    };
+
+    test('an explanation streams in, renders its maths, and is kept', async ({ page }) => {
+        const seen = await stubModel(page, [
+            'It proves a central limit theorem. ',
+            'The estimator satisfies $\\sqrt{n}(\\hat S - S) \\Rightarrow N(0,\\sigma^2)$ ',
+            'with variance $$\\sigma^2 = \\operatorname{Var}(\\varphi(X)).$$',
+        ]);
+        await seed(page, storeWithPaper());
+
+        // The key goes in from Settings and stays on this device.
+        await page.getByTestId('open-settings').click();
+        await page.getByTestId('llm-key').fill('sk-ant-e2e-secret');
+        await page.keyboard.press('Escape');
+
+        await page.getByTestId('paper-row').first().click();
+        await page.getByRole('button', { name: /^Explain/ }).first().click();
+        await page.getByTestId('level-deep').click();
+        await page.getByTestId('explain-run').click();
+
+        await expect(page.getByTestId('explain-tab')).toContainText('central limit theorem');
+        // Rendered as mathematics, not as backslashes.
+        await expect(page.locator('.katex').first()).toBeVisible();
+        expect(seen.key).toBe('sk-ant-e2e-secret');
+        expect(seen.body).toContain('Limit Theorems for Entropic OT');
+
+        // Kept against the paper, so reopening costs nothing.
+        const store = await readStore(page);
+        expect(store.states['2207.08683'].explanations.deep.text).toContain('central limit theorem');
+
+        // And the key is nowhere in what an export would carry.
+        expect(JSON.stringify(store)).not.toContain('sk-ant-e2e-secret');
+        const where = await page.evaluate(() => Object.keys(localStorage)
+            .filter((k) => (localStorage.getItem(k) || '').includes('sk-ant-e2e-secret')));
+        expect(where).toEqual(['paper-radar:llm']);
+    });
+
+    test('with no key connected it explains why rather than failing at the provider', async ({ page }) => {
+        const seen = await stubModel(page, ['should never be reached']);
+        await seed(page, storeWithPaper());
+
+        await page.getByTestId('paper-row').first().click();
+        await page.getByRole('button', { name: /^Explain/ }).first().click();
+        await expect(page.getByText('No model connected')).toBeVisible();
+        await expect(page.getByTestId('explain-run')).toBeDisabled();
+        expect(seen.calls).toBe(0);
+    });
+});
+
 /* --------------------------------------------------------------- arrivals -- */
 
 test.describe('finding what just arrived', () => {

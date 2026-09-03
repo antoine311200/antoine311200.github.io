@@ -6,6 +6,9 @@ import { similarTo } from '../scoring';
 import { paperLinks, pdfEmbedUrl, authorLinks } from '../links';
 import { toBibtex } from '../bibtex';
 import { Button, Chip, TokenInput, cx, useCopy, shortDate } from '../ui';
+// Markdown + KaTeX is a few hundred kilobytes that most sessions never open, so
+// the tab is fetched the first time someone asks for an explanation.
+const ExplainTab = React.lazy(() => import('./ExplainTab'));
 
 const STATUSES = ['unread', 'queued', 'reading', 'read', 'archived'];
 
@@ -86,7 +89,8 @@ export default function PaperPanel({ paper, onClose, onOpenPaper }) {
             </header>
 
             <nav className="flex flex-none gap-1 border-b border-slate-800 px-3 pt-2">
-                {[['overview', 'Overview'], ['pdf', 'PDF'], ['notes', st.note || st.tags.length ? 'Notes •' : 'Notes'],
+                {[['overview', 'Overview'], ['explain', Object.keys(st.explanations || {}).length ? 'Explain •' : 'Explain'],
+                  ['pdf', 'PDF'], ['notes', st.note || st.tags.length ? 'Notes •' : 'Notes'],
                   ['related', `Related${similar.length ? ` (${similar.length})` : ''}`]].map(([id, label]) => (
                     <button
                         key={id}
@@ -208,6 +212,14 @@ export default function PaperPanel({ paper, onClose, onOpenPaper }) {
                             </div>
                         </Section>
                     </div>
+                )}
+
+                {tab === 'explain' && (
+                    <React.Suspense
+                        fallback={<div className="px-4 py-6 text-[11px] text-slate-500">Loading…</div>}
+                    >
+                        <ExplainTab paper={paper} />
+                    </React.Suspense>
                 )}
 
                 {tab === 'notes' && (
