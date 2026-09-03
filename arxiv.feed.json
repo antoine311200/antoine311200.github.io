@@ -1,0 +1,101 @@
+{
+  "days": 7,
+  "maxPerTopic": 200,
+  "topics": [
+    {
+      "id": "t_optimal_transport",
+      "name": "Optimal Transport",
+      "color": "#fb923c",
+      "terms": [
+        "optimal transport",
+        "wasserstein",
+        "sinkhorn",
+        "schrodinger bridge",
+        "gromov-wasserstein",
+        "entropic regularization"
+      ],
+      "exclude": [],
+      "categories": [
+        "math.OC",
+        "math.PR",
+        "stat.ML",
+        "cs.LG"
+      ],
+      "authors": [],
+      "fields": "title_abstract",
+      "enabled": true
+    },
+    {
+      "id": "t_diffusion_generative_models",
+      "name": "Diffusion & Generative Models",
+      "color": "#a78bfa",
+      "terms": [
+        "diffusion model",
+        "score-based generative",
+        "denoising diffusion",
+        "flow matching",
+        "stochastic interpolant",
+        "score matching"
+      ],
+      "exclude": [],
+      "categories": [
+        "cs.LG",
+        "stat.ML"
+      ],
+      "authors": [],
+      "fields": "title_abstract",
+      "enabled": true
+    },
+    {
+      "id": "t_stochastic_analysis_sdes",
+      "name": "Stochastic Analysis & SDEs",
+      "color": "#34d399",
+      "terms": [
+        "stochastic differential equation",
+        "neural sde",
+        "rough path",
+        "signature kernel",
+        "mckean-vlasov",
+        "backward stochastic differential",
+        "stochastic control"
+      ],
+      "exclude": [],
+      "categories": [
+        "math.PR",
+        "math.OC",
+        "stat.ML",
+        "cs.LG"
+      ],
+      "authors": [],
+      "fields": "title_abstract",
+      "enabled": true
+    },
+    {
+      "id": "t_mathematical_finance",
+      "name": "Mathematical Finance",
+      "color": "#38bdf8",
+      "terms": [
+        "option pricing",
+        "stochastic volatility",
+        "rough volatility",
+        "deep hedging",
+        "limit order book",
+        "market making",
+        "portfolio optimization",
+        "calibration"
+      ],
+      "exclude": [],
+      "categories": [
+        "q-fin.MF",
+        "q-fin.PR",
+        "q-fin.CP",
+        "q-fin.TR",
+        "q-fin.RM",
+        "q-fin.PM"
+      ],
+      "authors": [],
+      "fields": "title_abstract",
+      "enabled": true
+    }
+  ]
+}

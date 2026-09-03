@@ -1,0 +1,520 @@
+/* ==========================================================================
+   figures — self-contained styles.
+
+   Everything is namespaced under .figx and driven by custom properties, so
+   the library carries no dependency on the host page's CSS framework and can
+   be re-themed by overriding the variables on any ancestor:
+
+     .my-article { --figx-accent: #38bdf8; --figx-bg: #000; }
+
+   ========================================================================== */
+
+.figx {
+  /* palette */
+  --figx-bg: #0b1121;
+  --figx-panel: rgba(15, 23, 42, 0.45);
+  --figx-panel-strong: rgba(15, 23, 42, 0.8);
+  --figx-border: rgba(51, 65, 85, 0.55);
+  --figx-border-strong: rgba(71, 85, 105, 0.9);
+  --figx-fg: #e2e8f0;
+  --figx-muted: #94a3b8;
+  --figx-faint: #64748b;
+  --figx-track: rgba(71, 85, 105, 0.7);
+  --figx-grid: rgba(51, 65, 85, 0.35);
+  --figx-accent: #fb923c;
+  --figx-accent-fg: #fdba74;
+  --figx-accent-soft: rgba(251, 146, 60, 0.13);
+
+  /* shape & type */
+  --figx-radius: 12px;
+  --figx-radius-sm: 6px;
+  --figx-font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --figx-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --figx-font-caption: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  margin: 2.5rem 0;
+  font-family: var(--figx-font-ui);
+}
+
+.figx *,
+.figx *::before,
+.figx *::after { box-sizing: border-box; }
+
+.figx__frame {
+  border: 1px solid var(--figx-border);
+  border-radius: var(--figx-radius);
+  background: var(--figx-panel);
+  overflow: hidden;
+}
+
+.figx__frame:focus-visible {
+  outline: 2px solid var(--figx-accent-soft);
+  outline-offset: 2px;
+}
+
+/* In fullscreen the stage takes whatever is left after the chrome. */
+.figx__frame:fullscreen,
+.figx__frame:-webkit-full-screen {
+  display: flex;
+  flex-direction: column;
+  border: 0;
+  border-radius: 0;
+  background: var(--figx-bg);
+}
+.figx__frame:fullscreen .figx__stage,
+.figx__frame:-webkit-full-screen .figx__stage {
+  flex: 1 1 auto;
+  height: auto !important;
+  aspect-ratio: auto !important;
+}
+
+/* ── toolbar ─────────────────────────────────────────────────────────────── */
+
+.figx__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--figx-border);
+  background: var(--figx-panel-strong);
+  flex-wrap: wrap;
+}
+
+.figx__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--figx-border);
+  border-radius: var(--figx-radius-sm);
+  background: transparent;
+  color: var(--figx-muted);
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background-color .15s;
+  flex: none;
+}
+.figx__btn:hover:not(:disabled) {
+  color: var(--figx-fg);
+  border-color: var(--figx-border-strong);
+  background: rgba(148, 163, 184, 0.08);
+}
+.figx__btn:disabled { opacity: .35; cursor: not-allowed; }
+.figx__btn--on {
+  color: var(--figx-accent-fg);
+  border-color: rgba(251, 146, 60, 0.5);
+  background: var(--figx-accent-soft);
+}
+.figx__btn svg { width: 13px; height: 13px; display: block; }
+
+.figx__title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--figx-muted);
+  margin-left: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.figx__spacer { margin-left: auto; }
+
+.figx__meta {
+  font-family: var(--figx-font-mono);
+  font-size: 10px;
+  color: var(--figx-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.figx__speeds { display: inline-flex; gap: 1px; }
+.figx__speed {
+  border: 0;
+  background: transparent;
+  color: var(--figx-faint);
+  font-family: var(--figx-font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  padding: 3px 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color .15s, background-color .15s;
+}
+.figx__speed:hover { color: var(--figx-fg); }
+.figx__speed[aria-pressed="true"] {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--figx-fg);
+}
+
+.figx__disclose {
+  border: 0;
+  background: transparent;
+  color: var(--figx-faint);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color .15s;
+}
+.figx__disclose:hover { color: var(--figx-fg); }
+
+/* ── stage ───────────────────────────────────────────────────────────────── */
+
+/* overflow: a zoomed figure pushes KaTeX labels past the edges. */
+.figx__stage { position: relative; overflow: hidden; background: var(--figx-bg); }
+.figx__canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+
+.figx__paused {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.figx__paused span {
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--figx-faint);
+  background: rgba(2, 6, 23, 0.72);
+  border: 1px solid var(--figx-border);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+/* ── KaTeX overlay ───────────────────────────────────────────────────────── */
+
+.figx__texlayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.figx__tex {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  line-height: 1;
+  font-size: 13px;
+  color: var(--figx-fg);
+  will-change: transform;
+}
+.figx__tex--chip {
+  background: rgba(2, 6, 23, 0.7);
+  border: 1px solid var(--figx-border);
+  border-radius: var(--figx-radius-sm);
+  padding: 4px 8px;
+}
+.figx__tex .katex { font-size: 1em; }
+
+/* ── stats ───────────────────────────────────────────────────────────────── */
+
+.figx__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  padding: 7px 12px;
+  border-top: 1px solid var(--figx-border);
+  background: rgba(15, 23, 42, 0.3);
+  font-size: 11px;
+  color: var(--figx-faint);
+}
+.figx__stat-value {
+  color: var(--figx-fg);
+  font-family: var(--figx-font-mono);
+  font-variant-numeric: tabular-nums;
+  margin-left: 6px;
+}
+.figx__swatch {
+  display: inline-block;
+  width: 18px;
+  height: 2px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+/* ── control panel ───────────────────────────────────────────────────────── */
+
+.figx__panel {
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--figx-border);
+  background: rgba(15, 23, 42, 0.22);
+}
+
+.figx__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.figx__row-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--figx-faint);
+  margin-right: 2px;
+}
+
+.figx__chip {
+  font-size: 11px;
+  padding: 4px 10px;
+  border: 1px solid var(--figx-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--figx-muted);
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background-color .15s;
+}
+.figx__chip:hover {
+  color: var(--figx-accent-fg);
+  border-color: rgba(251, 146, 60, 0.45);
+  background: var(--figx-accent-soft);
+}
+.figx__chip--ghost {
+  border-color: transparent;
+  color: var(--figx-faint);
+  margin-left: auto;
+}
+.figx__chip--ghost:hover { background: transparent; border-color: transparent; color: var(--figx-fg); }
+
+.figx__group + .figx__group { margin-top: 12px; }
+.figx__group-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--figx-faint);
+  margin: 0 0 7px;
+}
+
+.figx__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px 20px;
+}
+
+.figx__control { display: block; min-width: 0; }
+.figx__control-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  min-height: 16px;
+}
+.figx__label { font-size: 11px; color: var(--figx-muted); line-height: 1.2; }
+.figx__value {
+  font-family: var(--figx-font-mono);
+  font-size: 11px;
+  color: var(--figx-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.figx__unit { opacity: .65; margin-left: 2px; }
+
+/* range: the filled portion is painted from --pct, written by React */
+.figx__range {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 14px;
+  background: transparent;
+  cursor: pointer;
+  margin: 0;
+}
+.figx__range::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--figx-accent) 0 var(--pct, 50%),
+    var(--figx-track) var(--pct, 50%) 100%
+  );
+}
+.figx__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 11px;
+  height: 11px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--figx-fg);
+  border: none;
+  box-shadow: 0 0 0 2px var(--figx-bg);
+}
+.figx__range::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--figx-track);
+}
+.figx__range::-moz-range-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--figx-accent);
+}
+.figx__range::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--figx-fg);
+  border: none;
+}
+.figx__range:focus { outline: none; }
+.figx__range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--figx-accent-soft); }
+.figx__range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--figx-accent-soft); }
+
+.figx__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  padding: 5px 10px;
+  border: 1px solid var(--figx-border);
+  border-radius: var(--figx-radius-sm);
+  background: transparent;
+  color: var(--figx-faint);
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background-color .15s;
+}
+.figx__toggle:hover { color: var(--figx-fg); border-color: var(--figx-border-strong); }
+.figx__toggle[aria-pressed="true"] {
+  color: var(--figx-accent-fg);
+  border-color: rgba(251, 146, 60, 0.45);
+  background: var(--figx-accent-soft);
+}
+.figx__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--figx-track);
+  flex: none;
+}
+.figx__toggle[aria-pressed="true"] .figx__dot { background: var(--figx-accent); }
+
+/* listbox — replaces the native select, whose popup the OS themes itself */
+.figx__combo { display: block; position: relative; }
+
+.figx__combo-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  font-family: inherit;
+  font-size: 11px;
+  text-align: left;
+  color: var(--figx-fg);
+  background: rgba(2, 6, 23, 0.5);
+  border: 1px solid var(--figx-border);
+  border-radius: var(--figx-radius-sm);
+  padding: 5px 7px;
+  cursor: pointer;
+  transition: border-color .15s, background-color .15s;
+}
+.figx__combo-btn:hover { border-color: var(--figx-border-strong); }
+.figx__combo-btn[aria-expanded="true"] {
+  border-color: rgba(251, 146, 60, 0.5);
+  background: rgba(2, 6, 23, 0.75);
+}
+.figx__combo-btn:focus-visible { outline: 2px solid var(--figx-accent-soft); outline-offset: 1px; }
+
+.figx__combo-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.figx__combo-caret { width: 9px; height: 6px; flex: none; color: var(--figx-faint); }
+.figx__combo-btn[aria-expanded="true"] .figx__combo-caret { color: var(--figx-accent-fg); }
+
+.figx__combo-list {
+  position: fixed;
+  z-index: 60;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  overflow-y: auto;
+  background: #0d1425;
+  border: 1px solid var(--figx-border-strong);
+  border-radius: var(--figx-radius-sm);
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.65);
+}
+.figx__combo-list:focus { outline: none; }
+
+.figx__combo-opt {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--figx-muted);
+  padding: 5px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.figx__combo-opt--active { background: rgba(148, 163, 184, 0.12); color: var(--figx-fg); }
+.figx__combo-opt--selected { color: var(--figx-accent-fg); }
+.figx__combo-tick { width: 8px; flex: none; text-align: center; }
+
+.figx__toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ── authoring error ─────────────────────────────────────────────────────── */
+
+.figx__error {
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(127, 29, 29, 0.16);
+  border-radius: var(--figx-radius);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #fecaca;
+}
+.figx__error strong { color: #fca5a5; font-weight: 600; }
+.figx__error ul { margin: 6px 0 0; padding-left: 18px; }
+.figx__error p { margin: 8px 0 0; color: var(--figx-muted); }
+.figx__error code {
+  font-family: var(--figx-font-mono);
+  font-size: 0.92em;
+  color: var(--figx-accent-fg);
+}
+
+/* visually hidden, but still read out */
+.figx__sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── caption ─────────────────────────────────────────────────────────────── */
+
+.figx__caption {
+  margin: 12px 2px 0;
+  font-family: var(--figx-font-caption);
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--figx-faint);
+  text-align: center;
+}
+
+/* KaTeX inside labels should not inherit the italic caption sizing */
+.figx__label .katex,
+.figx__value .katex { font-size: 1em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .figx__btn, .figx__chip, .figx__toggle, .figx__speed { transition: none; }
+}

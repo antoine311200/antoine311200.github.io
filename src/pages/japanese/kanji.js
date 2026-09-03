@@ -316,12 +316,14 @@ const KanjiTrainer = () => {
             {renderFront()}
 
             {/* Pagination */}
-            <button onClick={previousKanji} className={`${history.length > 0 && index > 0 ? 'h-full' : 'hidden'} fixed top-1/3 left-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
+            <div className="absolute top-5 left-5 text-white text-sm lg:text-base">
+            <button onClick={previousKanji} className={`${history.length > 0 && index > 0 ? 'h-full' : 'hidden'} fixed w-1/5 left-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
                 <img src="light_chevron_left.svg" />
             </button>
-            <button onClick={nextKanji} className={`${index < history.length - 1 ? 'h-full' : 'hidden'} fixed top-1/3 right-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
+            <button onClick={nextKanji} className={`${index < history.length - 1 ? 'h-full' : 'hidden'} fixed right-0 w-1/5 text-gray-600 hover:text-gray-800 flex justify-center`}>
                 <img src="light_chevron_right.svg" />
             </button>
+            </div>
 
             {/* Content */}
 

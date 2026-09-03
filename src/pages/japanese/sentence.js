@@ -112,7 +112,7 @@ const SentenceTrainer = () => {
             <div className="flex flex-col items-center gap-10">
                 <h1 className="fixed px-10 text-2xl lg:text-4xl text-white text-center">{sentence}</h1>
                 {/* {sentence != furiganaSentence && isToggledSentence && <h1 className="fixed text-3xl text-white text-center top-40">{furiganaSentence}</h1>} */}
-                {isToggledSentence && <h1 className="fixed text-xl lg:text-3xl text-white text-center bottom-[50%] px-8">{meaningSentence}</h1>}
+                {isToggledSentence && <h1 className="fixed text-xl lg:text-3xl text-white text-center bottom-0 lg:bottom-[50%] px-8">{meaningSentence}</h1>}
                 {/* Add level badge */}
                 <div className="absolute top-[22%]">
                     <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">{levelSentence}</span>
@@ -138,12 +138,14 @@ const SentenceTrainer = () => {
         <div>
 
             {/* Pagination */}
-            <button onClick={previousSentence} className={`${history.length > 0 && index > 0 ? 'h-full' : 'hidden'} fixed top-1/3 left-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
-                <img src="light_chevron_left.svg" />
-            </button>
-            <button onClick={nextSentence} className={`${index < history.length - 1 ? 'h-full' : 'hidden'} fixed top-1/3 right-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
-                <img src="light_chevron_right.svg" />
-            </button>
+            <div className="absolute top-5 left-5 text-white text-sm lg:text-base">
+                <button onClick={previousSentence} className={`${history.length > 0 && index > 0 ? 'h-full' : 'hidden'} w-1/6 fixed left-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
+                    <img src="light_chevron_left.svg" />
+                </button>
+                <button onClick={nextSentence} className={`${index < history.length - 1 ? 'h-full' : 'hidden'} w-1/6 fixed right-0 text-gray-600 hover:text-gray-800 flex justify-center`}>
+                    <img src="light_chevron_right.svg" />
+                </button>
+            </div>
 
             {/* Content */}
             {isJP2ENSentence ? renderJapanese2EnglishSentence() : renderEnglish2JapaneseSentence()}
