@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-04T11:31:44.192Z",
+  "generatedAt": "2026-09-05T10:47:15.628Z",
   "source": "arxiv",
   "topics": [
     {
@@ -25,6 +25,11 @@
   ],
   "runs": [
     {
+      "file": "2026-09-05.json",
+      "date": "2026-09-05",
+      "count": 70
+    },
+    {
       "file": "2026-09-04.json",
       "date": "2026-09-04",
       "count": 80
@@ -39,13 +44,13 @@
     {
       "topic": "Optimal Transport",
       "ok": true,
-      "count": 29,
+      "count": 22,
       "query": "(ti:\"optimal transport\" OR abs:\"optimal transport\" OR ti:wasserstein OR abs:wasserstein OR ti:sinkhorn OR abs:sinkhorn OR ti:\"schrodinger bridge\" OR abs:\"schrodinger bridge\" OR ti:gromov-wasserstein OR abs:gromov-wasserstein OR ti:\"entropic regularization\" OR abs:\"entropic regularization\") AND (cat:math.OC OR cat:math.PR OR cat:stat.ML OR cat:cs.LG)"
     },
     {
       "topic": "Diffusion & Generative Models",
       "ok": true,
-      "count": 28,
+      "count": 27,
       "query": "(ti:\"diffusion model\" OR abs:\"diffusion model\" OR ti:\"score-based generative\" OR abs:\"score-based generative\" OR ti:\"denoising diffusion\" OR abs:\"denoising diffusion\" OR ti:\"flow matching\" OR abs:\"flow matching\" OR ti:\"stochastic interpolant\" OR abs:\"stochastic interpolant\" OR ti:\"score matching\" OR abs:\"score matching\") AND (cat:cs.LG OR cat:stat.ML)"
     },
     {
@@ -57,7 +62,7 @@
     {
       "topic": "Mathematical Finance",
       "ok": true,
-      "count": 12,
+      "count": 10,
       "query": "(ti:\"option pricing\" OR abs:\"option pricing\" OR ti:\"stochastic volatility\" OR abs:\"stochastic volatility\" OR ti:\"rough volatility\" OR abs:\"rough volatility\" OR ti:\"deep hedging\" OR abs:\"deep hedging\" OR ti:\"limit order book\" OR abs:\"limit order book\" OR ti:\"market making\" OR abs:\"market making\" OR ti:\"portfolio optimization\" OR abs:\"portfolio optimization\" OR ti:calibration OR abs:calibration) AND (cat:q-fin.MF OR cat:q-fin.PR OR cat:q-fin.CP OR cat:q-fin.TR OR cat:q-fin.RM OR cat:q-fin.PM)"
     }
   ]
