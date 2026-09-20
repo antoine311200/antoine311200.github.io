@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T11:15:54.428Z",
+  "generatedAt": "2026-09-20T11:38:56.893Z",
   "source": "arxiv",
   "topics": [
     {
@@ -24,6 +24,11 @@
     }
   ],
   "runs": [
+    {
+      "file": "2026-09-20.json",
+      "date": "2026-09-20",
+      "count": 80
+    },
     {
       "file": "2026-09-19.json",
       "date": "2026-09-19",
@@ -94,13 +99,13 @@
     {
       "topic": "Optimal Transport",
       "ok": true,
-      "count": 42,
+      "count": 36,
       "query": "(ti:\"optimal transport\" OR abs:\"optimal transport\" OR ti:wasserstein OR abs:wasserstein OR ti:sinkhorn OR abs:sinkhorn OR ti:\"schrodinger bridge\" OR abs:\"schrodinger bridge\" OR ti:gromov-wasserstein OR abs:gromov-wasserstein OR ti:\"entropic regularization\" OR abs:\"entropic regularization\") AND (cat:math.OC OR cat:math.PR OR cat:stat.ML OR cat:cs.LG)"
     },
     {
       "topic": "Diffusion & Generative Models",
       "ok": true,
-      "count": 29,
+      "count": 26,
       "query": "(ti:\"diffusion model\" OR abs:\"diffusion model\" OR ti:\"score-based generative\" OR abs:\"score-based generative\" OR ti:\"denoising diffusion\" OR abs:\"denoising diffusion\" OR ti:\"flow matching\" OR abs:\"flow matching\" OR ti:\"stochastic interpolant\" OR abs:\"stochastic interpolant\" OR ti:\"score matching\" OR abs:\"score matching\") AND (cat:cs.LG OR cat:stat.ML)"
     },
     {
