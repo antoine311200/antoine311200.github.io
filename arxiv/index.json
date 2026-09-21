@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T11:38:56.893Z",
+  "generatedAt": "2026-09-21T13:04:17.166Z",
   "source": "arxiv",
   "topics": [
     {
@@ -24,6 +24,11 @@
     }
   ],
   "runs": [
+    {
+      "file": "2026-09-21.json",
+      "date": "2026-09-21",
+      "count": 81
+    },
     {
       "file": "2026-09-20.json",
       "date": "2026-09-20",
@@ -99,7 +104,7 @@
     {
       "topic": "Optimal Transport",
       "ok": true,
-      "count": 36,
+      "count": 33,
       "query": "(ti:\"optimal transport\" OR abs:\"optimal transport\" OR ti:wasserstein OR abs:wasserstein OR ti:sinkhorn OR abs:sinkhorn OR ti:\"schrodinger bridge\" OR abs:\"schrodinger bridge\" OR ti:gromov-wasserstein OR abs:gromov-wasserstein OR ti:\"entropic regularization\" OR abs:\"entropic regularization\") AND (cat:math.OC OR cat:math.PR OR cat:stat.ML OR cat:cs.LG)"
     },
     {
@@ -117,7 +122,7 @@
     {
       "topic": "Mathematical Finance",
       "ok": true,
-      "count": 3,
+      "count": 6,
       "query": "(ti:\"option pricing\" OR abs:\"option pricing\" OR ti:\"stochastic volatility\" OR abs:\"stochastic volatility\" OR ti:\"rough volatility\" OR abs:\"rough volatility\" OR ti:\"deep hedging\" OR abs:\"deep hedging\" OR ti:\"limit order book\" OR abs:\"limit order book\" OR ti:\"market making\" OR abs:\"market making\" OR ti:\"portfolio optimization\" OR abs:\"portfolio optimization\" OR ti:calibration OR abs:calibration) AND (cat:q-fin.MF OR cat:q-fin.PR OR cat:q-fin.CP OR cat:q-fin.TR OR cat:q-fin.RM OR cat:q-fin.PM)"
     }
   ]
