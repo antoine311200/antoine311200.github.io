@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-22T11:54:36.492Z",
+  "generatedAt": "2026-09-23T11:53:22.410Z",
   "source": "arxiv",
   "topics": [
     {
@@ -24,6 +24,11 @@
     }
   ],
   "runs": [
+    {
+      "file": "2026-09-23.json",
+      "date": "2026-09-23",
+      "count": 96
+    },
     {
       "file": "2026-09-22.json",
       "date": "2026-09-22",
@@ -109,7 +114,7 @@
     {
       "topic": "Optimal Transport",
       "ok": true,
-      "count": 37,
+      "count": 33,
       "query": "(ti:\"optimal transport\" OR abs:\"optimal transport\" OR ti:wasserstein OR abs:wasserstein OR ti:sinkhorn OR abs:sinkhorn OR ti:\"schrodinger bridge\" OR abs:\"schrodinger bridge\" OR ti:gromov-wasserstein OR abs:gromov-wasserstein OR ti:\"entropic regularization\" OR abs:\"entropic regularization\") AND (cat:math.OC OR cat:math.PR OR cat:stat.ML OR cat:cs.LG)"
     },
     {
@@ -121,13 +126,13 @@
     {
       "topic": "Stochastic Analysis & SDEs",
       "ok": true,
-      "count": 22,
+      "count": 24,
       "query": "(ti:\"stochastic differential equation\" OR abs:\"stochastic differential equation\" OR ti:\"neural sde\" OR abs:\"neural sde\" OR ti:\"rough path\" OR abs:\"rough path\" OR ti:\"signature kernel\" OR abs:\"signature kernel\" OR ti:mckean-vlasov OR abs:mckean-vlasov OR ti:\"backward stochastic differential\" OR abs:\"backward stochastic differential\" OR ti:\"stochastic control\" OR abs:\"stochastic control\") AND (cat:math.PR OR cat:math.OC OR cat:stat.ML OR cat:cs.LG)"
     },
     {
       "topic": "Mathematical Finance",
       "ok": true,
-      "count": 6,
+      "count": 10,
       "query": "(ti:\"option pricing\" OR abs:\"option pricing\" OR ti:\"stochastic volatility\" OR abs:\"stochastic volatility\" OR ti:\"rough volatility\" OR abs:\"rough volatility\" OR ti:\"deep hedging\" OR abs:\"deep hedging\" OR ti:\"limit order book\" OR abs:\"limit order book\" OR ti:\"market making\" OR abs:\"market making\" OR ti:\"portfolio optimization\" OR abs:\"portfolio optimization\" OR ti:calibration OR abs:calibration) AND (cat:q-fin.MF OR cat:q-fin.PR OR cat:q-fin.CP OR cat:q-fin.TR OR cat:q-fin.RM OR cat:q-fin.PM)"
     }
   ]
