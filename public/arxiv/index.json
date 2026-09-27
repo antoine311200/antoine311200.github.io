@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T11:36:29.524Z",
+  "generatedAt": "2026-09-27T12:15:16.928Z",
   "source": "arxiv",
   "topics": [
     {
@@ -24,6 +24,11 @@
     }
   ],
   "runs": [
+    {
+      "file": "2026-09-27.json",
+      "date": "2026-09-27",
+      "count": 73
+    },
     {
       "file": "2026-09-26.json",
       "date": "2026-09-26",
@@ -129,19 +134,19 @@
     {
       "topic": "Optimal Transport",
       "ok": true,
-      "count": 29,
+      "count": 26,
       "query": "(ti:\"optimal transport\" OR abs:\"optimal transport\" OR ti:wasserstein OR abs:wasserstein OR ti:sinkhorn OR abs:sinkhorn OR ti:\"schrodinger bridge\" OR abs:\"schrodinger bridge\" OR ti:gromov-wasserstein OR abs:gromov-wasserstein OR ti:\"entropic regularization\" OR abs:\"entropic regularization\") AND (cat:math.OC OR cat:math.PR OR cat:stat.ML OR cat:cs.LG)"
     },
     {
       "topic": "Diffusion & Generative Models",
       "ok": true,
-      "count": 34,
+      "count": 30,
       "query": "(ti:\"diffusion model\" OR abs:\"diffusion model\" OR ti:\"score-based generative\" OR abs:\"score-based generative\" OR ti:\"denoising diffusion\" OR abs:\"denoising diffusion\" OR ti:\"flow matching\" OR abs:\"flow matching\" OR ti:\"stochastic interpolant\" OR abs:\"stochastic interpolant\" OR ti:\"score matching\" OR abs:\"score matching\") AND (cat:cs.LG OR cat:stat.ML)"
     },
     {
       "topic": "Stochastic Analysis & SDEs",
       "ok": true,
-      "count": 17,
+      "count": 16,
       "query": "(ti:\"stochastic differential equation\" OR abs:\"stochastic differential equation\" OR ti:\"neural sde\" OR abs:\"neural sde\" OR ti:\"rough path\" OR abs:\"rough path\" OR ti:\"signature kernel\" OR abs:\"signature kernel\" OR ti:mckean-vlasov OR abs:mckean-vlasov OR ti:\"backward stochastic differential\" OR abs:\"backward stochastic differential\" OR ti:\"stochastic control\" OR abs:\"stochastic control\") AND (cat:math.PR OR cat:math.OC OR cat:stat.ML OR cat:cs.LG)"
     },
     {
