@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-04T12:36:24.368Z",
+  "generatedAt": "2026-10-05T15:03:07.322Z",
   "source": "arxiv",
   "topics": [
     {
@@ -24,6 +24,11 @@
     }
   ],
   "runs": [
+    {
+      "file": "2026-10-05.json",
+      "date": "2026-10-05",
+      "count": 182
+    },
     {
       "file": "2026-10-04.json",
       "date": "2026-10-04",
@@ -169,7 +174,7 @@
     {
       "topic": "Optimal Transport",
       "ok": true,
-      "count": 57,
+      "count": 56,
       "query": "(ti:\"optimal transport\" OR abs:\"optimal transport\" OR ti:wasserstein OR abs:wasserstein OR ti:sinkhorn OR abs:sinkhorn OR ti:\"schrodinger bridge\" OR abs:\"schrodinger bridge\" OR ti:gromov-wasserstein OR abs:gromov-wasserstein OR ti:\"entropic regularization\" OR abs:\"entropic regularization\") AND (cat:math.OC OR cat:math.PR OR cat:stat.ML OR cat:cs.LG)"
     },
     {
@@ -181,7 +186,7 @@
     {
       "topic": "Stochastic Analysis & SDEs",
       "ok": true,
-      "count": 14,
+      "count": 18,
       "query": "(ti:\"stochastic differential equation\" OR abs:\"stochastic differential equation\" OR ti:\"neural sde\" OR abs:\"neural sde\" OR ti:\"rough path\" OR abs:\"rough path\" OR ti:\"signature kernel\" OR abs:\"signature kernel\" OR ti:mckean-vlasov OR abs:mckean-vlasov OR ti:\"backward stochastic differential\" OR abs:\"backward stochastic differential\" OR ti:\"stochastic control\" OR abs:\"stochastic control\") AND (cat:math.PR OR cat:math.OC OR cat:stat.ML OR cat:cs.LG)"
     },
     {
