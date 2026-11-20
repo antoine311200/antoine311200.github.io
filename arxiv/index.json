@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-19T15:57:46.182Z",
+  "generatedAt": "2026-11-20T15:39:06.898Z",
   "source": "arxiv",
   "topics": [
     {
@@ -24,6 +24,11 @@
     }
   ],
   "runs": [
+    {
+      "file": "2026-11-20.json",
+      "date": "2026-11-20",
+      "count": 126
+    },
     {
       "file": "2026-11-19.json",
       "date": "2026-11-19",
@@ -318,28 +323,26 @@
       "file": "2026-09-18.json",
       "date": "2026-09-18",
       "count": 103
-    },
-    {
-      "file": "2026-09-17.json",
-      "date": "2026-09-17",
-      "count": 108
     }
   ],
   "report": [
     {
       "topic": "Optimal Transport",
-      "ok": false,
-      "message": "arXiv returned HTTP 429"
+      "ok": true,
+      "count": 49,
+      "query": "(ti:\"optimal transport\" OR abs:\"optimal transport\" OR ti:wasserstein OR abs:wasserstein OR ti:sinkhorn OR abs:sinkhorn OR ti:\"schrodinger bridge\" OR abs:\"schrodinger bridge\" OR ti:gromov-wasserstein OR abs:gromov-wasserstein OR ti:\"entropic regularization\" OR abs:\"entropic regularization\") AND (cat:math.OC OR cat:math.PR OR cat:stat.ML OR cat:cs.LG)"
     },
     {
       "topic": "Diffusion & Generative Models",
-      "ok": false,
-      "message": "arXiv returned HTTP 429"
+      "ok": true,
+      "count": 58,
+      "query": "(ti:\"diffusion model\" OR abs:\"diffusion model\" OR ti:\"score-based generative\" OR abs:\"score-based generative\" OR ti:\"denoising diffusion\" OR abs:\"denoising diffusion\" OR ti:\"flow matching\" OR abs:\"flow matching\" OR ti:\"stochastic interpolant\" OR abs:\"stochastic interpolant\" OR ti:\"score matching\" OR abs:\"score matching\") AND (cat:cs.LG OR cat:stat.ML)"
     },
     {
       "topic": "Stochastic Analysis & SDEs",
-      "ok": false,
-      "message": "arXiv returned HTTP 503"
+      "ok": true,
+      "count": 16,
+      "query": "(ti:\"stochastic differential equation\" OR abs:\"stochastic differential equation\" OR ti:\"neural sde\" OR abs:\"neural sde\" OR ti:\"rough path\" OR abs:\"rough path\" OR ti:\"signature kernel\" OR abs:\"signature kernel\" OR ti:mckean-vlasov OR abs:mckean-vlasov OR ti:\"backward stochastic differential\" OR abs:\"backward stochastic differential\" OR ti:\"stochastic control\" OR abs:\"stochastic control\") AND (cat:math.PR OR cat:math.OC OR cat:stat.ML OR cat:cs.LG)"
     },
     {
       "topic": "Mathematical Finance",
